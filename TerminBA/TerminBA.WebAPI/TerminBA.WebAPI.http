@@ -1,0 +1,6 @@
+@TerminBA.WebAPI_HostAddress = http://localhost:5078
+
+GET {{TerminBA.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
