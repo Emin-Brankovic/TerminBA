@@ -1,4 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+using TerminBA.Services;using TerminBA.Services.Database;
+
+
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Add services to the container.
 
@@ -7,7 +13,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("db");
+builder.Services.AddDbContext<TerminBaContext>(options =>
+    options.UseSqlServer(connectionString));
+
 var app = builder.Build();
+
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
