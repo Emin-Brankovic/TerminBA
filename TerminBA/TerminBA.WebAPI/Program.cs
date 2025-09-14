@@ -1,10 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-using TerminBA.Services;using TerminBA.Services.Database;
+using TerminBA.Services;
+using TerminBA.Services.Database;
+using TerminBA.Services.Interfaces;
+using TerminBA.Services.Service;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 
+builder.Services.AddTransient<ICityService, CityService>();
 
 // Add services to the container.
 
@@ -16,6 +20,7 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("db");
 builder.Services.AddDbContext<TerminBaContext>(options =>
     options.UseSqlServer(connectionString));
+
 
 var app = builder.Build();
 

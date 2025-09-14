@@ -16,7 +16,7 @@ namespace TerminBA.Services.Database
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
         [Phone]
