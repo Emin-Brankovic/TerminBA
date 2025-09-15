@@ -5,14 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerminBA.Services.Database
+namespace TerminBA.Models.Request
 {
-    public class TurfType
+    public class SportInserRequest
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required]
-        public string? Name { get; set; }
+        [MaxLength(50)]
+        public string? SportName { get; set; }
     }
 }

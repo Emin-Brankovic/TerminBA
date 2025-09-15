@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace TerminBA.Services.Service
     public abstract class BaseService<T, TEntity, TSearch> : IBaseService<T, TSearch> where T : class where TSearch : BaseSearchObject where TEntity : class
     {
         private readonly TerminBaContext _context;
+        protected readonly IMapper _mapper;
 
-        public BaseService(TerminBaContext context)
+        public BaseService(TerminBaContext context,IMapper mapper)
         {
             this._context = context;
+            this._mapper = mapper;
         }
 
         public virtual async Task<PagedResult<T>> GetAsync(TSearch search)
@@ -62,7 +65,7 @@ namespace TerminBA.Services.Service
 
         protected virtual T MapToResponse(TEntity entity)
         {
-            throw new NotImplementedException();
+            return _mapper.Map<T>(entity);
         }
     }
 }

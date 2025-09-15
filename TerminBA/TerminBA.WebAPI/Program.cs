@@ -1,3 +1,4 @@
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using TerminBA.Services;
 using TerminBA.Services.Database;
@@ -9,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddTransient<ICityService, CityService>();
+builder.Services.AddTransient<ISportService, SportService>();
+builder.Services.AddTransient<IAmenityService, AmenityService>();
+builder.Services.AddTransient<ITurfTypeService, TurfTypeService>();
+builder.Services.AddTransient<IRoleService, RoleService>();
 
 // Add services to the container.
 
@@ -16,6 +21,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMapster();
 
 var connectionString = builder.Configuration.GetConnectionString("db");
 builder.Services.AddDbContext<TerminBaContext>(options =>

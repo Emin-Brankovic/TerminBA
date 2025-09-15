@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MapsterMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace TerminBA.Services.Service
     {
         protected readonly TerminBaContext _context;
 
-        public  BaseCRUDService(TerminBaContext context) : base(context)
+        public  BaseCRUDService(TerminBaContext context,IMapper mapper) : base(context,mapper)
         {
             this._context = context;
         }
@@ -22,7 +23,7 @@ namespace TerminBA.Services.Service
         {
             TEntity entity = new TEntity();
 
-            entity = MapInsertToEntity(request);
+            entity = MapInsertToEntity(entity, request);
 
             await BeforeInsert(entity, request);
 
@@ -43,7 +44,7 @@ namespace TerminBA.Services.Service
 
             await BeforeUpdate(entity,request);
 
-            entity = MapUpdateToEntity(request);
+            entity = MapUpdateToEntity(entity,request);
 
             await _context.SaveChangesAsync();
 
@@ -69,14 +70,14 @@ namespace TerminBA.Services.Service
 
         }
 
-        protected virtual TEntity MapInsertToEntity(TInsert request)
+        protected virtual TEntity MapInsertToEntity(TEntity entity,TInsert request)
         {
-            throw new NotImplementedException();
+            return _mapper.Map(request, entity);
         }
 
-        protected virtual TEntity MapUpdateToEntity (TUpdate request)
+        protected virtual TEntity MapUpdateToEntity (TEntity entity,TUpdate request)
         {
-            throw new NotImplementedException();
+            return _mapper.Map(request, entity);
         }
 
 

@@ -9,12 +9,8 @@ namespace TerminBA.Models.Model
 {
     public class CityResponse
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(100)]
-        [MinLength(2)]
         public required string Name { get; set; }
 
         //public ICollection<SportCenter> SportCenters { get; set; } = new List<SportCenter>();

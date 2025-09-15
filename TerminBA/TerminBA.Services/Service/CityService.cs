@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MapsterMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -15,33 +16,8 @@ namespace TerminBA.Services.Service
     public class CityService : BaseCRUDService<CityResponse,City,CitySearchObject,CityInsertRequest,CityUpdateRequest>, ICityService
     {
 
-        public CityService(TerminBaContext context): base(context)
+        public CityService(TerminBaContext context,IMapper mapper): base(context, mapper)
         {
-        }
-
-        protected override CityResponse MapToResponse(City entity)
-        {
-            return new CityResponse
-            {
-                Id=entity.Id,
-                Name = entity.Name
-            };
-        }
-
-        protected override City MapInsertToEntity(CityInsertRequest request)
-        {
-            return new City
-            {
-                Name = request.Name
-            };
-        }
-
-        protected override City MapUpdateToEntity(CityUpdateRequest request)
-        {
-            return new City
-            {
-                Name = request.Name
-            };
         }
 
         public override IQueryable<City> ApplyFilter(IQueryable<City> query, CitySearchObject search)
