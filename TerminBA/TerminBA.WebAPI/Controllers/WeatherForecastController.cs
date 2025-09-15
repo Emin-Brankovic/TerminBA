@@ -28,54 +28,5 @@ namespace TerminBA.WebAPI.Controllers
             this.cityService = cityService;
         }
 
-        [HttpGet(Name = "GetCities")]
-        public async Task<PagedResult<CityResponse>> GetCities([FromQuery] CitySearchObject searchObject)
-        {
-            return await cityService.GetAsync(searchObject);
-        }
-
-        [HttpGet("GetCity/{id}")]
-        public async Task<ActionResult<CityResponse>> GetCityById(int id)
-        {
-            var city = await cityService.GetByIdAsync(id);
-
-            if (city == null)
-                return BadRequest();
-
-            return city;
-        }
-
-        [HttpPost("CreateCity")]
-        public async Task<ActionResult<CityResponse>> AddCity([FromBody] CityInsertRequest request)
-        {
-            var city = await cityService.CreateAsync(request);
-
-            if (city == null)
-                return BadRequest();
-
-            return city;
-        }
-
-        [HttpPut("UpdateCity/{id}")]
-        public async Task<ActionResult<CityResponse>> UpdateCity(int id,[FromBody] CityUpdateRequest request)
-        {
-            var city = await cityService.UpdateAsync(id,request);
-
-            if (city == null)
-                return BadRequest();
-
-            return city;
-        }
-
-        [HttpDelete("DeleteCity/{id}")]
-        public async Task<ActionResult<bool>> DeleteCity(int id)
-        {
-            var response = await cityService.DeleteAsync(id);
-
-            if (!response)
-                return BadRequest();
-
-            return response;
-        }
     }
 }

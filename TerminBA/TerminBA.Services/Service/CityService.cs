@@ -14,11 +14,9 @@ namespace TerminBA.Services.Service
 {
     public class CityService : BaseCRUDService<CityResponse,City,CitySearchObject,CityInsertRequest,CityUpdateRequest>, ICityService
     {
-        private readonly TerminBaContext _context;
 
         public CityService(TerminBaContext context): base(context)
         {
-            this._context = context;
         }
 
         protected override CityResponse MapToResponse(City entity)
@@ -49,7 +47,7 @@ namespace TerminBA.Services.Service
         public override IQueryable<City> ApplyFilter(IQueryable<City> query, CitySearchObject search)
         {
             if(!string.IsNullOrEmpty(search.CityName))
-                query = query.Where(c => c.Name.ToLower() == search.CityName.ToLower());
+                query = query.Where(c => c.Name.ToLower().Contains(search.CityName.ToLower()));
 
             return query;
         }

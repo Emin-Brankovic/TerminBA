@@ -11,7 +11,7 @@ namespace TerminBA.Services.Service
 {
     public abstract class BaseCRUDService<T, TEntity, TSearch, TInsert, TUpdate> : BaseService<T, TEntity, TSearch> where T : class where TEntity : class,new() where TSearch : BaseSearchObject
     {
-        private readonly TerminBaContext _context;
+        protected readonly TerminBaContext _context;
 
         public  BaseCRUDService(TerminBaContext context) : base(context)
         {
