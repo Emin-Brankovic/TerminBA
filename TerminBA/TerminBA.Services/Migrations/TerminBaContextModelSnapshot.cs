@@ -243,7 +243,6 @@ namespace TerminBA.Services.Migrations
                         .HasColumnType("time");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -327,6 +326,9 @@ namespace TerminBA.Services.Migrations
                         .HasMaxLength(180)
                         .HasColumnType("nvarchar(180)");
 
+                    b.Property<string>("InstagramAccount")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsEquipmentProvided")
                         .HasColumnType("bit");
 
@@ -335,19 +337,26 @@ namespace TerminBA.Services.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("RoleId");
 
                     b.ToTable("SportCenters");
                 });
@@ -411,18 +420,21 @@ namespace TerminBA.Services.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<byte[]>("PasswordHash")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("PasswordSalt")
+                    b.Property<string>("PasswordSalt")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SportCenterId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -440,6 +452,10 @@ namespace TerminBA.Services.Migrations
                     b.HasIndex("Email");
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("SportCenterId");
+
+                    b.HasIndex("Username");
 
                     b.ToTable("Users");
                 });
@@ -640,15 +656,15 @@ namespace TerminBA.Services.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("TerminBA.Services.Database.User", "User")
-                        .WithOne("SportCenter")
-                        .HasForeignKey("TerminBA.Services.Database.SportCenter", "UserId")
+                    b.HasOne("TerminBA.Services.Database.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("City");
 
-                    b.Navigation("User");
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.User", b =>
@@ -665,9 +681,15 @@ namespace TerminBA.Services.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TerminBA.Services.Database.SportCenter", "SportCenter")
+                        .WithMany()
+                        .HasForeignKey("SportCenterId");
+
                     b.Navigation("City");
 
                     b.Navigation("Role");
+
+                    b.Navigation("SportCenter");
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.UserReview", b =>
@@ -736,8 +758,6 @@ namespace TerminBA.Services.Migrations
                     b.Navigation("Reservations");
 
                     b.Navigation("ReviewsReceived");
-
-                    b.Navigation("SportCenter");
 
                     b.Navigation("UserReviewsGiven");
                 });

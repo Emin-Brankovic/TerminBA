@@ -129,6 +129,9 @@ namespace TerminBA.Services.Database
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace TerminBA.Services.Database
         [MaxLength(100)]
         public string? Status { get; set; }
 
-        public ICollection<Post> Posts { get; set; } = new List<Post>();
+        public ICollection<Post>? Posts { get; set; } = new List<Post>();
 
         [ForeignKey(nameof(ChosenSport))]
         public int? ChosenSportId { get; set; }

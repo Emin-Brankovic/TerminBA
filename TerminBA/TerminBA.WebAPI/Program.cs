@@ -17,6 +17,7 @@ builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IPostService, PostService>();
 builder.Services.AddTransient<IWorkingHoursService, WorkingHoursService>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 // Add services to the container.
 

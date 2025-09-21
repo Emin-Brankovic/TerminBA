@@ -78,45 +78,6 @@ namespace TerminBA.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Age = table.Column<int>(type: "int", nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    InstagramAccount = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    BirthDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    CityId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Cities_CityId",
-                        column: x => x.CityId,
-                        principalTable: "Cities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Users_Roles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SportCenters",
                 columns: table => new
                 {
@@ -126,10 +87,13 @@ namespace TerminBA.Services.Migrations
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CityId = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InstagramAccount = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsEquipmentProvided = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    RoleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -141,39 +105,11 @@ namespace TerminBA.Services.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_SportCenters_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
+                        name: "FK_SportCenters_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserReviews",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RatingNumber = table.Column<int>(type: "int", nullable: false),
-                    RatingDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: true),
-                    ReviewerId = table.Column<int>(type: "int", nullable: true),
-                    ReviewedId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserReviews", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserReviews_Users_ReviewedId",
-                        column: x => x.ReviewedId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_UserReviews_Users_ReviewerId",
-                        column: x => x.ReviewerId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -258,6 +194,51 @@ namespace TerminBA.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Age = table.Column<int>(type: "int", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InstagramAccount = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BirthDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    CityId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SportCenterId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Cities_CityId",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Users_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Users_SportCenters_SportCenterId",
+                        column: x => x.SportCenterId,
+                        principalTable: "SportCenters",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WorkingHours",
                 columns: table => new
                 {
@@ -278,6 +259,30 @@ namespace TerminBA.Services.Migrations
                         name: "FK_WorkingHours_SportCenters_SportCenterId",
                         column: x => x.SportCenterId,
                         principalTable: "SportCenters",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FacilitySports",
+                columns: table => new
+                {
+                    AvailableSportsId = table.Column<int>(type: "int", nullable: false),
+                    FacilitiesId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FacilitySports", x => new { x.AvailableSportsId, x.FacilitiesId });
+                    table.ForeignKey(
+                        name: "FK_FacilitySports_Facilities_FacilitiesId",
+                        column: x => x.FacilitiesId,
+                        principalTable: "Facilities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FacilitySports_Sports_AvailableSportsId",
+                        column: x => x.AvailableSportsId,
+                        principalTable: "Sports",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -317,30 +322,6 @@ namespace TerminBA.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FacilitySports",
-                columns: table => new
-                {
-                    AvailableSportsId = table.Column<int>(type: "int", nullable: false),
-                    FacilitiesId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FacilitySports", x => new { x.AvailableSportsId, x.FacilitiesId });
-                    table.ForeignKey(
-                        name: "FK_FacilitySports_Facilities_FacilitiesId",
-                        column: x => x.FacilitiesId,
-                        principalTable: "Facilities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_FacilitySports_Sports_AvailableSportsId",
-                        column: x => x.AvailableSportsId,
-                        principalTable: "Sports",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Reservations",
                 columns: table => new
                 {
@@ -351,7 +332,7 @@ namespace TerminBA.Services.Migrations
                     ReservationDate = table.Column<DateOnly>(type: "date", nullable: false),
                     StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ChosenSportId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -372,6 +353,34 @@ namespace TerminBA.Services.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserReviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RatingNumber = table.Column<int>(type: "int", nullable: false),
+                    RatingDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(180)", maxLength: 180, nullable: true),
+                    ReviewerId = table.Column<int>(type: "int", nullable: true),
+                    ReviewedId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserReviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserReviews_Users_ReviewedId",
+                        column: x => x.ReviewedId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserReviews_Users_ReviewerId",
+                        column: x => x.ReviewerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -475,10 +484,9 @@ namespace TerminBA.Services.Migrations
                 column: "CityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SportCenters_UserId",
+                name: "IX_SportCenters_RoleId",
                 table: "SportCenters",
-                column: "UserId",
-                unique: true);
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SportCenterSports_SportCentarsId",
@@ -516,6 +524,16 @@ namespace TerminBA.Services.Migrations
                 name: "IX_Users_RoleId",
                 table: "Users",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_SportCenterId",
+                table: "Users",
+                column: "SportCenterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkingHours_SportCenterId",
@@ -560,13 +578,13 @@ namespace TerminBA.Services.Migrations
                 name: "Sports");
 
             migrationBuilder.DropTable(
-                name: "SportCenters");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "TurfTypes");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "SportCenters");
 
             migrationBuilder.DropTable(
                 name: "Cities");

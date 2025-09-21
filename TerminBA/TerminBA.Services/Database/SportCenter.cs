@@ -19,7 +19,7 @@ namespace TerminBA.Services.Database
         public string? Name { get; set; }
 
         [Required]
-        [Phone]
+        [Phone(ErrorMessage = "Not valid phone number format")]
         public string? PhoneNumber { get; set; }
 
         [ForeignKey(nameof(City))]
@@ -33,18 +33,27 @@ namespace TerminBA.Services.Database
         [Required]
         public string? Address { get; set; }
 
+        [Url(ErrorMessage = "Not a valid url")]
+        public string? InstagramAccount { get; set; }
+
+        [Required]
+        public string PasswordSalt { get; set; } = string.Empty;
+
+        [Required]
+        public string PasswordHash { get; set; } = string.Empty;
+
         [Required]
         public bool IsEquipmentProvided { get; set; }
 
         [MaxLength(180)]
         public string? Description { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
-        public User? User { get; set; }
-
+        [ForeignKey(nameof(Role))]
+        [Required]
+        public int RoleId { get; set; }
+        public Role? Role { get; set; }
 
         public ICollection<WorkingHours> WorkingHours { get; set; } = new List<WorkingHours>();
 
