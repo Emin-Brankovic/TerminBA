@@ -14,6 +14,9 @@ builder.Services.AddTransient<ISportService, SportService>();
 builder.Services.AddTransient<IAmenityService, AmenityService>();
 builder.Services.AddTransient<ITurfTypeService, TurfTypeService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
+builder.Services.AddTransient<IReservationService, ReservationService>();
+builder.Services.AddTransient<IPostService, PostService>();
+builder.Services.AddTransient<IWorkingHoursService, WorkingHoursService>();
 
 // Add services to the container.
 

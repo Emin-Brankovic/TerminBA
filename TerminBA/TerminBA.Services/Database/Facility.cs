@@ -15,7 +15,7 @@ namespace TerminBA.Services.Database
 
         [Required]
         [MaxLength(100)]
-        public required string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
         public int MaxCapacity { get; set; }

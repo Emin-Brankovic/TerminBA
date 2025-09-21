@@ -31,7 +31,7 @@ namespace TerminBA.Services.Database
         //public decimal Latitude { get; set; }
 
         [Required]
-        public required string Address { get; set; }
+        public string? Address { get; set; }
 
         [Required]
         public bool IsEquipmentProvided { get; set; }
