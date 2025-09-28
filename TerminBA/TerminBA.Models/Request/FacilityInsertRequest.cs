@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Model;
 
 namespace TerminBA.Models.Request
 {
@@ -30,6 +31,8 @@ namespace TerminBA.Models.Request
 
         [Required]
         public int TurfTypeId { get; set; }
+
+        public List<int> AvailableSportsIds { get; set; } = new List<int>();
     }
 }
 

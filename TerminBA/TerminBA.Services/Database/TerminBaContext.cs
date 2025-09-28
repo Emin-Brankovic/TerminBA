@@ -32,6 +32,7 @@ namespace TerminBA.Services.Database
         public DbSet<FacilityReview> FacilityReviews { get; set; }
         public DbSet<UserReview> UserReviews { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<Amenity> Amenity { get; set; }
 
 
 

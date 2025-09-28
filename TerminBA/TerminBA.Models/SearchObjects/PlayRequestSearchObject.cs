@@ -12,3 +12,4 @@ namespace TerminBA.Models.SearchObjects
         public int? RequesterId { get; set; }
     }
 }
+

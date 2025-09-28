@@ -30,6 +30,8 @@ namespace TerminBA.Models.Request
 
         [Required]
         public int TurfTypeId { get; set; }
+
+        public List<int> AvailableSportsIds { get; set; } = new List<int>();
     }
 }
 

@@ -15,3 +15,4 @@ namespace TerminBA.Models.SearchObjects
         public int? ChosenSportId { get; set; }
     }
 }
+

@@ -14,3 +14,4 @@ namespace TerminBA.Models.SearchObjects
         public bool? IsEquipmentProvided { get; set; }
     }
 }
+

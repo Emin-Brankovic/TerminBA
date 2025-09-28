@@ -27,10 +27,8 @@ namespace TerminBA.Models.Model
 
         public DateTime CreatedAt { get; set; }
 
-        public int UserId { get; set; }
-
-        public UserResponse? User { get; set; }
-
+        public int RoleId { get; set; }
+        public RoleResponse? Role { get; set; }
 
         public ICollection<WorkingHoursResponse> WorkingHours { get; set; } = new List<WorkingHoursResponse>();
 

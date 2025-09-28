@@ -17,3 +17,4 @@ namespace TerminBA.Models.SearchObjects
         public bool? IsActive { get; set; }
     }
 }
+

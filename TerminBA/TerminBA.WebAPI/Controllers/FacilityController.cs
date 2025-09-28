@@ -9,9 +9,9 @@ namespace TerminBA.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PostController : BaseCRUDController<PostResponse, PostSearchObject, PostInsertRequest, PostUpdateRequest>
+    public class FacilityController : BaseCRUDController<FacilityResponse, FacilitySearchObject, FacilityInsertRequest, FacilityUpdateRequest>
     {
-        public PostController(IPostService postService) : base(postService)
+        public FacilityController(IFacilityService facilityService) : base(facilityService)
         {
         }
     }

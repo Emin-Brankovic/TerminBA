@@ -9,7 +9,7 @@ using TerminBA.Models.SearchObjects;
 
 namespace TerminBA.Services.Interfaces
 {
-    public interface IPostService : IBaseCRUDService<PostResponse, PostSearchObject, PostInsertRequest, PostUpdateRequest>
+    public interface ISportCenterService : IBaseCRUDService<SportCenterResponse, SportCenterSearchObject, SportCenterInsertRequest, SportCenterUpdateRequest>
     {
     }
 }

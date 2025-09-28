@@ -14,3 +14,5 @@ namespace TerminBA.Services.Interfaces
         public Task<UserResponse> Login(UserLoginRequest request);
     }
 }
+
+

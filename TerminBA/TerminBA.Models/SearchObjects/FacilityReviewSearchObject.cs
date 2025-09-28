@@ -16,3 +16,4 @@ namespace TerminBA.Models.SearchObjects
         public DateTime? RatingDateTo { get; set; }
     }
 }
+

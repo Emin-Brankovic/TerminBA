@@ -29,10 +29,11 @@ namespace TerminBA.Models.Request
 
         [MaxLength(180)]
         public string? Description { get; set; }
+        public List<int>? SportIds { get; set; }
 
-        public List<SportResponse>? AvailableSports { get; set; }
+        public List<int>? AmenityIds { get; set; }
 
-        public List<AmenityResponse>? AvailableAmenities { get; set; }
+        public List<WorkingHoursInsertRequest>? WorkingHours { get; set; }
     }
 }
 

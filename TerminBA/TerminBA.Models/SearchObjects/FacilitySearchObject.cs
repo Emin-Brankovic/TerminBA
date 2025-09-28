@@ -16,3 +16,4 @@ namespace TerminBA.Models.SearchObjects
         public double? MaxPrice { get; set; }
     }
 }
+

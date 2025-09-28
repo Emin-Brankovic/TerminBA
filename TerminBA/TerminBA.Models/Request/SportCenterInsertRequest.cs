@@ -31,13 +31,16 @@ namespace TerminBA.Models.Request
         public string? Description { get; set; }
 
         [Required]
-        public UserInsertRequest? User { get; set; }
+        public int RoleId { get; set; }
 
-        public int UserId { get; set; }
+        [Required]
+        public List<int>? SportIds { get; set; }
 
-        public List<SportResponse>? AvailableSports { get; set; } 
+        [Required]
+        public List<int>? AmenityIds { get; set; }
 
-        public List<AmenityResponse>? AvailableAmenities { get; set; }
+        [Required]
+        public List<WorkingHoursInsertRequest>? WorkingHours { get; set; }
     }
 }
 

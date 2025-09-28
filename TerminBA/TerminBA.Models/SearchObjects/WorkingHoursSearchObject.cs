@@ -16,3 +16,5 @@ namespace TerminBA.Models.SearchObjects
         //public DateTime? ValidTo { get; set; }
     }
 }
+
+
