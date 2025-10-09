@@ -25,7 +25,7 @@ namespace TerminBA.Services.Service
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
         {
             if (!string.IsNullOrEmpty(search.Name))
-                query = query.Where(sc => sc.Name.ToLower().Contains(search.Name.ToLower()));
+                query = query.Where(sc => sc.Username.ToLower().Contains(search.Name.ToLower()));
 
             if (search.CityId.HasValue)
                 query = query.Where(sc => sc.CityId == search.CityId.Value);
@@ -85,12 +85,14 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
-            var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Name.ToLower() == request.Name.ToLower());
+            var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username.ToLower() == request.Username.ToLower());
 
             if (sameNameCenter)
-                throw new ArgumentException($"Sport center with name:{request.Name} already exits.");
+                throw new ArgumentException($"Sport center with name:{request.Username} already exits.");
         }
     }
 }
+
+
 
 

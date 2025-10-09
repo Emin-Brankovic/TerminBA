@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -19,11 +21,13 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<UserResponse> Login (UserLoginRequest request)
+        public async Task<AuthResponse> Login (UserLoginRequest request)
         {
            return(await _userService.Login(request));
         }
     }
 }
+
+
 
 

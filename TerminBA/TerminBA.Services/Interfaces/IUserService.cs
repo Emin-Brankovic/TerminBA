@@ -11,8 +11,10 @@ namespace TerminBA.Services.Interfaces
 {
     public interface IUserService : IBaseCRUDService<UserResponse, UserSearchObject, UserInsertRequest, UserUpdateRequest>
     {
-        public Task<UserResponse> Login(UserLoginRequest request);
+        public Task<AuthResponse?> Login(UserLoginRequest request);
     }
 }
+
+
 
 

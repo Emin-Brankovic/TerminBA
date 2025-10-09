@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 
 namespace TerminBA.Services.Database
 {
-    public class User
+    public class User : AccountBase
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(50)]
         [MinLength(2)]
@@ -27,46 +24,17 @@ namespace TerminBA.Services.Database
         public int Age { get; set; }
 
         [Required]
-        [MaxLength(30)]
-        [MinLength(2)]
-        public string? Username { get; set; }
-
-        [Required]
         [EmailAddress]
         public string? Email { get; set; }
 
-        [Phone(ErrorMessage = "Not valid phone number format")]
-        public string? PhoneNumber { get; set; }
-
-        [Url (ErrorMessage = "Not a valid url")]
-        public string? InstagramAccount { get; set; }
-
-        [Required]
-        public string PasswordSalt { get; set; } = string.Empty;
-
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
-
         [Required]
         public DateOnly BirthDate { get; set; }
-
-        [ForeignKey(nameof(City))]
-        [Required]
-        public int CityId { get; set; }
-        public City? City { get; set; } 
-
-        [ForeignKey(nameof(Role))]
-        [Required]
-        public int RoleId { get; set; }
-        public Role? Role { get; set; }
 
         public bool IsActive { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; }
-
-        public SportCenter? SportCenter { get; set; }
 
         public ICollection<UserReview> UserReviewsGiven { get; set; } = new List<UserReview>();
         public ICollection<UserReview> ReviewsReceived { get; set; } = new List<UserReview>();

@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace TerminBA.Models.Request
 {
-    public class UserLoginRequest : BaseLoginRequest
+    public class BaseLoginRequest
     {
+        [Required]
+        public string? Username { get; set; }
+        [Required]
+        public string? Password { get; set; }
     }
 }

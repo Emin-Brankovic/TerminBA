@@ -12,7 +12,7 @@ namespace TerminBA.Models.Request
     {
         [Required]
         [MaxLength(100)]
-        public string? Name { get; set; }
+        public string? Username { get; set; }
 
         [Required]
         [Phone]

@@ -15,8 +15,11 @@ namespace TerminBA.Services.Service
 {
     public class UserService : BaseCRUDService<UserResponse, User, UserSearchObject, UserInsertRequest, UserUpdateRequest>, IUserService
     {
-        public UserService(TerminBaContext context, IMapper mapper) : base(context, mapper)
+        private readonly IAuthService<User> _authService;
+
+        public UserService(TerminBaContext context, IMapper mapper,IAuthService<User> authService) : base(context, mapper)
         {
+            this._authService = authService;
         }
 
         public override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
@@ -42,18 +45,11 @@ namespace TerminBA.Services.Service
             return query;
         }
 
-        public async Task<UserResponse?> Login(UserLoginRequest request)
+        public async Task<AuthResponse?> Login(UserLoginRequest request)
         {
-           var entity=await _context.Users.FirstOrDefaultAsync(u=>u.Username == request.Username);
+           var response=await _authService.Login(request);
 
-            if (entity == null)
-                return null;
-            var hash=GenerateHash(entity.PasswordSalt, request.Password);
-
-            if(hash != entity.PasswordHash) 
-                return null;
-
-            return MapToResponse(entity);
+            return response;
         }
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
@@ -64,5 +60,7 @@ namespace TerminBA.Services.Service
 
     }
 }
+
+
 
 

@@ -11,7 +11,7 @@ using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
 {
-    public abstract class BaseCRUDService<T, TEntity, TSearch, TInsert, TUpdate> : BaseService<T, TEntity, TSearch> where T : class where TEntity : class,new() where TSearch : BaseSearchObject
+    public abstract class BaseCRUDService<T, TEntity, TSearch, TInsert, TUpdate> : BaseService<T, TEntity, TSearch>, IBaseCRUDService<T, TSearch, TInsert, TUpdate> where T : class where TEntity : class,new() where TSearch : BaseSearchObject where TInsert : class where TUpdate : class
     {
         protected readonly TerminBaContext _context;
 
