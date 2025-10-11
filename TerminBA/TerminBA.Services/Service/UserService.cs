@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -54,8 +55,18 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
         {
+            if (await UserExists(entity.Username!))
+                throw new UserException("Username is already taken");
+
+
             entity.PasswordSalt = GenerateSalt();
             entity.PasswordHash = GenerateHash(entity.PasswordSalt, request.Password);
+        }
+
+        private async Task<bool> UserExists(string username)
+        {
+            return await _context.Users.AnyAsync(user => user.Username.ToLower() == username.ToLower());
+
         }
 
     }

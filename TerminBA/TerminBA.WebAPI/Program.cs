@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using TerminBA.Models.Execptions;
 using TerminBA.Services;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.Service;
+using TerminBA.WebAPI.Filters;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,11 @@ builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(x=>
+    {
+        x.Filters.Add<ExceptionFilter>();
+    }
+);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
