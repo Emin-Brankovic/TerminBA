@@ -14,9 +14,11 @@ namespace TerminBA.Models.Request
         public required string Name { get; set; }
 
         [Required]
+        [Range(0, 80)]
         public int MaxCapacity { get; set; }
 
         [Required]
+        [Range(0, 300)]
         public double PricePerHour { get; set; }
 
         [Required]
@@ -31,6 +33,8 @@ namespace TerminBA.Models.Request
         [Required]
         public int TurfTypeId { get; set; }
 
+        [Required]
+        [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int> AvailableSportsIds { get; set; } = new List<int>();
     }
 }

@@ -14,9 +14,9 @@ namespace TerminBA.Models.Model
 
         public int SportCenterId { get; set; }
 
-        public DayOfWeekEnum StartDay { get; set; }
+        public DayOfWeek StartDay { get; set; }
 
-        public DayOfWeekEnum EndDay { get; set; }
+        public DayOfWeek EndDay { get; set; }
 
         public TimeOnly OpeningHours { get; set; }
 

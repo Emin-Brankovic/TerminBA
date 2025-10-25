@@ -1,9 +1,12 @@
+using Azure.Core;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -12,6 +15,7 @@ using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
 {
+    //Implement getting all free reservations by month
     public class ReservationService : BaseCRUDService<ReservationResponse, Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
         public ReservationService(TerminBaContext context, IMapper mapper) : base(context, mapper)

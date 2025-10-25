@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -25,7 +26,7 @@ namespace TerminBA.Services.Service
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
         {
             if (!string.IsNullOrEmpty(search.Name))
-                query = query.Where(sc => sc.Username.ToLower().Contains(search.Name.ToLower()));
+                query = query.Where(sc => sc.Username!.ToLower().Contains(search.Name.ToLower()));
 
             if (search.CityId.HasValue)
                 query = query.Where(sc => sc.CityId == search.CityId.Value);
@@ -60,6 +61,9 @@ namespace TerminBA.Services.Service
                 entity.AvailableAmenities = amenities;
             }
 
+            entity.PasswordSalt = GenerateSalt();
+            entity.PasswordHash = GenerateHash(entity.PasswordSalt, "password"); // temporary solution
+
             await BeforeInsert(entity,request);
 
             _context.Add(entity);
@@ -67,7 +71,7 @@ namespace TerminBA.Services.Service
             await _context.SaveChangesAsync();
 
             var workingHoursEntities = request.WorkingHours
-                    .Select(wh => new WorkingHours
+                    !.Select(wh => new WorkingHours
                     {
                         SportCenterId = sportcenter.Id,
                         StartDay = wh.StartDay,
@@ -85,10 +89,18 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
-            var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username.ToLower() == request.Username.ToLower());
+            var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username!.ToLower() == request.Username!.ToLower());
 
             if (sameNameCenter)
-                throw new ArgumentException($"Sport center with name:{request.Username} already exits.");
+                throw new UserException($"Sport center with name:{request.Username} already exits.");
+        }
+
+        protected override async Task BeforeUpdate(SportCenter entity, SportCenterUpdateRequest request)
+        {
+            var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
+
+            if (sameNameCenter)
+                throw new UserException($"Sport center with name:{request.Username} already exits.");
         }
     }
 }

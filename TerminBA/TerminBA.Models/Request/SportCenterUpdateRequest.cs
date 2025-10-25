@@ -12,7 +12,7 @@ namespace TerminBA.Models.Request
     {
         [Required]
         [MaxLength(100)]
-        public string? Name { get; set; }
+        public string? Username { get; set; }
 
         [Required]
         [Phone]
@@ -29,10 +29,14 @@ namespace TerminBA.Models.Request
 
         [MaxLength(180)]
         public string? Description { get; set; }
+
+        [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int>? SportIds { get; set; }
 
+        [MinLength(1, ErrorMessage = "At least one amenity must be selected.")]
         public List<int>? AmenityIds { get; set; }
 
+        [MinLength(1, ErrorMessage = "Working hours are required.")]
         public List<WorkingHoursInsertRequest>? WorkingHours { get; set; }
     }
 }

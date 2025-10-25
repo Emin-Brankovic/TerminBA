@@ -34,12 +34,15 @@ namespace TerminBA.Models.Request
         public int RoleId { get; set; }
 
         [Required]
+        [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int>? SportIds { get; set; }
 
         [Required]
+        [MinLength(1, ErrorMessage = "At least one amenity must be selected.")]
         public List<int>? AmenityIds { get; set; }
 
         [Required]
+        [MinLength(1, ErrorMessage = "Working hours are required.")]
         public List<WorkingHoursInsertRequest>? WorkingHours { get; set; }
     }
 }
