@@ -10,6 +10,7 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
@@ -61,8 +62,8 @@ namespace TerminBA.Services.Service
                 entity.AvailableAmenities = amenities;
             }
 
-            entity.PasswordSalt = GenerateSalt();
-            entity.PasswordHash = GenerateHash(entity.PasswordSalt, "password"); // temporary solution
+            entity.PasswordSalt = HashingHelper.GenerateSalt();
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, "password"); // temporary solution
 
             await BeforeInsert(entity,request);
 

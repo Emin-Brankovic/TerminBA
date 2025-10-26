@@ -16,6 +16,7 @@ using TerminBA.Models.Model;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using Microsoft.Identity.Client;
+using TerminBA.Services.Helpers;
 
 namespace TerminBA.Services.Service
 {
@@ -38,7 +39,7 @@ namespace TerminBA.Services.Service
 
             if (entity == null)
                 return null;
-            var hash = GenerateHash(entity.PasswordSalt, request.Password);
+            var hash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
 
             if (hash != entity.PasswordHash)
                 return null;
@@ -46,19 +47,6 @@ namespace TerminBA.Services.Service
             var token = CreatToken(entity);
 
             return token;
-        }
-
-        private static string GenerateHash(string salt, string password)
-        {
-            string saltedPassword = salt + password;
-
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
-                byte[] hashBytes = sha256.ComputeHash(saltedPasswordBytes);
-
-                return Convert.ToBase64String(hashBytes);
-            }
         }
 
         public AuthResponse CreatToken(AccountBase account)

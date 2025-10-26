@@ -10,6 +10,7 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
@@ -59,8 +60,8 @@ namespace TerminBA.Services.Service
                 throw new UserException("Username is already taken");
 
 
-            entity.PasswordSalt = GenerateSalt();
-            entity.PasswordHash = GenerateHash(entity.PasswordSalt, request.Password);
+            entity.PasswordSalt = HashingHelper.GenerateSalt();
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
         }
 
         private async Task<bool> UserExists(string username)
@@ -71,6 +72,7 @@ namespace TerminBA.Services.Service
 
     }
 }
+
 
 
 

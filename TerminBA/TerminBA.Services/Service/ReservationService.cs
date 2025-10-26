@@ -11,11 +11,11 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
 {
-    //Implement getting all free reservations by month
     public class ReservationService : BaseCRUDService<ReservationResponse, Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
         public ReservationService(TerminBaContext context, IMapper mapper) : base(context, mapper)
@@ -38,8 +38,20 @@ namespace TerminBA.Services.Service
 
             return query;
         }
+
+        protected override async Task BeforeInsert(Reservation entity, ReservationInsertRequest request)
+        {
+            var timeSlots=await TimeSlotHelper.GenerateTimeSlots(request.FacilityId ,request.ReservationDate,_context);
+
+            var exists=timeSlots.Any(t=>t.Start==request.StartTime.ToTimeSpan() && t.End==request.EndTime.ToTimeSpan());
+
+            if(!exists)
+                throw new UserException("Can't pick a non existing time slot");
+        }
+
     }
 }
+
 
 
 

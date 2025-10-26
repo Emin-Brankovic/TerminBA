@@ -11,11 +11,11 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
 {
-    //Implement method which retrieves all time slots for a facility based on the working hours and duration
     public class FacilityService : BaseCRUDService<FacilityResponse,Facility,FacilitySearchObject,FacilityInsertRequest,FacilityUpdateRequest>, IFacilityService
     {
 
@@ -46,6 +46,28 @@ namespace TerminBA.Services.Service
             await _context.SaveChangesAsync();
 
             return MapToResponse(entity);
+        }
+
+        public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId,DateOnly pickedDate)
+        {
+            var timeSlots = await TimeSlotHelper.GenerateTimeSlots(facilityId, pickedDate, _context);
+
+            var reservations=await _context.Reservations
+                .Where(r=>r.FacilityId == facilityId && r.ReservationDate==pickedDate).ToListAsync();
+
+            var facilityTimeSlots = timeSlots.Select(t =>
+            {
+                var reservation = reservations.FirstOrDefault(r => r.StartTime.ToTimeSpan() == t.Start);
+
+                return new FacilityTimeSlot
+                {
+                    StartTime = t.Start,
+                    EndTime = t.End,
+                    isFree = reservation == null ? true : false
+                };
+            }).ToList();
+
+            return facilityTimeSlots;
         }
 
         protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)

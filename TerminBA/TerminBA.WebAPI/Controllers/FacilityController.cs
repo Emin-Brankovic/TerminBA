@@ -11,8 +11,19 @@ namespace TerminBA.WebAPI.Controllers
     [ApiController]
     public class FacilityController : BaseCRUDController<FacilityResponse, FacilitySearchObject, FacilityInsertRequest, FacilityUpdateRequest>
     {
+        private readonly IFacilityService _facilityService;
+
         public FacilityController(IFacilityService facilityService) : base(facilityService)
         {
+            this._facilityService = facilityService;
+        }
+
+        [HttpGet("facilityTimeSlots/{id}")]
+        public async Task<List<FacilityTimeSlot>> FacilityTimeSlots(int id,DateOnly datePicked)
+        {
+            var slots=await _facilityService.GetFacilityTimeSlotAsync(id,datePicked);
+
+            return slots;
         }
     }
 }
