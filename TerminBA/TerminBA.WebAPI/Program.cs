@@ -26,6 +26,8 @@ builder.Services.AddTransient<IWorkingHoursService, WorkingHoursService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<ISportCenterService,SportCenterService>();
 builder.Services.AddTransient<IFacilityService, FacilityService>();
+builder.Services.AddTransient<IFacilityReviewService, FacilityReviewService>();
+builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 
 // Add services to the container.

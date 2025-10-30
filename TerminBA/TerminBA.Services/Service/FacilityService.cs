@@ -80,6 +80,18 @@ namespace TerminBA.Services.Service
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
         }
 
+        protected override async Task BeforeDelete(Facility entity)
+        {
+            var reviews = await _context.FacilityReviews
+                .Where(fr => fr.FacilityId == entity.Id)
+                .ToListAsync();
+
+            if (reviews.Any())
+                _context.RemoveRange(reviews);
+
+
+        }
+
         private async Task ValidateFacilityRequest(int sportCenterId, string name, List<int> availableSportsIds, int turfTypeId)
         {
             var sportCenter = await _context.SportCenters

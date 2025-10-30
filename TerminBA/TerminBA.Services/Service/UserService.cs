@@ -64,6 +64,16 @@ namespace TerminBA.Services.Service
             entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
         }
 
+        protected override async Task BeforeDelete(User entity)
+        {
+            var recievedRewies=await _context.UserReviews
+                .Where(ur=>ur.ReviewedId==entity.Id)
+                .ToListAsync();
+
+            if(recievedRewies.Any())
+                _context.RemoveRange(recievedRewies);
+        }
+
         private async Task<bool> UserExists(string username)
         {
             return await _context.Users.AnyAsync(user => user.Username.ToLower() == username.ToLower());
@@ -72,8 +82,3 @@ namespace TerminBA.Services.Service
 
     }
 }
-
-
-
-
-
