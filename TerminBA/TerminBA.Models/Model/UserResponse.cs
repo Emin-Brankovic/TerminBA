@@ -40,11 +40,6 @@ namespace TerminBA.Models.Model
 
         public DateTime UpdatedAt { get; set; }
 
-        public ICollection<ReservationResponse> Reservations { get; set; } = new List<ReservationResponse>();
-
-        public ICollection<UserReviewResponse> UserReviewsGiven { get; set; } = new List<UserReviewResponse>();
-        public ICollection<UserReviewResponse> ReviewsReceived { get; set; } = new List<UserReviewResponse>();
-        public ICollection<FacilityReviewResponse> FacilityReviewsGiven { get; set; } = new List<FacilityReviewResponse>();
     }
 }
 

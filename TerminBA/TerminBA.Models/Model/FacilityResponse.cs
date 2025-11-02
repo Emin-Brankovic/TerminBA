@@ -31,9 +31,9 @@ namespace TerminBA.Models.Model
 
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();
 
-        public ICollection<FacilityReviewResponse> ReviewsReceived { get; set; } = new List<FacilityReviewResponse>();
+        //public ICollection<FacilityReviewResponse> ReviewsReceived { get; set; } = new List<FacilityReviewResponse>();
 
-        public ICollection<ReservationResponse> Reservations { get; set; } = new List<ReservationResponse>();
+        //public ICollection<ReservationResponse> Reservations { get; set; } = new List<ReservationResponse>();
     }
 }
 

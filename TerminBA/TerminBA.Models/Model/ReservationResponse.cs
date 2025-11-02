@@ -17,7 +17,7 @@ namespace TerminBA.Models.Model
 
         public int? FacilityId { get; set; }
 
-        public FacilityReviewResponse? Facility { get; set; }
+        public FacilityResponse? Facility { get; set; }
 
         public DateOnly ReservationDate { get; set; }
 
@@ -27,7 +27,7 @@ namespace TerminBA.Models.Model
 
         public string? Status { get; set; }
 
-        public ICollection<PostResponse> Posts { get; set; } = new List<PostResponse>();
+        //public ICollection<PostResponse> Posts { get; set; } = new List<PostResponse>();
 
         public int? ChosenSportId { get; set; }
 

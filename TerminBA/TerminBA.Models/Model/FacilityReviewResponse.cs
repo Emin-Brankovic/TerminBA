@@ -25,7 +25,7 @@ namespace TerminBA.Models.Model
 
         public FacilityResponse? Facility { get; set; }
 
-        public ICollection<FacilityReviewResponse> FacilityReviews { get; set; } = new List<FacilityReviewResponse>();
+        //public ICollection<FacilityReviewResponse> FacilityReviews { get; set; } = new List<FacilityReviewResponse>();
     }
 }
 

@@ -29,6 +29,8 @@ namespace TerminBA.Services.Service
 
             query = ApplyFilter(query,search);
 
+            query = ApplyIncludes(query);
+
             int totalCount = await query.CountAsync();
 
             if (search.Page.HasValue && search.PageSize.HasValue)
@@ -56,6 +58,11 @@ namespace TerminBA.Services.Service
 
             return MapToResponse(entity);
 
+        }
+
+        public virtual IQueryable<TEntity> ApplyIncludes(IQueryable<TEntity> query)
+        {
+            return query;
         }
 
         public virtual IQueryable<TEntity> ApplyFilter(IQueryable<TEntity> query, TSearch search)

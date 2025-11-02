@@ -36,7 +36,7 @@ namespace TerminBA.Models.Model
 
         public ICollection<AmenityResponse> AvailableAmenities { get; set; } = new List<AmenityResponse>();
 
-        public ICollection<FacilityResponse> Facilities { get; set; } = new List<FacilityResponse>();
+        //public ICollection<FacilityResponse> Facilities { get; set; } = new List<FacilityResponse>();
     }
 }
 

@@ -9,8 +9,9 @@ namespace TerminBA.Models.SearchObjects
     public class PostSearchObject : BaseSearchObject
     {
         public string? SkillLevel { get; set; }
-        public int? ReservationId { get; set; }
         public int? SportId { get; set; }
+        public DateOnly? ReservationDate { get; set; }
+        public int? CityId { get; set; }
     }
 }
 
