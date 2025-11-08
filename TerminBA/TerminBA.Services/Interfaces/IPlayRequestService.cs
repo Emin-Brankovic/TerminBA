@@ -9,13 +9,8 @@ using TerminBA.Models.SearchObjects;
 
 namespace TerminBA.Services.Interfaces
 {
-    public interface IUserService : IBaseCRUDService<UserResponse, UserSearchObject, UserInsertRequest, UserUpdateRequest>
+    public interface IPlayRequestService : IBaseCRUDService<PlayRequestResponse, PlayRequestSearchObject, PlayRequestInsertRequest, PlayRequestUpdateRequest>
     {
-        public Task<AuthResponse?> Login(UserLoginRequest request);
+        Task<PlayRequestResponse> PlayRequestResponse(int id, bool response);
     }
 }
-
-
-
-
-

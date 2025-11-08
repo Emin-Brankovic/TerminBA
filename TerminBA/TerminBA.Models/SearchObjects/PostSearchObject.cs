@@ -12,8 +12,10 @@ namespace TerminBA.Models.SearchObjects
         public int? SportId { get; set; }
         public DateOnly? ReservationDate { get; set; }
         public int? CityId { get; set; }
+        public int? TurfTypeId { get; set; }
     }
 }
+
 
 
 

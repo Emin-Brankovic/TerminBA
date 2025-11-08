@@ -10,6 +10,8 @@ namespace TerminBA.Models.SearchObjects
     {
         public int? PostId { get; set; }
         public int? RequesterId { get; set; }
+        public int? RecipientUserId { get; set; }
+        public DateTime? DateOfRequest { get; set; }
     }
 }
 

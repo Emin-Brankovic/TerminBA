@@ -37,6 +37,10 @@ namespace TerminBA.Services.Service
                 query = query
                     .Where(p => p.Reservation!.Facility!.SportCenter!.CityId==search.CityId);
 
+            if (search.TurfTypeId.HasValue)
+                query = query
+                    .Where(p => p.Reservation!.Facility!.TurfTypeId == search.TurfTypeId);
+
             return query;
         }
 
@@ -71,6 +75,7 @@ namespace TerminBA.Services.Service
         }
     }
 }
+
 
 
 

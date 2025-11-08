@@ -33,6 +33,7 @@ namespace TerminBA.Services.Database
         public DbSet<UserReview> UserReviews { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Amenity> Amenity { get; set; }
+        public DbSet<PlayRequest> PlayRequests { get; set; }
 
 
 
@@ -133,6 +134,16 @@ namespace TerminBA.Services.Database
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => pr.RequesterId);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => pr.PostId);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => new { pr.PostId, pr.RequesterId })
+                .IsUnique();
         }
     }
 }
