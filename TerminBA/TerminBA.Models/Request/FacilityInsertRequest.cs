@@ -19,8 +19,10 @@ namespace TerminBA.Models.Request
         public int MaxCapacity { get; set; }
 
         [Required]
-        [Range(0, 300)]
-        public double PricePerHour { get; set; }
+        public bool IsDynamicPricing { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Static price must be a positive value.")]
+        public decimal? StaticPrice { get; set; }
 
         [Required]
         public bool IsIndoor { get; set; }
@@ -37,6 +39,8 @@ namespace TerminBA.Models.Request
         [Required]
         [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int> AvailableSportsIds { get; set; } = new List<int>();
+
+        public List<FacilityDynamicPriceInsertRequest>? DynamicPrices { get; set; }
     }
 }
 

@@ -25,6 +25,8 @@ namespace TerminBA.Models.Model
         public DateOnly ValidFrom { get; set; }
 
         public DateOnly ValidTo { get; set; }
+
+        public bool IsActive { get; set; }
     }
 }
 

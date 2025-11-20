@@ -34,7 +34,7 @@ namespace TerminBA.Services.Database
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Amenity> Amenity { get; set; }
         public DbSet<PlayRequest> PlayRequests { get; set; }
-
+        public DbSet<FacilityDynamicPrice> FacilityDynamicPrices { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -114,6 +114,11 @@ namespace TerminBA.Services.Database
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Facility>()
+                .HasMany(f => f.DynamicPrices)
+                .WithOne(fdp => fdp.Facility)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Facility>()
                 .HasIndex(f => f.Name);
 
             modelBuilder.Entity<City>()
@@ -144,6 +149,12 @@ namespace TerminBA.Services.Database
             modelBuilder.Entity<PlayRequest>()
                 .HasIndex(pr => new { pr.PostId, pr.RequesterId })
                 .IsUnique();
+
+            modelBuilder.Entity<FacilityDynamicPrice>()
+                .HasIndex(fdp => fdp.FacilityId);
+
+            modelBuilder.Entity<FacilityDynamicPrice>()
+                .HasIndex(fdp => new { fdp.FacilityId, fdp.ValidFrom, fdp.ValidTo });
         }
     }
 }

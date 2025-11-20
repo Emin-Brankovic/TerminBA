@@ -30,6 +30,7 @@ builder.Services.AddTransient<IFacilityReviewService, FacilityReviewService>();
 builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddTransient<IPlayRequestService, PlayRequestService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
+builder.Services.AddTransient<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
 
 // Add services to the container.
 
@@ -68,6 +69,7 @@ builder.Services.AddSwaggerGen(c =>
 
 });
 
+// Configure Mapster mappings
 builder.Services.AddMapster();
 
 var connectionString = builder.Configuration.GetConnectionString("db");

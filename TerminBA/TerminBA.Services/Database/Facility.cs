@@ -21,7 +21,10 @@ namespace TerminBA.Services.Database
         public int MaxCapacity { get; set; }
 
         [Required]
-        public double PricePerHour { get; set; }
+        public bool IsDynamicPricing { get; set; }
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? StaticPrice { get; set; } // is null when there is dynamic pricing 
 
         [Required]
         public bool IsIndoor { get; set; }
@@ -46,5 +49,6 @@ namespace TerminBA.Services.Database
 
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
+        public ICollection<FacilityDynamicPrice> DynamicPrices { get; set; } = new List<FacilityDynamicPrice>();
     }
 }

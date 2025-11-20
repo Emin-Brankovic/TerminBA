@@ -31,8 +31,12 @@ namespace TerminBA.Services.Database
 
         [Required]
         public DateOnly ValidFrom { get; set; }
-        [Required]
-        public DateOnly ValidTo { get; set; }
+        public DateOnly? ValidTo { get; set; } // can be null if the working hours are constant
+
+        [NotMapped]
+        public bool IsActive =>
+            (ValidFrom <= DateOnly.FromDateTime(DateTime.Today)) &&
+            (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
 
     }
 }

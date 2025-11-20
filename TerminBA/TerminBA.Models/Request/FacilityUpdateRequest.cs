@@ -18,8 +18,10 @@ namespace TerminBA.Models.Request
         public int MaxCapacity { get; set; }
 
         [Required]
-        [Range(0, 300)]
-        public double PricePerHour { get; set; }
+        public bool IsDynamicPricing { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Static price must be a positive value.")]
+        public decimal? StaticPrice { get; set; }
 
         [Required]
         public bool IsIndoor { get; set; }

@@ -1,11 +1,5 @@
-﻿using Azure.Core;
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
@@ -18,10 +12,21 @@ namespace TerminBA.Services.Service
 {
     public class FacilityService : BaseCRUDService<FacilityResponse,Facility,FacilitySearchObject,FacilityInsertRequest,FacilityUpdateRequest>, IFacilityService
     {
+        private readonly IFacilityDynamicPriceService _facilityDynamicPriceService;
 
-        public FacilityService(TerminBaContext context,IMapper mapper):base(context,mapper)
+        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService) : base(context, mapper)
         {
+            _facilityDynamicPriceService = facilityDynamicPriceService;
         }
+
+        public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
+        {
+            query = query
+                .Include(f => f.DynamicPrices);
+
+            return query;
+        }
+
 
         public override async Task<FacilityResponse> CreateAsync(FacilityInsertRequest request)
         {
@@ -45,39 +50,60 @@ namespace TerminBA.Services.Service
 
             await _context.SaveChangesAsync();
 
+            // The FE won't allow creating dynamic pricing if the chechbox is not selected
+            if (request.IsDynamicPricing)
+            {
+                foreach (var dynamicPriceRequest in request.DynamicPrices)
+                {
+                    dynamicPriceRequest.FacilityId = entity.Id;
+                    await _facilityDynamicPriceService.CreateAsync(dynamicPriceRequest);
+                }
+
+                await _context.Entry(entity).Collection(f => f.DynamicPrices).LoadAsync();
+            }
+
             return MapToResponse(entity);
         }
 
-        public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId,DateOnly pickedDate)
+        public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId, DateOnly pickedDate)
         {
-            var timeSlots = await TimeSlotHelper.GenerateTimeSlots(facilityId, pickedDate, _context);
+            var allSlots = await TimeSlotHelper.GenerateTimeSlots(facilityId, pickedDate, _context);
 
-            var reservations=await _context.Reservations
-                .Where(r=>r.FacilityId == facilityId && r.ReservationDate==pickedDate).ToListAsync();
 
-            var facilityTimeSlots = timeSlots.Select(t =>
+            var bookedReservations = await _context.Reservations
+                .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate)
+
+                .Select(r => r.StartTime)
+                .ToListAsync();
+
+
+            var occupiedStartTimes = new HashSet<TimeSpan>(
+                bookedReservations.Select(ts => ts.ToTimeSpan())
+            );
+
+
+            var facilityTimeSlots = allSlots.Select(t => new FacilityTimeSlot
             {
-                var reservation = reservations.FirstOrDefault(r => r.StartTime.ToTimeSpan() == t.Start);
+                StartTime = t.Start,
+                EndTime = t.End,
 
-                return new FacilityTimeSlot
-                {
-                    StartTime = t.Start,
-                    EndTime = t.End,
-                    isFree = reservation == null ? true : false
-                };
+                isFree = !occupiedStartTimes.Contains(t.Start)
             }).ToList();
 
             return facilityTimeSlots;
         }
 
-        protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)
+    protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)
         {
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
+            ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
+            ValidateDynamicPricesRequest(request.IsDynamicPricing, request.DynamicPrices);
         }
 
         protected override async Task BeforeUpdate(Facility entity, FacilityUpdateRequest request)
         {
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
+            ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
         }
 
         protected override async Task BeforeDelete(Facility entity)
@@ -115,6 +141,27 @@ namespace TerminBA.Services.Service
 
             if (!await _context.TurfTypes.AnyAsync(x => x.Id == turfTypeId))
                 throw new UserException($"Turf type was not found.");
+        }
+
+        private void ValidatePricingRequest(bool isDynamicPricing, decimal? staticPrice)
+        {
+            if (!isDynamicPricing && !staticPrice.HasValue)
+            {
+                throw new UserException("Static price is required when dynamic pricing is disabled.");
+            }
+
+            if (isDynamicPricing && staticPrice.HasValue)
+            {
+                throw new UserException("Static price must be null when dynamic pricing is enabled.");
+            }
+        }
+
+        private void ValidateDynamicPricesRequest(bool isDynamicPricing, List<FacilityDynamicPriceInsertRequest>? dynamicPrices)
+        {
+            if (!isDynamicPricing && dynamicPrices != null && dynamicPrices.Any())
+            {
+                throw new UserException("Dynamic prices cannot be provided when dynamic pricing is disabled.");
+            }
         }
     }
 }

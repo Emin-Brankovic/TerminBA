@@ -22,14 +22,16 @@ namespace TerminBA.Services.Helpers
                 throw new Exception("Facility was not found");
 
             var reservationDayOfWeek = pickedDate.DayOfWeek;
-            var radnoVrijeme = facility.SportCenter.WorkingHours.ToList();
+            var workingHours = facility.SportCenter.WorkingHours.ToList();
 
 
-            var trenutno = radnoVrijeme.FirstOrDefault(rv => reservationDayOfWeek >= rv.StartDay
-            || reservationDayOfWeek <= rv.EndDay);
+            var currentWorkingHours = workingHours.FirstOrDefault(rv => 
+            IsInDayRange(reservationDayOfWeek, rv.StartDay, rv.EndDay) 
+            && rv.ValidFrom<=pickedDate 
+            && (rv.ValidTo == null || rv.ValidTo >= pickedDate));
 
-            TimeSpan opening = trenutno.OpeningHours.ToTimeSpan();
-            TimeSpan closing = trenutno.CloseingHours.ToTimeSpan();
+            TimeSpan opening = currentWorkingHours.OpeningHours.ToTimeSpan();
+            TimeSpan closing = currentWorkingHours.CloseingHours.ToTimeSpan();
             TimeSpan duration = facility.Duration;
 
             var allSlots = new List<(TimeSpan Start, TimeSpan End)>();
@@ -38,8 +40,16 @@ namespace TerminBA.Services.Helpers
             {
                 allSlots.Add((start, start + duration));
             }
-
+            
             return allSlots;
+        }
+
+        public static bool IsInDayRange(DayOfWeek targetDay, DayOfWeek startDay, DayOfWeek endDay)
+        {
+            if (startDay <= endDay)
+                return targetDay >= startDay && targetDay <= endDay;
+            else
+                return targetDay >= startDay || targetDay <= endDay;
         }
     }
 }

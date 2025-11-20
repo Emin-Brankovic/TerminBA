@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
+using TerminBA.Services.Database;
 
 namespace TerminBA.Services.Interfaces
 {

@@ -15,7 +15,9 @@ namespace TerminBA.Models.Model
 
         public int MaxCapacity { get; set; }
 
-        public double PricePerHour { get; set; }
+        public bool IsDynamicPricing { get; set; }
+
+        public decimal? StaticPrice { get; set; }
 
         public bool IsIndoor { get; set; }
 
@@ -30,6 +32,8 @@ namespace TerminBA.Models.Model
         public TurfTypeResponse? TurfType { get; set; }
 
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();
+
+        public ICollection<FacilityDynamicPriceResponse> DynamicPrices { get; set; } = new List<FacilityDynamicPriceResponse>();
 
         //public ICollection<FacilityReviewResponse> ReviewsReceived { get; set; } = new List<FacilityReviewResponse>();
 
