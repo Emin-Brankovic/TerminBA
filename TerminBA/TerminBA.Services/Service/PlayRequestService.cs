@@ -11,28 +11,42 @@ using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PostStateMachine;
 
 namespace TerminBA.Services.Service
 {
     public class PlayRequestService : BaseCRUDService<PlayRequestResponse, PlayRequest, PlayRequestSearchObject, PlayRequestInsertRequest, PlayRequestUpdateRequest>, IPlayRequestService
     {
-        public PlayRequestService(TerminBaContext context, IMapper mapper) : base(context, mapper)
+        protected readonly BasePostState _basePostState;
+
+        public PlayRequestService(TerminBaContext context, IMapper mapper, BasePostState basePostState) : base(context, mapper)
         {
+            this._basePostState = basePostState;
         }
 
-        public async Task<PlayRequestResponse> PlayRequestResponse(int id,bool response)
+        public async override Task<PlayRequestResponse> CreateAsync(PlayRequestInsertRequest request)
         {
-           var playRequest=await _context.PlayRequests.FirstOrDefaultAsync(x => x.Id == id);
+            var postEntity = await _context.Posts
+                .FirstOrDefaultAsync(p => p.Id == request.PostId);
 
-            if (playRequest == null)
-                throw new UserException("The request does not exist");
+            var baseState = _basePostState.GetPostState(postEntity!.PostState);
 
-            playRequest.isAccepted= response;
-            playRequest.DateOfResponse= DateTime.Now;
+            var result = await baseState.SendPlayRequestAsync(request);
 
-            await _context.SaveChangesAsync();
+            return result;
+        }
 
-            return MapToResponse(playRequest);
+        public async Task<PlayRequestResponse> RespondToPlayRequestAsync(int id,bool response)
+        {
+            var entity = await _context.PlayRequests
+                .Include(pr=>pr.Post)
+                .FirstOrDefaultAsync(pr=>pr.Id==id);
+
+            var baseState = _basePostState.GetPostState(entity!.Post!.PostState);
+
+            var result = await baseState.RespondToPlayRequestAsync(id, response);
+
+            return result;
         }
 
         public override IQueryable<PlayRequest> ApplyFilter(IQueryable<PlayRequest> query, PlayRequestSearchObject search)
@@ -52,6 +66,18 @@ namespace TerminBA.Services.Service
             return query;
         }
 
+        public async Task<PlayRequestResponse> CancelAsync(int playRequestId)
+        {
+            var entity = await _context.PlayRequests
+                .Include(pr => pr.Post)
+                .FirstOrDefaultAsync(pr => pr.Id == playRequestId);
+
+            var baseState = _basePostState.GetPostState(entity!.Post!.PostState);
+
+            return await baseState.CancelAsync(playRequestId);
+
+        }
+
         public override IQueryable<PlayRequest> ApplyIncludes(IQueryable<PlayRequest> query)
         {
             query = query
@@ -60,5 +86,6 @@ namespace TerminBA.Services.Service
 
             return query;
         }
+
     }
 }

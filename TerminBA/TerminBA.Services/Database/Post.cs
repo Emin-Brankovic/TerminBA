@@ -16,6 +16,12 @@ namespace TerminBA.Services.Database
         [Required]
         public string? SkillLevel { get; set; }
 
+        [Required]
+        public int NumberOfPlayersWanted { get; set; }
+
+        [Required]
+        public int NumberOfPlayersFound { get; set; }
+
         [MaxLength(100)]
         public string? Text { get; set; }
 
@@ -23,6 +29,9 @@ namespace TerminBA.Services.Database
         [ForeignKey(nameof(Reservation))]
         public int ReservationId { get; set; }
         public Reservation? Reservation { get; set; } // Veže se za usera koji je napravio rezervaciju
+
+        [MaxLength(1000)]
+        public string PostState { get; set; } = string.Empty;
 
     }
 }

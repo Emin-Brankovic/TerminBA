@@ -4,6 +4,7 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.Service;
 
 namespace TerminBA.WebAPI.Controllers
 {
@@ -11,8 +12,19 @@ namespace TerminBA.WebAPI.Controllers
     [ApiController]
     public class PostController : BaseCRUDController<PostResponse, PostSearchObject, PostInsertRequest, PostUpdateRequest>
     {
+        private readonly IPostService _postService;
+
         public PostController(IPostService postService) : base(postService)
         {
+            this._postService = postService;
+        }
+
+        [HttpPut("closePost/{id}")]
+        public async Task<PostResponse> ClosePost(int id)
+        {
+            var post = await _postService.ClosePost(id);
+
+            return post;
         }
     }
 }

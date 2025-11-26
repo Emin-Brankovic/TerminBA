@@ -15,6 +15,9 @@ namespace TerminBA.Models.Request
         [MaxLength(100)]
         public string? Text { get; set; }
 
+        [Required]
+        public int NumberOfPlayersWanted { get; set; }
+
         //[Required]
         //public int ReservationId { get; set; }
     }

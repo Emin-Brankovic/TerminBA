@@ -11,6 +11,7 @@ namespace TerminBA.Services.Interfaces
 {
     public interface IPostService : IBaseCRUDService<PostResponse, PostSearchObject, PostInsertRequest, PostUpdateRequest>
     {
+        public Task<PostResponse> ClosePost(int id);
     }
 }
 

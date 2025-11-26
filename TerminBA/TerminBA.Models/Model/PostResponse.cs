@@ -18,6 +18,13 @@ namespace TerminBA.Models.Model
         public int ReservationId { get; set; }
 
         public ReservationResponse? Reservation { get; set; }
+
+        public int NumberOfPlayersWanted { get; set; }
+
+        public int NumberOfPlayersFound { get; set; }
+
+        public string PostState { get; set; } = string.Empty;
+
     }
 }
 

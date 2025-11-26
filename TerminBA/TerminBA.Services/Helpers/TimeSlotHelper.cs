@@ -24,10 +24,9 @@ namespace TerminBA.Services.Helpers
             var reservationDayOfWeek = pickedDate.DayOfWeek;
             var workingHours = facility.SportCenter.WorkingHours.ToList();
 
-
-            var currentWorkingHours = workingHours.FirstOrDefault(rv => 
-            IsInDayRange(reservationDayOfWeek, rv.StartDay, rv.EndDay) 
-            && rv.ValidFrom<=pickedDate 
+           var currentWorkingHours = workingHours.FirstOrDefault(rv =>
+            IsInDayRange(reservationDayOfWeek, rv.StartDay, rv.EndDay)
+            && rv.ValidFrom <= pickedDate
             && (rv.ValidTo == null || rv.ValidTo >= pickedDate));
 
             TimeSpan opening = currentWorkingHours.OpeningHours.ToTimeSpan();

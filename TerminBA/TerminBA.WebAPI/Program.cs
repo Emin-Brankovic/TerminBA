@@ -8,6 +8,7 @@ using TerminBA.Models.Execptions;
 using TerminBA.Services;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PostStateMachine;
 using TerminBA.Services.Service;
 using TerminBA.WebAPI.Filters;
 
@@ -31,6 +32,13 @@ builder.Services.AddTransient<IUserReviewService, UserReviewService>();
 builder.Services.AddTransient<IPlayRequestService, PlayRequestService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddTransient<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
+builder.Services.AddTransient<BasePostState>();
+builder.Services.AddTransient<DraftPostState>();
+builder.Services.AddTransient<PlayerSearchPostState>();
+builder.Services.AddTransient<PlayerFoundPostState>();
+builder.Services.AddTransient<ClosedPostState>();
+
+
 
 // Add services to the container.
 
