@@ -34,6 +34,10 @@ namespace TerminBA.Services.Database
         [MaxLength(100)]
         public string? Status { get; set; }
 
+        [Required]
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal Price { get; set; }
+
         public ICollection<Post>? Posts { get; set; } = new List<Post>();
 
         [ForeignKey(nameof(ChosenSport))]

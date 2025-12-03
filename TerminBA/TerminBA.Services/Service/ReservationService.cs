@@ -1,11 +1,5 @@
-using Azure.Core;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
@@ -20,6 +14,7 @@ namespace TerminBA.Services.Service
     {
         public ReservationService(TerminBaContext context, IMapper mapper) : base(context, mapper)
         {
+
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -52,6 +47,61 @@ namespace TerminBA.Services.Service
                 throw new UserException("Can't pick a non existing time slot");
         }
 
+        protected async override Task BeforeUpdate(Reservation entity, ReservationUpdateRequest request)
+        {
+            var allSlots = await TimeSlotHelper.GenerateTimeSlots(entity.FacilityId, request.ReservationDate, _context);
+
+            var bookedSlots = await _context.Reservations
+                .Where(r => r.FacilityId == entity.FacilityId
+                            && r.ReservationDate == request.ReservationDate
+                            && r.Id != entity.Id) // ignore this reservation
+                .Select(r => r.StartTime)
+                .ToListAsync();
+
+            var occupiedStarts = new HashSet<TimeSpan>(bookedSlots.Select(ts => ts.ToTimeSpan()));
+
+            var slot = allSlots.FirstOrDefault(t =>
+                t.Start == request.StartTime.ToTimeSpan() &&
+                t.End == request.EndTime.ToTimeSpan());
+
+            if (slot == default)
+                throw new UserException("Can't pick a non existing time slot.");
+
+            if (occupiedStarts.Contains(slot.Start))
+                throw new UserException("Can't pick a booked time slot.");
+
+            var facility = await _context.Facilities
+                .Include(f=>f.DynamicPrices)
+                .FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+
+            if (facility!.IsDynamicPricing)
+            {
+                if (isPriceChanged(entity,request,facility))
+                {
+                    //implement stripe invoice logic
+                }
+            }
+        }
+
+        private bool isPriceChanged(Reservation entity, ReservationUpdateRequest request,Facility facility)
+        {
+            var price = facility.DynamicPrices.Where(dp =>
+                             TimeSlotHelper.IsInDayRange(request.ReservationDate.DayOfWeek, dp.StartDay, dp.EndDay)
+                             && TimeSlotHelper.IsWithinValidityPeriod(request.ReservationDate, dp.ValidFrom, dp.ValidTo)
+                             && dp.StartTime <= request.StartTime
+                             && dp.EndTime >= request.EndTime).FirstOrDefault()
+                             ?? throw new UserException("No price is found for selected time and date");
+
+            bool priceChanged = false;
+
+            if (price.PricePerHour != entity.Price)
+            {
+                priceChanged = true;
+                request.Price = price.PricePerHour;
+            }
+
+            return priceChanged;
+        }
     }
 }
 

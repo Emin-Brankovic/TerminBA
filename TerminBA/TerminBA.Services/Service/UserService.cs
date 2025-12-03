@@ -56,12 +56,18 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
         {
-            if (await UserExists(entity.Username!))
-                throw new UserException("Username is already taken");
+            if (await UserExists(entity.Username!, entity.Email!))
+                throw new UserException("Username or email is already taken");
 
 
             entity.PasswordSalt = HashingHelper.GenerateSalt();
-            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password!);
+        }
+
+        protected async override Task BeforeUpdate(User entity, UserUpdateRequest request)
+        {
+            if (await UserExists(entity.Username!,entity.Email!))
+                throw new UserException("Username or email is already taken");
         }
 
         protected override async Task BeforeDelete(User entity)
@@ -74,9 +80,11 @@ namespace TerminBA.Services.Service
                 _context.RemoveRange(recievedRewies);
         }
 
-        private async Task<bool> UserExists(string username)
+        private async Task<bool> UserExists(string username,string email)
         {
-            return await _context.Users.AnyAsync(user => user.Username.ToLower() == username.ToLower());
+            return await _context.Users.AnyAsync(user => 
+            user.Username!.ToLower() == username.ToLower()
+            || user.Email!.ToLower()==email.ToLower());
 
         }
 

@@ -27,6 +27,8 @@ namespace TerminBA.Models.Model
 
         public string? Status { get; set; }
 
+        public decimal Price { get; set; }
+
         //public ICollection<PostResponse> Posts { get; set; } = new List<PostResponse>();
 
         public int? ChosenSportId { get; set; }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TerminBA.Models.Request;
@@ -50,5 +51,19 @@ namespace TerminBA.Services.Helpers
             else
                 return targetDay >= startDay || targetDay <= endDay;
         }
+
+        public static bool IsWithinValidityPeriod(DateOnly reservationDate, DateOnly validFrom, DateOnly? validTo)
+        {
+            return validFrom <= reservationDate &&
+                   (validTo == null || validTo >= reservationDate);
+        }
+
+        //public static Expression<Func<FacilityDynamicPrice, bool>> MatchesDayOfWeek(DayOfWeek target)
+        //{
+        //    return x =>
+        //        (x.StartDay <= x.EndDay
+        //            ? (target >= x.StartDay && target <= x.EndDay)
+        //            : (target >= x.StartDay || target <= x.EndDay));
+        //}
     }
 }
