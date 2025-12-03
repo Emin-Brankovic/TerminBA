@@ -22,7 +22,7 @@ namespace TerminBA.Services.Service
         {
             if(!string.IsNullOrEmpty(search.SportName))
             {
-                query = query.Where(c => c.SportName.ToLower().Contains(search.SportName.ToLower()));
+                query = query.Where(c => c.SportName!.ToLower().Contains(search.SportName.ToLower()));
             }
 
             return query;

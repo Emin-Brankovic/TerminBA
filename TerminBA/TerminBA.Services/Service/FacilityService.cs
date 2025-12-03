@@ -19,6 +19,64 @@ namespace TerminBA.Services.Service
             _facilityDynamicPriceService = facilityDynamicPriceService;
         }
 
+        public override IQueryable<Facility> ApplyFilter(IQueryable<Facility> query, FacilitySearchObject search)
+        {
+            if (!string.IsNullOrWhiteSpace(search.Name))
+            {
+                var nameLower = search.Name.ToLower();
+                query = query.Where(f => f.Name != null && f.Name.ToLower().Contains(nameLower));
+            }
+
+            if (search.SportCenterId.HasValue)
+            {
+                query = query.Where(f => f.SportCenterId == search.SportCenterId.Value);
+            }
+
+            if (search.TurfTypeId.HasValue)
+            {
+                query = query.Where(f => f.TurfTypeId == search.TurfTypeId.Value);
+            }
+
+            if (search.IsIndoor.HasValue)
+            {
+                query = query.Where(f => f.IsIndoor == search.IsIndoor.Value);
+            }
+
+            if (search.SportId.HasValue)
+            {
+                var sportId = search.SportId.Value;
+                query = query.Where(f => f.AvailableSports.Any(s => s.Id == sportId));
+            }
+
+            if (search.MinPrice.HasValue)
+            {
+                var minPrice = (decimal)search.MinPrice.Value;
+
+                query = query.Where(f =>
+                    // Static pricing: facilities with a static price greater or equal to min
+                    (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value >= minPrice)
+                    ||
+                    // Dynamic pricing: at least one dynamic price greater or equal to min
+                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour >= minPrice))
+                );
+            }
+
+            if (search.MaxPrice.HasValue)
+            {
+                var maxPrice = (decimal)search.MaxPrice.Value;
+
+                query = query.Where(f =>
+                    // Static pricing: facilities with a static price less or equal to max
+                    (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value <= maxPrice)
+                    ||
+                    // Dynamic pricing: at least one dynamic price less or equal to max
+                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour <= maxPrice))
+                );
+            }
+
+            return query;
+        }
+
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
             query = query

@@ -31,10 +31,13 @@ namespace TerminBA.Services.Service
                 query = query.Where(r => r.FacilityId == search.FacilityId.Value);
 
             if (!string.IsNullOrEmpty(search.Status))
-                query = query.Where(r => r.Status.ToLower().Contains(search.Status.ToLower()));
+                query = query.Where(r => r.Status!.ToLower().Contains(search.Status.ToLower()));
 
             if (search.ChosenSportId.HasValue)
                 query = query.Where(r => r.ChosenSportId == search.ChosenSportId.Value);
+
+            if (search.ReservationDate.HasValue)
+                query = query.Where(r => r.ReservationDate == search.ReservationDate.Value);
 
             return query;
         }
@@ -51,6 +54,7 @@ namespace TerminBA.Services.Service
 
     }
 }
+
 
 
 

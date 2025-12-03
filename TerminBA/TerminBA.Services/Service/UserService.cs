@@ -27,16 +27,16 @@ namespace TerminBA.Services.Service
         public override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
         {
             if (!string.IsNullOrEmpty(search.FirstName))
-                query = query.Where(u => u.FirstName.ToLower().Contains(search.FirstName.ToLower()));
+                query = query.Where(u => u.FirstName!.ToLower().Contains(search.FirstName.ToLower()));
 
             if (!string.IsNullOrEmpty(search.LastName))
-                query = query.Where(u => u.LastName.ToLower().Contains(search.LastName.ToLower()));
+                query = query.Where(u => u.LastName!.ToLower().Contains(search.LastName.ToLower()));
 
             if (!string.IsNullOrEmpty(search.Username))
-                query = query.Where(u => u.Username.ToLower().Contains(search.Username.ToLower()));
+                query = query.Where(u => u.Username!.ToLower().Contains(search.Username.ToLower()));
 
             if (!string.IsNullOrEmpty(search.Email))
-                query = query.Where(u => u.Email.ToLower().Contains(search.Email.ToLower()));
+                query = query.Where(u => u.Email!.ToLower().Contains(search.Email.ToLower()));
 
             if (search.CityId.HasValue)
                 query = query.Where(u => u.CityId == search.CityId.Value);
@@ -82,3 +82,4 @@ namespace TerminBA.Services.Service
 
     }
 }
+

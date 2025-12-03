@@ -10,7 +10,6 @@ namespace TerminBA.Models.SearchObjects
     {
         public string? Name { get; set; }
         public int? CityId { get; set; }
-        public int? UserId { get; set; }
         public bool? IsEquipmentProvided { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace TerminBA.Models.SearchObjects
     {
         public int? UserId { get; set; }
         public int? FacilityId { get; set; }
-        public DateTime? ReservationDate { get; set; }
+        public DateOnly? ReservationDate { get; set; }
         public string? Status { get; set; }
         public int? ChosenSportId { get; set; }
     }

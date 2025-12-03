@@ -27,8 +27,3 @@ namespace TerminBA.Services.Service
         }
     }
 }
-
-
-
-
-

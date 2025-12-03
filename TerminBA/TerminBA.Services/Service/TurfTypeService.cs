@@ -22,7 +22,7 @@ namespace TerminBA.Services.Service
         {
             if (!string.IsNullOrEmpty(search.Name))
             {
-                query = query.Where(t => t.Name.ToLower().Contains(search.Name.ToLower()));
+                query = query.Where(t => t.Name!.ToLower().Contains(search.Name.ToLower()));
             }
 
             return query;

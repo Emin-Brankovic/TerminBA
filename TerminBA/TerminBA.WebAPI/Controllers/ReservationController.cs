@@ -16,8 +16,3 @@ namespace TerminBA.WebAPI.Controllers
         }
     }
 }
-
-
-
-
-

@@ -13,7 +13,7 @@ namespace TerminBA.Models.SearchObjects
         public int? TurfTypeId { get; set; }
         public bool? IsIndoor { get; set; }
         public int? SportId { get; set; }
-        public DateOnly? WantedDate { get; set; }
+        //public DateOnly? WantedDate { get; set; }
         public double? MinPrice { get; set; }
         public double? MaxPrice { get; set; }
     }
