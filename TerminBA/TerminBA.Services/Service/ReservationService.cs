@@ -12,9 +12,11 @@ namespace TerminBA.Services.Service
 {
     public class ReservationService : BaseCRUDService<ReservationResponse, Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
-        public ReservationService(TerminBaContext context, IMapper mapper) : base(context, mapper)
-        {
+        protected readonly EmailService _emailService;
 
+        public ReservationService(TerminBaContext context, IMapper mapper,EmailService emailService) : base(context, mapper)
+        {
+            this._emailService = emailService;
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -45,6 +47,8 @@ namespace TerminBA.Services.Service
 
             if(!exists)
                 throw new UserException("Can't pick a non existing time slot");
+
+           await SendEmailAsync(request);
         }
 
         protected async override Task BeforeUpdate(Reservation entity, ReservationUpdateRequest request)
@@ -101,6 +105,23 @@ namespace TerminBA.Services.Service
             }
 
             return priceChanged;
+        }
+
+
+        private async Task SendEmailAsync(ReservationInsertRequest reservation)
+        {
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == reservation.UserId);
+
+            if(user == null) 
+            {
+                throw new UserException("User not found");
+            }
+
+            var message = "Your reservation has been successfully created. Thank you";
+            var recepient = user.Email ?? "";
+
+            await _emailService.SendEmailAsync(recepient, message);
         }
     }
 }

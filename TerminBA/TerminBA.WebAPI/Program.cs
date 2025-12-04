@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +38,7 @@ builder.Services.AddTransient<DraftPostState>();
 builder.Services.AddTransient<PlayerSearchPostState>();
 builder.Services.AddTransient<PlayerFoundPostState>();
 builder.Services.AddTransient<ClosedPostState>();
-
+builder.Services.AddTransient<EmailService>();
 
 
 // Add services to the container.
@@ -83,6 +84,8 @@ builder.Services.AddMapster();
 var connectionString = builder.Configuration.GetConnectionString("db");
 builder.Services.AddDbContext<TerminBaContext>(options =>
     options.UseSqlServer(connectionString));
+
+Env.Load();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
