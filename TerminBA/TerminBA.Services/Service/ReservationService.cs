@@ -1,6 +1,8 @@
+using EasyNetQ;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using TerminBA.Models.Execptions;
+using TerminBA.Models.Messages;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -121,7 +123,17 @@ namespace TerminBA.Services.Service
             var message = "Your reservation has been successfully created. Thank you";
             var recepient = user.Email ?? "";
 
-            await _emailService.SendEmailAsync(recepient, message);
+            var bus = RabbitHutch.CreateBus("host=localhost");
+
+            var emailMessage = new EmailMessage
+            {
+                RecipientEmail = recepient,
+                MessageBody = message
+            };
+
+            await bus.PubSub.PublishAsync(emailMessage);
+
+           //await _emailService.SendEmailAsync(recepient, message);
         }
     }
 }
