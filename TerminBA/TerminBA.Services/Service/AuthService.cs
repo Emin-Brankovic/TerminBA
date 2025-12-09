@@ -52,7 +52,7 @@ namespace TerminBA.Services.Service
         public AuthResponse CreatToken(AccountBase account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var secretKey = _config["JWTSecretKey"];
+            var secretKey = Environment.GetEnvironmentVariable("JWTSecretKey");
             
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? string.Empty));
             var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);

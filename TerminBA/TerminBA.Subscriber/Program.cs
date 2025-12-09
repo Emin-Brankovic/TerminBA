@@ -9,11 +9,9 @@ var builder = new ConfigurationBuilder()
 
 var configuration = builder.Build();
 
-//ne moze biti apsolutna putanja do env, mora biti dinamicka
-Env.Load("C:\\Users\\Emin Brankovic\\Desktop\\TerminBA\\TerminBA\\TerminBA.Subscriber\\.env");
+Env.Load("..\\..\\..\\..\\.env");
 
 var from = Environment.GetEnvironmentVariable("From");
-Console.WriteLine(from);
 
 var emailService = new EmailService(configuration);
 var bus = RabbitHutch.CreateBus("host=localhost");

@@ -85,7 +85,7 @@ var connectionString = builder.Configuration.GetConnectionString("db");
 builder.Services.AddDbContext<TerminBaContext>(options =>
     options.UseSqlServer(connectionString));
 
-Env.Load();
+Env.Load("..\\.env");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -103,6 +103,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TerminBaContext>();
+    db.Database.EnsureCreated(); // <--- This creates the database automatically
+}
 
 
 
