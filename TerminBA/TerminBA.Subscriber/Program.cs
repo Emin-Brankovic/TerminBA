@@ -9,14 +9,26 @@ var builder = new ConfigurationBuilder()
 
 var configuration = builder.Build();
 
-//ne moze biti apsolutna putanja do env, mora biti dinamicka
-Env.Load("C:\\Users\\Emin Brankovic\\Desktop\\TerminBA\\TerminBA\\TerminBA.Subscriber\\.env");
+try
+{
+    Env.Load("..\\..\\..\\..\\.env");
+}
+catch
+{
+}
 
 var from = Environment.GetEnvironmentVariable("From");
-Console.WriteLine(from);
 
 var emailService = new EmailService(configuration);
-var bus = RabbitHutch.CreateBus("host=localhost");
+
+// Build RabbitMQ connection string from environment variables
+var rabbitmqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+var rabbitmqPort = Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672";
+var rabbitmqUser = Environment.GetEnvironmentVariable("RABBITMQ_USER") ?? "guest";
+var rabbitmqPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
+
+var connectionString = $"host={rabbitmqHost};port={rabbitmqPort};username={rabbitmqUser};password={rabbitmqPassword}";
+var bus = RabbitHutch.CreateBus(connectionString);
 
 Console.WriteLine("Email subscriber started...");
 
@@ -34,6 +46,6 @@ await bus.PubSub.SubscribeAsync<EmailMessage>("email_sender", async msg =>
 });
 
 
-Console.WriteLine("Press any key to exit");
-Console.ReadKey();
+// Keep the application running
+await Task.Delay(Timeout.Infinite);
 

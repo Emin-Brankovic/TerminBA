@@ -1,0 +1,70 @@
+networks:
+  terminba-network:
+    driver: bridge
+services:
+  terminba-sql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: unless-stopped
+    #Environment variables for the SQL Server
+    environment:
+      - SA_PASSWORD=${SQL_PASSWORD}
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+    ports:
+      - ${SQL_PORT}:1433
+     #Allows other containers on the same network to access the SQL Server on port 1433
+    expose:
+      - 1433
+    networks:
+      - terminba-network
+
+  terminba-rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+    networks:
+      - terminba-network
+
+  terminba-api:
+    build:
+      context: .
+    ports:
+      - 5078:5078
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__db=Server=terminba-sql,1433;Database=220230;User ID=${SQL_USER};Password=${SQL_PASSWORD};MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - RABBITMQ_HOST=terminba-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VIRTUALHOST=/
+      - JWTSecretKey=${JWTSecretKey}
+    depends_on:
+      - terminba-sql
+    networks:
+      - terminba-network
+
+  terminba-subscriber:
+    build:
+      context: .
+      dockerfile: TerminBA.Subscriber/Dockerfile
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_HOST=terminba-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - From=${From}
+      - SmtpServer=${SmtpServer}
+      - Username=${Username}
+      - AppPassword=${AppPassword}
+      - SmtpPort=${SmtpPort}
+    depends_on:
+      - terminba-rabbitmq
+    networks:
+      - terminba-network
