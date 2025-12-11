@@ -17,6 +17,19 @@ services:
       - 1433
     networks:
       - terminba-network
+
+  terminba-rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+    networks:
+      - terminba-network
+
   terminba-api:
     build:
       context: .
@@ -25,8 +38,33 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__db=Server=terminba-sql,1433;Database=220230;User ID=${SQL_USER};Password=${SQL_PASSWORD};MultipleActiveResultSets=true;TrustServerCertificate=True;
+      - RABBITMQ_HOST=terminba-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_VIRTUALHOST=/
       - JWTSecretKey=${JWTSecretKey}
     depends_on:
       - terminba-sql
+    networks:
+      - terminba-network
+
+  terminba-subscriber:
+    build:
+      context: .
+      dockerfile: TerminBA.Subscriber/Dockerfile
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_HOST=terminba-rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - From=${From}
+      - SmtpServer=${SmtpServer}
+      - Username=${Username}
+      - AppPassword=${AppPassword}
+      - SmtpPort=${SmtpPort}
+    depends_on:
+      - terminba-rabbitmq
     networks:
       - terminba-network

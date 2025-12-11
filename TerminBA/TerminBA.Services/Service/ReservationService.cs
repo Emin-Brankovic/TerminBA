@@ -15,10 +15,12 @@ namespace TerminBA.Services.Service
     public class ReservationService : BaseCRUDService<ReservationResponse, Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
         protected readonly EmailService _emailService;
+        private readonly IBus _bus;
 
-        public ReservationService(TerminBaContext context, IMapper mapper,EmailService emailService) : base(context, mapper)
+        public ReservationService(TerminBaContext context, IMapper mapper,EmailService emailService, IBus bus) : base(context, mapper)
         {
             this._emailService = emailService;
+            this._bus = bus;
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -123,7 +125,15 @@ namespace TerminBA.Services.Service
             var message = "Your reservation has been successfully created. Thank you";
             var recepient = user.Email ?? "";
 
-            var bus = RabbitHutch.CreateBus("host=localhost");
+            //// Build RabbitMQ connection string from environment variables
+            //var rabbitmqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+            //var rabbitmqPort = Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672";
+            //var rabbitmqUser = Environment.GetEnvironmentVariable("RABBITMQ_USER") ?? "guest";
+            //var rabbitmqPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
+
+            //var connectionString = $"host={rabbitmqHost};port={rabbitmqPort};username={rabbitmqUser};password={rabbitmqPassword}";
+
+            //var bus = RabbitHutch.CreateBus(connectionString);
 
             var emailMessage = new EmailMessage
             {
@@ -131,7 +141,7 @@ namespace TerminBA.Services.Service
                 MessageBody = message
             };
 
-            await bus.PubSub.PublishAsync(emailMessage);
+            await _bus.PubSub.PublishAsync(emailMessage);
 
            //await _emailService.SendEmailAsync(recepient, message);
         }
