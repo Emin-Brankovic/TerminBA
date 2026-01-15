@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:terminba_admin_desktop/providers/auth_provider.dart';
+import 'package:terminba_admin_desktop/screens/login_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AuthProvider>(create: (context) => AuthProvider()),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -11,25 +19,97 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      debugShowCheckedModeBanner: false,
+      title: 'TerminBA Admin Desktop',
+      theme: AppTheme.lightTheme,
+      home: const LoginPage(),
+    );
+  }
+}
+
+class AppTheme {
+  // Primary Colors from the Screenshots
+  static const Color primaryGreen = Color(0xFF00C875); // Action buttons & Mobile navbar
+  static const Color secondaryOrange = Color(0xFFFF5722); // Reviews & Delete buttons
+  static const Color adminNavbarBg = Color(0xFFD9F2E6); // Light mint admin header
+  static const Color backgroundGray = Color(0xFFF8F9FA); // Screen background
+  static const Color cardShadow = Color(0x1A000000); 
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      primaryColor: primaryGreen,
+      scaffoldBackgroundColor: backgroundGray,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryGreen,
+        primary: primaryGreen,
+        secondary: secondaryOrange,
+        surface: Colors.white,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      
+     // Card Theme for Facility & User containers
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+
+      // Input Decoration (Search Bars & Forms)
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30), // Rounded search bars
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: primaryGreen, width: 1.5),
+        ),
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+      ),
+
+      // Button Themes
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryGreen,
+          foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontWeight: FontWeight.bold),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
+      ),
+
+      // Navigation Bar (User Mobile App)
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: primaryGreen.withValues(alpha: 30),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: primaryGreen);
+          }
+          return const IconThemeData(color: Colors.grey);
+        }),
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ),
+
+      // Custom Text Theme
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+        bodyMedium: TextStyle(fontSize: 14, color: Colors.black87),
+        labelSmall: TextStyle(fontSize: 11, color: Colors.grey),
+      ),
     );
   }
 }
