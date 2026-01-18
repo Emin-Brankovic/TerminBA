@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
+import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,12 +30,13 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       await authProvider.login(username, password);
-      // Handle successful login (e.g., navigate to another screen)
+
+      if(!mounted) return;
+
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
     } catch (e) {
-      // Handle login error (e.g., show error message)
       print('Login error: $e');
     }
-    // Implement login logic here
   }
 
     @override

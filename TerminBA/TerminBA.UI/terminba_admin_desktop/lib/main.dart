@@ -57,6 +57,15 @@ class AppTheme {
         ),
       ),
 
+      appBarTheme: AppBarTheme(
+        backgroundColor: Color.fromARGB(255, 79, 219, 161),
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
+        centerTitle: false,
+        toolbarHeight: 75,
+      ),
+
       // Input Decoration (Search Bars & Forms)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
