@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
+import 'package:terminba_admin_desktop/screens/user_management_screen.dart';
 
 class MasterScreen extends StatefulWidget {
   const MasterScreen({super.key, required this.title, required this.child});
@@ -35,7 +37,7 @@ class _MasterScreenState extends State<MasterScreen> {
                   children: [
                     _navItem("Dashboard", isSelected: widget.title == "Dashboard"),
                     _navDivider(),
-                    _navItem("Users", isSelected: widget.title == "Users"),
+                    _navItem("User Management", isSelected: widget.title == "User Management" ? true : false),
                     _navDivider(),
                     _navItem("Sport Centers", isSelected: widget.title == "Sport Centers"),
                     _navDivider(),
@@ -74,7 +76,31 @@ class _MasterScreenState extends State<MasterScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
       child: TextButton(
-        onPressed: () {},
+        onPressed: () {
+          switch(title)
+          {
+            case "User Management":
+              {
+                // Navigate to User Management Screen
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const UserManagementScreen()));
+              }
+              break;
+            case "Sport Centers":
+              {
+                // Navigate to Sport Centers Screen
+              }
+              break;
+            case "Reference Data":
+              {
+                // Navigate to Reference Data Screen
+              } 
+              break;
+            case "Dashboard":
+            {
+               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen()));
+            }
+          }
+        },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

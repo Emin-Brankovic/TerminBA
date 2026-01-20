@@ -23,7 +23,7 @@ class AuthProvider extends ChangeNotifier{
 
         if(respone.statusCode==200){
           final responseBody=json.decode(respone.body);
-          print('Login successful');
+          print('Login successful: $responseBody');
         } else {
           // Login failed
           print('Login failed with status: ${respone.statusCode}');
