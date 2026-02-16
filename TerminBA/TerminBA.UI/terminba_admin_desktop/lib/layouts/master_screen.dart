@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
+import 'package:terminba_admin_desktop/screens/reference_data_screen.dart';
 import 'package:terminba_admin_desktop/screens/user_management_screen.dart';
 
 class MasterScreen extends StatefulWidget {
@@ -92,7 +93,7 @@ class _MasterScreenState extends State<MasterScreen> {
               break;
             case "Reference Data":
               {
-                // Navigate to Reference Data Screen
+                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ReferenceDataScreen()));
               } 
               break;
             case "Dashboard":

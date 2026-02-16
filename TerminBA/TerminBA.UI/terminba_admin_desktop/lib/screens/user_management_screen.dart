@@ -10,8 +10,8 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
   late UserDataSource _userDataSource;
-  String? _selectedFilter;
- List<String> list = <String>['Sarajevo', 'Mostar', 'Tuzla', 'Konjic'];
+  //String? _selectedFilter;
+  List<String> list = <String>['Sarajevo', 'Mostar', 'Tuzla', 'Konjic'];
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         'role': 'User',
         'isActive': true,
         'createdAt': '2024-01-01',
-        'updatedAt': '2024-06-15'
+        'updatedAt': '2024-06-15',
       },
       {
         'id': 2,
@@ -51,8 +51,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         'role': 'Admin',
         'isActive': true,
         'createdAt': '2024-02-10',
-        'updatedAt': '2024-07-20'
-      }
+        'updatedAt': '2024-07-20',
+      },
     ];
     _userDataSource = UserDataSource(users);
   }
@@ -62,12 +62,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return MasterScreen(
       title: 'User Management',
       child: Center(
-        child: Column(
-          children: [
-            _buildSearch(),
-            _buildResultView(),
-          ],
-        ),      ),
+        child: Column(children: [_buildSearch(), _buildResultView()]),
+      ),
     );
   }
 
@@ -102,8 +98,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-    Widget _buildSearch() {
-    String? _dropdownValue=list.first; 
+  Widget _buildSearch() {
+    String? _dropdownValue = list.first;
     return Padding(
       padding: EdgeInsets.all(10),
       child: Row(
@@ -117,44 +113,35 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
           ),
           SizedBox(width: 10),
-          Expanded(
-            child: DropdownButtonFormField<String>(
-              hint: Text("Filter"),
-              // decoration: InputDecoration(
-              //   hintText: "Filter",
-              //   border: OutlineInputBorder(),
-              // ),
-              value: _selectedFilter,
-              items: [
-                DropdownMenuItem(value: "all", child: Text("All")),
-                DropdownMenuItem(value: "active", child: Text("Active")),
-                DropdownMenuItem(value: "inactive", child: Text("Inactive")),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedFilter = value;
-                });
-              },
-            ),
+          DropdownMenu<String>(
+            hintText: "Location",
+            onSelected: (String? value) {
+              setState(() {
+                _dropdownValue = value;
+              });
+            },
+            dropdownMenuEntries: [
+              DropdownMenuEntry(value: "Sarajevo", label: "Sarajevo"),
+              DropdownMenuEntry(value: "Mostar", label: "Mostar"),
+              DropdownMenuEntry(value: "Tuzla", label: "Tuzla"),
+              DropdownMenuEntry(value: "Konjic", label: "Konjic"),
+            ],
           ),
           SizedBox(width: 10),
           Expanded(
             child: DropdownMenu<String>(
-              hintText: "Location",
+              hintText: "Role",
               onSelected: (String? value) {
                 setState(() {
                   _dropdownValue = value;
                 });
               },
               dropdownMenuEntries: [
-                DropdownMenuEntry(value: "Sarajevo", label: "Sarajevo"),
-                DropdownMenuEntry(value: "Mostar", label: "Mostar"),
-                DropdownMenuEntry(value: "Tuzla", label: "Tuzla"),
-                DropdownMenuEntry(value: "Konjic", label: "Konjic"),
+                DropdownMenuEntry(value: "User", label: "User"),
+                DropdownMenuEntry(value: "Admin", label: "Admin"),
               ],
             ),
           ),
-          SizedBox(width: 10),
           ElevatedButton(
             onPressed: () {
               // Implement search logic here
@@ -165,7 +152,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
     );
   }
-  
 }
 
 class UserDataSource extends DataTableSource {
@@ -177,22 +163,24 @@ class UserDataSource extends DataTableSource {
   DataRow? getRow(int index) {
     if (index >= _users.length) return null;
     final user = _users[index];
-    return DataRow(cells: [
-      DataCell(Text(user['id'].toString())),
-      DataCell(Text(user['firstName'] ?? '')),
-      DataCell(Text(user['lastName'] ?? '')),
-      DataCell(Text(user['age']?.toString() ?? '')),
-      DataCell(Text(user['username'] ?? '')),
-      DataCell(Text(user['email'] ?? '')),
-      DataCell(Text(user['phoneNumber'] ?? '')),
-      DataCell(Text(user['instagramAccount'] ?? '')),
-      DataCell(Text(user['birthDate'] ?? '')),
-      DataCell(Text(user['city'] ?? '')),
-      DataCell(Text(user['role'] ?? '')),
-      DataCell(Text(user['isActive'] == true ? 'Yes' : 'No')),
-      DataCell(Text(user['createdAt'] ?? '')),
-      DataCell(Text(user['updatedAt'] ?? '')),
-    ]);
+    return DataRow(
+      cells: [
+        DataCell(Text(user['id'].toString())),
+        DataCell(Text(user['firstName'] ?? '')),
+        DataCell(Text(user['lastName'] ?? '')),
+        DataCell(Text(user['age']?.toString() ?? '')),
+        DataCell(Text(user['username'] ?? '')),
+        DataCell(Text(user['email'] ?? '')),
+        DataCell(Text(user['phoneNumber'] ?? '')),
+        DataCell(Text(user['instagramAccount'] ?? '')),
+        DataCell(Text(user['birthDate'] ?? '')),
+        DataCell(Text(user['city'] ?? '')),
+        DataCell(Text(user['role'] ?? '')),
+        DataCell(Text(user['isActive'] == true ? 'Yes' : 'No')),
+        DataCell(Text(user['createdAt'] ?? '')),
+        DataCell(Text(user['updatedAt'] ?? '')),
+      ],
+    );
   }
 
   @override
