@@ -22,12 +22,12 @@ namespace TerminBA.Services.Service
         {
             if (!string.IsNullOrEmpty(search.RoleName))
             {
-                query = query.Where(r => r.RoleName.ToLower().Contains(search.RoleName.ToLower()));
+                query = query.Where(r => r.Name.ToLower().Contains(search.RoleName.ToLower()));
             }
 
             if (!string.IsNullOrEmpty(search.FTS))
             {
-                query = query.Where(r => r.RoleName.ToLower().Contains(search.FTS.ToLower()) || r.RoleDescription.ToLower().Contains(search.FTS));
+                query = query.Where(r => r.Name.ToLower().Contains(search.FTS.ToLower()) || r.RoleDescription.ToLower().Contains(search.FTS));
             }
 
             return query;

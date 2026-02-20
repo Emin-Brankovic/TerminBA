@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
+import 'package:terminba_admin_desktop/providers/city_provider.dart';
+import 'package:terminba_admin_desktop/providers/role_provider.dart';
+import 'package:terminba_admin_desktop/providers/sport_provider.dart';
+import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_admin_desktop/screens/login_screen.dart';
 
 void main() {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthProvider>(create: (context) => AuthProvider()),
+      ChangeNotifierProvider<AmenityProvider>(create: (context) => AmenityProvider()),
+      ChangeNotifierProvider<TurfTypeProvider>(create: (context) => TurfTypeProvider()),
+      ChangeNotifierProvider<CityProvider>(create: (context) => CityProvider()),
+      ChangeNotifierProvider<SportProvider>(create: (context) => SportProvider()),
+      ChangeNotifierProvider<RoleProvider>(create: (context) => RoleProvider()),
     ],
     child: const MyApp(),
   ));

@@ -123,10 +123,10 @@ using (var scope = app.Services.CreateScope())
 
         // Seed Roles
         dataContext.Roles.AddRange(
-            new Role { RoleName = "Admin", RoleDescription = "Administrator with full system access" },
-            new Role { RoleName = "User", RoleDescription = "Regular user who can make reservations" },
-            new Role { RoleName = "SportCenterOwner", RoleDescription = "Owner of a sport center" },
-            new Role { RoleName = "FacilityManager", RoleDescription = "Manager responsible for facility operations" }
+            new Role { Name = "Admin", RoleDescription = "Administrator with full system access" },
+            new Role { Name = "User", RoleDescription = "Regular user who can make reservations" },
+            new Role { Name = "SportCenterOwner", RoleDescription = "Owner of a sport center" },
+            new Role { Name = "FacilityManager", RoleDescription = "Manager responsible for facility operations" }
         );
 
         // Seed Cities
@@ -143,13 +143,13 @@ using (var scope = app.Services.CreateScope())
 
         // Seed Sports
         dataContext.Sports.AddRange(
-            new Sport {SportName = "Football" },
-            new Sport {SportName = "Basketball" },
-            new Sport {SportName = "Tennis" },
-            new Sport {SportName = "Volleyball" },
-            new Sport {SportName = "Handball" },
-            new Sport {SportName = "Badminton" },
-            new Sport {SportName = "Table Tennis" }
+            new Sport {Name = "Football" },
+            new Sport {Name = "Basketball" },
+            new Sport {Name = "Tennis" },
+            new Sport {Name = "Volleyball" },
+            new Sport {Name = "Handball" },
+            new Sport {Name = "Badminton" },
+            new Sport {Name = "Table Tennis" }
         );
 
         // Seed TurfTypes

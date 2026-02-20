@@ -26,12 +26,24 @@ class AuthProvider extends ChangeNotifier{
           print('Login successful: $responseBody');
         } else {
           // Login failed
-          print('Login failed with status: ${respone.statusCode}');
+          final responseBody=json.decode(respone.body);
+          // Extract error message from response
+          String errorMessage = 'Invalid credentials';
+          if (responseBody is Map && responseBody.containsKey('message')) {
+            errorMessage = responseBody['message'];
+          } else if (responseBody is String) {
+            errorMessage = responseBody;
+          }
+          throw Exception(errorMessage);
         }
 
       } catch (e) {
-        // Handle any errors that occur during login
-        print('Login failed: $e');
+        // Re-throw exception if it's already an Exception
+        if (e is Exception) {
+          rethrow;
+        }
+        // Handle any other errors that occur during login
+        throw Exception('Login failed: ${e.toString()}');
       }
     }
 }

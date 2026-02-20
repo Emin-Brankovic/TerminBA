@@ -11,7 +11,7 @@ namespace TerminBA.Models.Model
     {
         public int Id { get; set; }
 
-        public string? SportName { get; set; }
+        public string? Name { get; set; }
 
         //public ICollection<SportCenter> SportCentars { get; set; } = new List<SportCenter>();
         //public ICollection<Facility> Facilities { get; set; } = new List<Facility>();

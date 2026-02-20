@@ -11,7 +11,7 @@ namespace TerminBA.Models.Request
     {
         [Required]
         [MaxLength(50)]
-        public string? RoleName { get; set; }
+        public string? Name { get; set; }
 
         [MaxLength(100)]
         public string? RoleDescription { get; set; }

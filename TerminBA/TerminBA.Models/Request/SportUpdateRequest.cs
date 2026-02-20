@@ -11,6 +11,6 @@ namespace TerminBA.Models.Request
     {
         [Required]
         [MaxLength(50)]
-        public string? SportName { get; set; }
+        public string? Name { get; set; }
     }
 }

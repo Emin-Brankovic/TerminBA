@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using Microsoft.Identity.Client;
 using TerminBA.Services.Helpers;
+using TerminBA.Models.Execptions;
 
 namespace TerminBA.Services.Service
 {
@@ -38,11 +39,12 @@ namespace TerminBA.Services.Service
                 .FirstOrDefaultAsync(x=> request.Username == x.Username);
 
             if (entity == null)
-                return null;
+                throw new UserException("Invalid credentials!");
+
             var hash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
 
             if (hash != entity.PasswordHash)
-                return null;
+                throw new UserException("Invalid credentials!");
 
             var token = CreatToken(entity);
 
@@ -64,7 +66,7 @@ namespace TerminBA.Services.Service
                 {
                     new Claim(ClaimTypes.Name, account.Username),
                     new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                    new Claim(ClaimTypes.Role, account.Role.RoleName)
+                    new Claim(ClaimTypes.Role, account.Role.Name)
                 }),
 
                 Expires=tokenExperation,
