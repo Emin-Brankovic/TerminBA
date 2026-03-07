@@ -5,7 +5,7 @@ class CityProvider extends BaseProvider<City> {
   CityProvider() : super("City");
 
   @override
-  City fromJson(dynamic json) {
-    return City.fromJson(json);
+  City fromJson(dynamic data) {
+    return City.fromJson(data);
   }
 }

@@ -26,11 +26,9 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
         {
-            if (!string.IsNullOrEmpty(search.FirstName))
-                query = query.Where(u => u.FirstName!.ToLower().Contains(search.FirstName.ToLower()));
-
-            if (!string.IsNullOrEmpty(search.LastName))
-                query = query.Where(u => u.LastName!.ToLower().Contains(search.LastName.ToLower()));
+            if (!string.IsNullOrEmpty(search.FullName))
+                query = query.Where(u => u.FirstName!.ToLower().Contains(search.FullName.ToLower())
+                || u.LastName!.ToLower().Contains(search.FullName.ToLower()) || u.Username!.ToLower().Contains(search.FullName.ToLower()));
 
             if (!string.IsNullOrEmpty(search.Username))
                 query = query.Where(u => u.Username!.ToLower().Contains(search.Username.ToLower()));
@@ -78,6 +76,13 @@ namespace TerminBA.Services.Service
 
             if(recievedRewies.Any())
                 _context.RemoveRange(recievedRewies);
+        }
+
+        public override IQueryable<User> ApplyIncludes(IQueryable<User> query)
+        {
+            return query
+                .Include(u => u.City)
+                .Include(u => u.Role);
         }
 
         private async Task<bool> UserExists(string username,string email)

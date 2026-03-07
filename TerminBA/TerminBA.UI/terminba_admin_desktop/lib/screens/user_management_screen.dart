@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/layouts/master_screen.dart';
+import 'package:terminba_admin_desktop/model/city.dart';
+import 'package:terminba_admin_desktop/model/role.dart';
+import 'package:terminba_admin_desktop/model/user.dart';
+import 'package:terminba_admin_desktop/providers/city_provider.dart';
+import 'package:terminba_admin_desktop/providers/role_provider.dart';
+import 'package:terminba_admin_desktop/providers/user_provider.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -9,52 +17,78 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
+  final formKey = GlobalKey<FormBuilderState>();
+
+  Map<String, dynamic> _initValue = {
+    'search': null,
+    'city': null,
+    'role': null,
+  };
+
   late UserDataSource _userDataSource;
-  //String? _selectedFilter;
-  List<String> list = <String>['Sarajevo', 'Mostar', 'Tuzla', 'Konjic'];
+  late UserProvider _userProvider;
+  late CityProvider _cityProvider;
+  late RoleProvider _roleProvider;
+  bool _providersInitialized = false;
+  List<City> cities = <City>[];
+  List<Role> roles = <Role>[];
+  String? _selectedCity;
+  String? _selectedRole;
+  bool _citySelected = false;
+  bool _roleSelected = false;
 
   @override
   void initState() {
     super.initState();
-    List<dynamic> users = [
-      {
-        'id': 1,
-        'firstName': 'John',
-        'lastName': 'Doe',
-        'age': 25,
-        'username': 'johndoe',
-        'email': 'john.doe@example.com',
-        'phoneNumber': '+387 61 123 456',
-        'instagramAccount': '@johndoe',
-        'birthDate': '1999-01-15',
-        'cityId': 1,
-        'city': 'Sarajevo',
-        'roleId': 1,
-        'role': 'User',
-        'isActive': true,
-        'createdAt': '2024-01-01',
-        'updatedAt': '2024-06-15',
-      },
-      {
-        'id': 2,
-        'firstName': 'Jane',
-        'lastName': 'Smith',
-        'age': 30,
-        'username': 'janesmith',
-        'email': 'jane.smith@example.com',
-        'phoneNumber': '+387 62 234 567',
-        'instagramAccount': '@janesmith',
-        'birthDate': '1994-05-22',
-        'cityId': 2,
-        'city': 'Mostar',
-        'roleId': 2,
-        'role': 'Admin',
-        'isActive': true,
-        'createdAt': '2024-02-10',
-        'updatedAt': '2024-07-20',
-      },
-    ];
-    _userDataSource = UserDataSource(users);
+    _userDataSource = UserDataSource([]);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _userProvider = context.read<UserProvider>();
+    _cityProvider = context.read<CityProvider>();
+    _roleProvider = context.read<RoleProvider>();
+
+    if (!_providersInitialized) {
+      _providersInitialized = true;
+      _loadUsers();
+      _loadCities();
+      _loadRoles();
+    }
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      var result = await _userProvider.get();
+      setState(() {
+        _userDataSource = UserDataSource(result.items ?? []);
+      });
+    } catch (e) {
+      debugPrint('Error loading users: $e');
+    }
+  }
+
+  Future<void> _loadCities() async {
+    try {
+      var result = await _cityProvider.get();
+      setState(() {
+        cities = result.items ?? [];
+      });
+    } catch (e) {
+      debugPrint('Error loading cities: $e');
+    }
+  }
+
+  Future<void> _loadRoles() async {
+    try {
+      var result = await _roleProvider.get();
+      setState(() {
+        roles = result.items ?? [];
+      });
+    } catch (e) {
+      debugPrint('Error loading roles: $e');
+    }
   }
 
   @override
@@ -62,7 +96,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return MasterScreen(
       title: 'User Management',
       child: Center(
-        child: Column(children: [_buildSearch(), _buildResultView()]),
+        child: Column(children: [_buildSearchForm(), _buildResultView()]),
       ),
     );
   }
@@ -98,12 +132,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _buildSearch() {
-    String? _dropdownValue = list.first;
     return Padding(
       padding: EdgeInsets.all(10),
       child: Row(
         children: [
-          Expanded(
+          SizedBox(
+            width: 310,
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search",
@@ -113,48 +147,170 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
           SizedBox(width: 10),
           DropdownMenu<String>(
+            width: 200,
             hintText: "Location",
             onSelected: (String? value) {
               setState(() {
-                _dropdownValue = value;
+                _selectedCity = value;
               });
             },
-            dropdownMenuEntries: [
-              DropdownMenuEntry(value: "Sarajevo", label: "Sarajevo"),
-              DropdownMenuEntry(value: "Mostar", label: "Mostar"),
-              DropdownMenuEntry(value: "Tuzla", label: "Tuzla"),
-              DropdownMenuEntry(value: "Konjic", label: "Konjic"),
-            ],
+            dropdownMenuEntries: cities
+                .map(
+                  (c) =>
+                      DropdownMenuEntry(value: c.id.toString(), label: c.name),
+                )
+                .toList(),
           ),
           SizedBox(width: 10),
-          Expanded(
-            child: DropdownMenu<String>(
-              hintText: "Role",
-              onSelected: (String? value) {
-                setState(() {
-                  _dropdownValue = value;
-                });
+          DropdownMenu<String>(
+            width: 200,
+            hintText: "Role",
+            onSelected: (String? value) {
+              setState(() {
+                _selectedRole = value;
+              });
+            },
+            dropdownMenuEntries: roles
+                .map(
+                  (r) =>
+                      DropdownMenuEntry(value: r.id.toString(), label: r.name!),
+                )
+                .toList(),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: ElevatedButton(
+              onPressed: () {
+                // Implement search logic here
               },
-              dropdownMenuEntries: [
-                DropdownMenuEntry(value: "User", label: "User"),
-                DropdownMenuEntry(value: "Admin", label: "Admin"),
-              ],
+              child: Text("Search"),
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              // Implement search logic here
-            },
-            child: Text("Search"),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchForm() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: FormBuilder(
+        key: formKey,
+        initialValue: _initValue,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 310,
+              child: FormBuilderTextField(
+                name: 'search',
+                decoration: const InputDecoration(
+                  hintText: 'Search',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 200,
+              child: FormBuilderDropdown(
+                name: 'city',
+                initialValue: null,
+                style: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                ),
+                iconSize: _citySelected ? 0 : 24,
+                onChanged: (value) {
+                  setState(() => _citySelected = value != null);
+                },
+                decoration: InputDecoration(
+                  hintText: 'Location',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: _citySelected
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            formKey.currentState!.fields['city']?.reset();
+                            setState(() => _citySelected = false);
+                          },
+                        )
+                      : null,
+                ),
+                items: cities
+                    .map(
+                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                    )
+                    .toList(),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 200,
+              child: FormBuilderDropdown(
+                name: 'role',
+                style: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black,
+                ),
+                iconSize: _roleSelected ? 0 : 24,
+                onChanged: (value) {
+                  setState(() => _roleSelected = value != null);
+                },
+                decoration: InputDecoration(
+                  hintText: 'Role',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: _roleSelected
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            formKey.currentState!.fields['role']?.reset();
+                            setState(() => _roleSelected = false);
+                          },
+                        )
+                      : null,
+                ),
+                items: roles
+                    .map(
+                      (r) =>
+                          DropdownMenuItem(value: r.id, child: Text(r.name!)),
+                    )
+                    .toList(),
+              ),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState?.saveAndValidate() ?? false) {
+                  final values = formKey.currentState!.value;
+                  try {
+                    var result = await _userProvider.get(
+                      filter: {
+                        if (values['search'] != null &&
+                            (values['search'] as String).isNotEmpty)
+                          'fullName': values['search'],
+                        if (values['city'] != null) 'cityId': values['city'],
+                        if (values['role'] != null) 'roleId': values['role'],
+                      },
+                    );
+                    setState(() {
+                      _userDataSource = UserDataSource(result.items ?? []);
+                    });
+                  } catch (e) {
+                    debugPrint('Search error: $e');
+                  }
+                }
+              },
+              child: const Text('Search'),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class UserDataSource extends DataTableSource {
-  final List<dynamic> _users;
+  final List<User> _users;
 
   UserDataSource(this._users);
 
@@ -164,19 +320,23 @@ class UserDataSource extends DataTableSource {
     final user = _users[index];
     return DataRow(
       cells: [
-        DataCell(Text(user['id'].toString())),
-        DataCell(Text(user['firstName'] ?? '')),
-        DataCell(Text(user['lastName'] ?? '')),
-        DataCell(Text(user['age']?.toString() ?? '')),
-        DataCell(Text(user['username'] ?? '')),
-        DataCell(Text(user['email'] ?? '')),
-        DataCell(Text(user['phoneNumber'] ?? '')),
-        DataCell(Text(user['instagramAccount'] ?? '')),
-        DataCell(Text(user['birthDate'] ?? '')),
-        DataCell(Text(user['city'] ?? '')),
-        DataCell(Text(user['isActive'] == true ? 'Yes' : 'No')),
-        DataCell(Text(user['createdAt'] ?? '')),
-        DataCell(Text(user['updatedAt'] ?? '')),
+        DataCell(Text(user.id.toString())),
+        DataCell(Text(user.firstName)),
+        DataCell(Text(user.lastName)),
+        DataCell(Text(user.age?.toString() ?? '')),
+        DataCell(Text(user.username)),
+        DataCell(Text(user.email)),
+        DataCell(Text(user.phoneNumber)),
+        DataCell(Text(user.instagramAccount ?? 'Not provided')),
+        DataCell(Text(user.birthDate.toLocal().toString().split(' ')[0])),
+        DataCell(Text(user.city?.name ?? '')),
+        DataCell(Text(user.isActive ? 'Yes' : 'No')),
+        DataCell(
+          Text(user.createdAt?.toLocal().toString().split(' ')[0] ?? ''),
+        ),
+        DataCell(
+          Text(user.updatedAt?.toLocal().toString().split(' ')[0] ?? ''),
+        ),
       ],
     );
   }

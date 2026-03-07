@@ -5,7 +5,7 @@ class TurfTypeProvider extends BaseProvider<TurfType> {
   TurfTypeProvider() : super("TurfType");
 
   @override
-   TurfType fromJson(dynamic json) {
-    return TurfType.fromJson(json);
+   TurfType fromJson(dynamic data) {
+    return TurfType.fromJson(data);
   }
 }

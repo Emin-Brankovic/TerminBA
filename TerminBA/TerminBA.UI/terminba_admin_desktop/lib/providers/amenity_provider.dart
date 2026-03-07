@@ -5,8 +5,8 @@ class AmenityProvider extends BaseProvider<Amenity> {
   AmenityProvider() : super("Amenity");
 
   @override
-   Amenity fromJson(dynamic json) {
-    return Amenity.fromJson(json);
+   Amenity fromJson(dynamic data) {
+    return Amenity.fromJson(data);
   }
 
 }

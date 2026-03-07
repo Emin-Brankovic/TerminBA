@@ -5,7 +5,7 @@ class RoleProvider extends BaseProvider<Role> {
   RoleProvider() : super("Role");
 
   @override
-  Role fromJson(dynamic json) {
-    return Role.fromJson(json);
+  Role fromJson(dynamic data) {
+    return Role.fromJson(data);
   }
 }

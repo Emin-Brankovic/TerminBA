@@ -5,7 +5,7 @@ class SportProvider extends BaseProvider<Sport> {
   SportProvider() : super("Sport");
 
   @override
-  Sport fromJson(dynamic json) {
-    return Sport.fromJson(json);
+  Sport fromJson(dynamic data) {
+    return Sport.fromJson(data);
   }
 }
