@@ -45,7 +45,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     // print("response: ${response.request} ${response.statusCode}, ${response.body}");
   }
 
-  Future<T> insert(dynamic request) async {
+  Future<T?> insert(dynamic request) async {
     var url = "$_baseUrl$_endpoint";
     var uri = Uri.parse(url);
     var headers = await createHeaders();
@@ -54,14 +54,20 @@ abstract class BaseProvider<T> with ChangeNotifier {
     var response = await http.post(uri, headers: headers, body: jsonRequest);
 
     if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
+      if (response.body.isEmpty) return null;
+      try {
+        var data = jsonDecode(response.body);
+        if (data == null) return null;
+        return fromJson(data);
+      } catch (_) {
+        return null;
+      }
     } else {
       throw new Exception("Unknown error");
     }
   }
 
-  Future<T> update(int id, [dynamic request]) async {
+  Future<T?> update(int id, [dynamic request]) async {
     var url = "$_baseUrl$_endpoint/$id";
     var uri = Uri.parse(url);
     var headers = await createHeaders();
@@ -70,8 +76,14 @@ abstract class BaseProvider<T> with ChangeNotifier {
     var response = await http.put(uri, headers: headers, body: jsonRequest);
 
     if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
+      if (response.body.isEmpty) return null;
+      try {
+        var data = jsonDecode(response.body);
+        if (data == null) return null;
+        return fromJson(data);
+      } catch (_) {
+        return null;
+      }
     } else {
       throw new Exception("Unknown error");
     }
@@ -102,7 +114,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
       throw new Exception("Unauthorized");
     } else {
       print(response.body);
-      throw new Exception("Something bad happened please try again");
+      throw new Exception("Something went wrong, please try again");
     }
   }
 
@@ -112,7 +124,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     };
     // final String? token = await storage.read(key: 'jwt_token');
     final String? token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmFtZWlkIjoiMyIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwibmJmIjoxNzcxNTEwOTk5LCJleHAiOjE3NzIxMTU3OTksImlhdCI6MTc3MTUxMDk5OX0.BoS9CxpMMP5PhD-VP7aBBwFbbOeLLIh4qpuCJOjIxNA";
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmFtZWlkIjoiMyIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwibmJmIjoxNzcyOTI1NTY0LCJleHAiOjE3NzM1MzAzNjQsImlhdCI6MTc3MjkyNTU2NH0.SXE-KwKMNXYw9h0FPXY9p-Ov_G88YESjyjrZuY4o3RE";
 
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';

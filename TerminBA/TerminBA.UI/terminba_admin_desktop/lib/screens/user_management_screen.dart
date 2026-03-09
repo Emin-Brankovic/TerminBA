@@ -32,8 +32,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   bool _providersInitialized = false;
   List<City> cities = <City>[];
   List<Role> roles = <Role>[];
-  String? _selectedCity;
-  String? _selectedRole;
   bool _citySelected = false;
   bool _roleSelected = false;
 
@@ -127,66 +125,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             source: _userDataSource,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSearch() {
-    return Padding(
-      padding: EdgeInsets.all(10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 310,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: "Search",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          SizedBox(width: 10),
-          DropdownMenu<String>(
-            width: 200,
-            hintText: "Location",
-            onSelected: (String? value) {
-              setState(() {
-                _selectedCity = value;
-              });
-            },
-            dropdownMenuEntries: cities
-                .map(
-                  (c) =>
-                      DropdownMenuEntry(value: c.id.toString(), label: c.name),
-                )
-                .toList(),
-          ),
-          SizedBox(width: 10),
-          DropdownMenu<String>(
-            width: 200,
-            hintText: "Role",
-            onSelected: (String? value) {
-              setState(() {
-                _selectedRole = value;
-              });
-            },
-            dropdownMenuEntries: roles
-                .map(
-                  (r) =>
-                      DropdownMenuEntry(value: r.id.toString(), label: r.name!),
-                )
-                .toList(),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: ElevatedButton(
-              onPressed: () {
-                // Implement search logic here
-              },
-              child: Text("Search"),
-            ),
-          ),
-        ],
       ),
     );
   }

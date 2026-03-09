@@ -88,6 +88,16 @@ namespace TerminBA.Services.Service
             return MapToResponse(entity);
         }
 
+        public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
+        {
+            return query
+                 .Include(sc => sc.City)
+                 .Include(sc => sc.Role)
+                 .Include(sc => sc.AvailableAmenities)
+                 .Include(sc => sc.AvailableSports)
+                 .Include(sc => sc.WorkingHours);
+        }
+
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
             var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username!.ToLower() == request.Username!.ToLower());
@@ -98,11 +108,50 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeUpdate(SportCenter entity, SportCenterUpdateRequest request)
         {
-            var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
+            if(entity.Username!.ToLower()!=request.Username!.ToLower())
+            {
+                var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
 
-            if (sameNameCenter)
-                throw new UserException($"Sport center with name:{request.Username} already exits.");
+                if (sameNameCenter)
+                    throw new UserException($"Sport center with name:{request.Username} already exits.");
+            }
+
+            _context.Entry(entity).Collection(sc => sc.AvailableSports).Load();
+            _context.Entry(entity).Collection(sc => sc.AvailableAmenities).Load();
+            _context.Entry(entity).Collection(sc => sc.WorkingHours).Load();
+
+
+
+            var existingSports = await _context.Sports
+                .Where(s => request.SportIds!.Contains(s.Id))
+                .ToListAsync();
+
+
+            var existingAmenities = await _context.Amenity
+                .Where(s => request.AmenityIds!.Contains(s.Id))
+                .ToListAsync();
+
+            var existingWorkingHours = await _context.WorkingHours
+                .Where(wh => wh.SportCenterId == entity.Id)
+                .ToListAsync();
+
+
+            entity.WorkingHours = existingWorkingHours;
+            entity.AvailableSports = existingSports;
+            entity.AvailableAmenities = existingAmenities;
+
         }
+
+        //public override async Task<SportCenterResponse?> UpdateAsync(int id, SportCenterUpdateRequest request)
+        //{
+        //    var existingWorkingHours = await _context.WorkingHours
+        //        .Where(wh => wh.SportCenterId == id)
+        //        .ToListAsync();
+
+        //    _context.WorkingHours.RemoveRange(existingWorkingHours);
+
+        //    return await base.UpdateAsync(id, request);
+        //}
     }
 }
 

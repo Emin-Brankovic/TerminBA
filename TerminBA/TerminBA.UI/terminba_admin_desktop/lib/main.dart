@@ -4,6 +4,7 @@ import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
+import 'package:terminba_admin_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_provider.dart';
 import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_admin_desktop/providers/user_provider.dart';
@@ -19,6 +20,7 @@ void main() {
       ChangeNotifierProvider<SportProvider>(create: (context) => SportProvider()),
       ChangeNotifierProvider<RoleProvider>(create: (context) => RoleProvider()),
       ChangeNotifierProvider<UserProvider>(create: (context) => UserProvider()),
+      ChangeNotifierProvider<SportCenterProvider>(create: (context) => SportCenterProvider()),
     ],
     child: const MyApp(),
   ));
