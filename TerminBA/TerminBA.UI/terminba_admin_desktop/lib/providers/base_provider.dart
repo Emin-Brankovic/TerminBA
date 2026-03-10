@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:terminba_admin_desktop/model/search_result.dart';
@@ -8,6 +9,8 @@ import 'package:terminba_admin_desktop/model/search_result.dart';
 abstract class BaseProvider<T> with ChangeNotifier {
   static String? _baseUrl;
   String _endpoint = "";
+  static const _storage = FlutterSecureStorage();
+  static const _tokenKey = 'jwt_token';
 
   BaseProvider(String endpoint) {
     _endpoint = endpoint;
@@ -122,9 +125,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     final Map<String, String> headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     };
-    // final String? token = await storage.read(key: 'jwt_token');
-    final String? token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmFtZWlkIjoiMyIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwibmJmIjoxNzcyOTI1NTY0LCJleHAiOjE3NzM1MzAzNjQsImlhdCI6MTc3MjkyNTU2NH0.SXE-KwKMNXYw9h0FPXY9p-Ov_G88YESjyjrZuY4o3RE";
+     final String? token = await _storage.read(key: _tokenKey);
 
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
