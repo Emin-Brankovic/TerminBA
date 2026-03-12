@@ -26,6 +26,8 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
         {
+            query=query.Where(u=>u.RoleId==1);
+
             if (!string.IsNullOrEmpty(search.FullName))
                 query = query.Where(u => u.FirstName!.ToLower().Contains(search.FullName.ToLower())
                 || u.LastName!.ToLower().Contains(search.FullName.ToLower()) || u.Username!.ToLower().Contains(search.FullName.ToLower()));
@@ -64,8 +66,21 @@ namespace TerminBA.Services.Service
 
         protected async override Task BeforeUpdate(User entity, UserUpdateRequest request)
         {
-            if (await UserExists(entity.Username!,entity.Email!))
-                throw new UserException("Username or email is already taken");
+            if (entity.Email!.ToLower()!=request.Email!.ToLower())
+            {
+                if(await _context.Users.AnyAsync(u=>u.Email!.ToLower() == request.Email.ToLower()))
+                 throw new UserException("Email is already taken");
+
+            }
+
+
+            if (entity.Username!.ToLower() != request.Username!.ToLower())
+            {
+                if (await _context.Users.AnyAsync(u => u.Username!.ToLower() == request.Username.ToLower()))
+                    throw new UserException("Username is already taken");
+
+            }
+
         }
 
         protected override async Task BeforeDelete(User entity)

@@ -19,8 +19,8 @@ namespace TerminBA.Models.Request
         [MinLength(2)]
         public string? LastName { get; set; }
 
-        [Range(14, 100)]
-        public int Age { get; set; }
+        //[Range(14, 100)]
+        //public int Age { get; set; }
 
         [Required]
         [MaxLength(30)]
@@ -37,8 +37,8 @@ namespace TerminBA.Models.Request
         [Url]
         public string? InstagramAccount { get; set; }
 
-        [Required]
-        public string? Password { get; set; }
+        //[Required]
+        //public string? Password { get; set; }
 
         [Required]
         public DateOnly BirthDate { get; set; }
@@ -46,9 +46,6 @@ namespace TerminBA.Models.Request
         [Required]
         public int CityId { get; set; }
 
-        [Required]
-        public int RoleId { get; set; }
-
-        public bool IsActive { get; set; }
+        //public bool IsActive { get; set; }
     }
 }

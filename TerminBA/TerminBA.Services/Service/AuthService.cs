@@ -36,12 +36,12 @@ namespace TerminBA.Services.Service
         {
             var entity = await _context.Set<TEntity>()
                 .Include(x=>x.Role)
-                .FirstOrDefaultAsync(x=> request.Username == x.Username);
+                .FirstOrDefaultAsync(x=> request.Username == x.Username && request.RoleId==x.RoleId);
 
             if (entity == null)
                 throw new UserException("Invalid credentials!");
 
-            var hash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password);
+            var hash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password!);
 
             if (hash != entity.PasswordHash)
                 throw new UserException("Invalid credentials!");

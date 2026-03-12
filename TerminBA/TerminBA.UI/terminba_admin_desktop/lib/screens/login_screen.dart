@@ -26,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
     String username = _usernameController.text.trim();
     String password = _passwordController.text.trim();
+    final int roleId = 3;
 
     // Validate empty fields
     if (username.isEmpty || password.isEmpty) {
@@ -46,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      await authProvider.login(username, password);
+      await authProvider.login(username, password, roleId);
 
       if (!mounted) return;
 

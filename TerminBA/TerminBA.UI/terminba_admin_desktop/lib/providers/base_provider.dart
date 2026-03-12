@@ -92,6 +92,27 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
   }
 
+  Future<T?> getById(int id) async {
+    var url = "$_baseUrl$_endpoint/$id";
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    var response = await http.get(uri, headers: headers);
+
+    if (isValidResponse(response)) {
+      if (response.body.isEmpty) return null;
+      try {
+        var data = jsonDecode(response.body);
+        if (data == null) return null;
+        return fromJson(data);
+      } catch (_) {
+        return null;
+      }
+    } else {
+      throw Exception("Unknown error");
+    }
+  }
+
   Future<bool> delete(int id) async {
     var url = "$_baseUrl$_endpoint/$id";
     var uri = Uri.parse(url);

@@ -17,13 +17,13 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<T> Create(TInsert request)
+        public async Task<T> Create([FromBody] TInsert request)
         {
             return await _crudService.CreateAsync(request);
         }
 
         [HttpPut("{id}")]
-        public async Task<T?> Update(int id, TUpdate request)
+        public async Task<T?> Update(int id, [FromBody] TUpdate request)
         {
             return await _crudService.UpdateAsync(id,request);
         }

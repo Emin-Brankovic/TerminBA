@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
+import 'package:terminba_admin_desktop/screens/admin_profile_screen.dart';
 import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_admin_desktop/screens/login_screen.dart';
 import 'package:terminba_admin_desktop/screens/reference_data_screen.dart';
@@ -76,7 +77,12 @@ class _MasterScreenState extends State<MasterScreen> {
                 offset: const Offset(0, 40),
                 onSelected: (value) {
                   if (value == 'profile') {
-                    // TODO: Navigate to profile screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminProfileScreen(),
+                      ),
+                    );
                   } else if (value == 'logout') {
                     _authProvider.logout();
                     Navigator.pushReplacement(

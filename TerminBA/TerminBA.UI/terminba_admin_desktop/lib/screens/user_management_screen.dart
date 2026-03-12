@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/layouts/master_screen.dart';
 import 'package:terminba_admin_desktop/model/city.dart';
-import 'package:terminba_admin_desktop/model/role.dart';
 import 'package:terminba_admin_desktop/model/user.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
-import 'package:terminba_admin_desktop/providers/role_provider.dart';
 import 'package:terminba_admin_desktop/providers/user_provider.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
@@ -19,21 +17,14 @@ class UserManagementScreen extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementScreen> {
   final formKey = GlobalKey<FormBuilderState>();
 
-  Map<String, dynamic> _initValue = {
-    'search': null,
-    'city': null,
-    'role': null,
-  };
+  Map<String, dynamic> _initValue = {'search': null, 'city': null};
 
   late UserDataSource _userDataSource;
   late UserProvider _userProvider;
   late CityProvider _cityProvider;
-  late RoleProvider _roleProvider;
   bool _providersInitialized = false;
   List<City> cities = <City>[];
-  List<Role> roles = <Role>[];
   bool _citySelected = false;
-  bool _roleSelected = false;
 
   @override
   void initState() {
@@ -46,13 +37,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     super.didChangeDependencies();
     _userProvider = context.read<UserProvider>();
     _cityProvider = context.read<CityProvider>();
-    _roleProvider = context.read<RoleProvider>();
 
     if (!_providersInitialized) {
       _providersInitialized = true;
       _loadUsers();
       _loadCities();
-      _loadRoles();
     }
   }
 
@@ -75,17 +64,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       });
     } catch (e) {
       debugPrint('Error loading cities: $e');
-    }
-  }
-
-  Future<void> _loadRoles() async {
-    try {
-      var result = await _roleProvider.get();
-      setState(() {
-        roles = result.items ?? [];
-      });
-    } catch (e) {
-      debugPrint('Error loading roles: $e');
     }
   }
 
@@ -182,40 +160,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            SizedBox(
-              width: 200,
-              child: FormBuilderDropdown(
-                name: 'role',
-                style: const TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black,
-                ),
-                iconSize: _roleSelected ? 0 : 24,
-                onChanged: (value) {
-                  setState(() => _roleSelected = value != null);
-                },
-                decoration: InputDecoration(
-                  hintText: 'Role',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: _roleSelected
-                      ? IconButton(
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: () {
-                            formKey.currentState!.fields['role']?.reset();
-                            setState(() => _roleSelected = false);
-                          },
-                        )
-                      : null,
-                ),
-                items: roles
-                    .map(
-                      (r) =>
-                          DropdownMenuItem(value: r.id, child: Text(r.name!)),
-                    )
-                    .toList(),
-              ),
-            ),
-            const SizedBox(width: 10),
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState?.saveAndValidate() ?? false) {
@@ -227,7 +171,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             (values['search'] as String).isNotEmpty)
                           'fullName': values['search'],
                         if (values['city'] != null) 'cityId': values['city'],
-                        if (values['role'] != null) 'roleId': values['role'],
                       },
                     );
                     setState(() {

@@ -34,7 +34,7 @@ class AuthProvider extends ChangeNotifier {
     return await _storage.read(key: _tokenKey);
   }
 
-  Future<void> login(String username, String password) async {
+  Future<void> login(String username, String password, int roleId) async {
     var url = '$_baseUrl/user/login';
     try {
       final respone = await http.post(
@@ -43,6 +43,7 @@ class AuthProvider extends ChangeNotifier {
         body: jsonEncode(<String, String>{
           'username': username,
           'password': password,
+          'roleId': roleId.toString(),
         }),
       );
 
@@ -71,6 +72,19 @@ class AuthProvider extends ChangeNotifier {
       }
       // Handle any other errors that occur during login
       throw Exception('Login failed: ${e.toString()}');
+    }
+  }
+
+  Future<int?> getCurrentUserId() async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null) return null;
+    try {
+      final claims = JwtDecoder.decode(token);
+      final raw = claims['nameid'];
+      if (raw == null) return null;
+      return int.tryParse(raw.toString());
+    } catch (_) {
+      return null;
     }
   }
 
