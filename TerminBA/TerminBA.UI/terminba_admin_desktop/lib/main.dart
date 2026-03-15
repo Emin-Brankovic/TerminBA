@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
+import 'package:terminba_admin_desktop/providers/report_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_provider.dart';
@@ -20,7 +21,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // ✅ Pass the pre-checked instance directly, don't create a new one
         ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
         ChangeNotifierProvider<AmenityProvider>(create: (_) => AmenityProvider()),
         ChangeNotifierProvider<TurfTypeProvider>(create: (_) => TurfTypeProvider()),
@@ -29,6 +29,8 @@ void main() async {
         ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
         ChangeNotifierProvider<SportCenterProvider>(create: (_) => SportCenterProvider()),
+        ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
+
       ],
       child: const MyApp(),
     ),

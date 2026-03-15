@@ -20,6 +20,10 @@ abstract class BaseProvider<T> with ChangeNotifier {
     );
   }
 
+   String get baseUrl => _baseUrl ?? "";
+   String get endpoint => _endpoint;
+
+
   Future<SearchResult<T>> get({dynamic filter}) async {
     var url = "$_baseUrl$_endpoint";
 

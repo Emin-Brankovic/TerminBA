@@ -40,6 +40,8 @@ builder.Services.AddTransient<PlayerSearchPostState>();
 builder.Services.AddTransient<PlayerFoundPostState>();
 builder.Services.AddTransient<ClosedPostState>();
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<IReportService,ReportService>();
+
 
 
 var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
