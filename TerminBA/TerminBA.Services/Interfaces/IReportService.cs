@@ -10,5 +10,6 @@ namespace TerminBA.Services.Interfaces
     public interface IReportService
     {
         public Task<DashboardResponse> GetDashboard(int year);
+        public byte[] GetAdminReport(int totalUsers,int totalSportCenters, int totalReservations, int selectedYear, byte[] imageBytes);
     }
 }

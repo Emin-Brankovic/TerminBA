@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/layouts/master_screen.dart';
 import 'package:terminba_admin_desktop/model/dashboard_response.dart';
 import 'package:terminba_admin_desktop/providers/report_provider.dart';
+import 'package:screenshot/screenshot.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,8 +18,10 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late ReportProvider _reportProvider;
   bool _initialized = false;
+  bool _isGeneratingPdf = false;
   int _selectedYear = DateTime.now().year;
   DashboardResponse? _dashboardData;
+  final ScreenshotController screenshotController = ScreenshotController();
 
   @override
   void didChangeDependencies() {
@@ -89,28 +94,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               const SizedBox(height: 5),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _buildLineChart(
-                      title: "Users by Month",
-                      dataByMonth: _dashboardData?.userCountByMonth ?? {},
-                      lineColor: Colors.green,
+              Screenshot(
+                controller: screenshotController,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _buildLineChart(
+                        title: "Users by Month",
+                        dataByMonth: _dashboardData?.userCountByMonth ?? {},
+                        lineColor: Colors.green,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(width: 32),
-                  Expanded(
-                    child: _buildLineChart(
-                      title: "Reservations by Month",
-                      dataByMonth:
-                          _dashboardData?.reservationCountByMonth ?? {},
-                      lineColor: Colors.blue,
+                
+                    const SizedBox(width: 32),
+                    Expanded(
+                      child: _buildLineChart(
+                        title: "Reservations by Month",
+                        dataByMonth:
+                            _dashboardData?.reservationCountByMonth ?? {},
+                        lineColor: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  const Spacer(),
+                  ElevatedButton.icon(
+                    onPressed: _isGeneratingPdf
+                        ? null
+                        : () async {
+                            await _captureAndSendToPdf();
+                          },
+                    icon: _isGeneratingPdf
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.picture_as_pdf),
+                    label: Text(_isGeneratingPdf ? "Generating..." : "Export as PDF",style: TextStyle(fontSize: 16),),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 18),
                     ),
                   ),
                 ],
-              ),
+              )
             ],
           ),
         ),
@@ -200,7 +233,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 220,
+              height: 240,
               child: spots.isEmpty
                   ? const Center(child: Text('No data available'))
                   : LineChart(
@@ -304,5 +337,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     print(_dashboardData?.toJson());
+  }
+
+  Future<void> _captureAndSendToPdf() async {
+    final dashboard = _dashboardData;
+    if (dashboard == null || _isGeneratingPdf) {
+      return;
+    }
+
+    setState(() {
+      _isGeneratingPdf = true;
+    });
+
+    try {
+      final Uint8List? imageBytes = await screenshotController.capture(
+        pixelRatio: 3.0,
+      );
+
+      if (imageBytes == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to capture chart image.')),
+        );
+        return;
+      }
+
+      final filePath = await _reportProvider.generateReport(
+        imageBytes: imageBytes,
+        totalUsers: dashboard.appUserCount,
+        totalSportCenters: dashboard.appSportCenterCount,
+        totalReservations: dashboard.appReservationCount,
+        selectedYear: _selectedYear,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Report saved to: $filePath')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to generate report: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingPdf = false;
+        });
+      }
+    }
   }
 }
