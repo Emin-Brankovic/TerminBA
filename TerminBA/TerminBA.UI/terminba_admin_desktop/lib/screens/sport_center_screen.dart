@@ -7,6 +7,7 @@ import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
 import 'package:terminba_admin_desktop/widgets/sport_center_card.dart';
+import 'package:terminba_admin_desktop/widgets/universal_pagination.dart';
 
 class SportCenterScreen extends StatefulWidget {
   const SportCenterScreen({super.key});
@@ -18,11 +19,14 @@ class SportCenterScreen extends StatefulWidget {
 class _SportCenterScreenState extends State<SportCenterScreen> {
   late SportCenterProvider _sportCenterProvider;
   late CityProvider _cityProvider;
+  static const int _pageSize = 8;
   List<SportCenter> _sportCenters = [];
   List<City> _cities = [];
   int? _selectedCityId;
   bool _isLoading = false;
   bool _initialized = false;
+  int _currentPage = 1;
+  int _totalPages = 1;
   TextEditingController _searchController = TextEditingController();
 
   @override
@@ -33,8 +37,14 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
     if (!_initialized) {
       _initialized = true;
       _loadCities();
-      _loadSportCenters();
+      _loadSportCenters(page: 1);
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCities() async {
@@ -48,12 +58,28 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
     }
   }
 
-  Future<void> _loadSportCenters() async {
+  Future<void> _loadSportCenters({int? page}) async {
     setState(() => _isLoading = true);
     try {
-      var result = await _sportCenterProvider.get();
+      final int targetPage = page ?? _currentPage;
+      final filter = <String, dynamic>{
+        if (_searchController.text.trim().isNotEmpty)
+          'name': _searchController.text.trim(),
+        if (_selectedCityId != null) 'cityId': _selectedCityId,
+        'page': targetPage,
+        'pageSize': _pageSize,
+      };
+
+      var result = await _sportCenterProvider.get(filter: filter);
+      final int totalItems = result.totalCount ?? 0;
+      final int calculatedTotalPages = totalItems == 0
+          ? 1
+          : ((totalItems + _pageSize - 1) ~/ _pageSize);
+
       setState(() {
         _sportCenters = result.items ?? [];
+        _currentPage = targetPage;
+        _totalPages = calculatedTotalPages;
       });
     } catch (e) {
       debugPrint('Error loading sport centers: $e');
@@ -89,7 +115,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
                   builder: (_) => const SportCenterInsertScreen(),
                 ),
               );
-              _loadSportCenters();
+              _loadSportCenters(page: _currentPage);
             },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(100, 46), // width, height
@@ -179,24 +205,36 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
     }
 
     return Expanded(
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: itemCount,
-          childAspectRatio: 0.8,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: _sportCenters.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: FacilityCard(
-              sportCenter: _sportCenters[index],
-              onDelete: _onDelete,
-              onRefresh: _loadSportCenters,
+      child: Column(
+        children: [
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: itemCount,
+                childAspectRatio: 0.8,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: _sportCenters.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: FacilityCard(
+                    sportCenter: _sportCenters[index],
+                    onDelete: _onDelete,
+                    onRefresh: () => _loadSportCenters(page: _currentPage),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+          const SizedBox(height: 6),
+          UniversalPagination(
+            currentPage: _currentPage,
+            totalPages: _totalPages,
+            onPageChanged: (page) => _loadSportCenters(page: page),
+          ),
+        ],
       ),
     );
   }
@@ -207,7 +245,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sport center deleted successfully.')),
       );
-      _loadSportCenters();
+      _loadSportCenters(page: _currentPage);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete sport center.')),
@@ -216,22 +254,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
     }
   }
 
-  void _onSearch() async {
-    // Implement search logic here
-    print("Searching for: ${_searchController.text}");
-
-    try {
-      final filter = <String, dynamic>{
-        if (_searchController.text.isNotEmpty) 'name': _searchController.text,
-        if (_selectedCityId != null) 'cityId': _selectedCityId,
-      };
-      var result = await _sportCenterProvider.get(filter: filter);
-
-      setState(() {
-        _sportCenters = result.items ?? [];
-      });
-    } catch (e) {
-      debugPrint('Search error: $e');
-    }
+  void _onSearch() {
+    _loadSportCenters(page: 1);
   }
 }

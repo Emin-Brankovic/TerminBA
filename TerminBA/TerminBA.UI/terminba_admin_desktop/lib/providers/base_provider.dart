@@ -42,7 +42,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
       var result = SearchResult<T>();
 
-      result.totalCount = data['totalCount'];
+      result.totalCount = (data['count']) as int?;
       result.items = List<T>.from(data["items"].map((e) => fromJson(e)));
 
       return result;
@@ -127,7 +127,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     if (isValidResponse(response)) {
       return true;
     } else {
-      throw new Exception("Unknown error");
+      throw Exception("Unknown error");
     }
   }
 
@@ -139,10 +139,10 @@ abstract class BaseProvider<T> with ChangeNotifier {
     if (response.statusCode < 299) {
       return true;
     } else if (response.statusCode == 401) {
-      throw new Exception("Unauthorized");
+      throw Exception("Unauthorized");
     } else {
       print(response.body);
-      throw new Exception("Something went wrong, please try again");
+      throw Exception("Something went wrong, please try again");
     }
   }
 
