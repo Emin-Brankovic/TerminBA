@@ -20,9 +20,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
     );
   }
 
-   String get baseUrl => _baseUrl ?? "";
-   String get endpoint => _endpoint;
-
+  String get baseUrl => _baseUrl ?? "";
+  String get endpoint => _endpoint;
 
   Future<SearchResult<T>> get({dynamic filter}) async {
     var url = "$_baseUrl$_endpoint";
@@ -150,7 +149,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     final Map<String, String> headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     };
-     final String? token = await _storage.read(key: _tokenKey);
+    final String? token = await _storage.read(key: _tokenKey);
 
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
@@ -181,7 +180,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
         }
         query += '$prefix$key=$encoded';
       } else if (value is DateTime) {
-        query += '$prefix$key=${(value as DateTime).toIso8601String()}';
+        query += '$prefix$key=${value.toIso8601String()}';
       } else if (value is List || value is Map) {
         if (value is List) value = value.asMap();
         value.forEach((k, v) {

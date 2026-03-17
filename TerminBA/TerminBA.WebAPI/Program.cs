@@ -380,7 +380,6 @@ static User CreateUser(string firstName, string lastName, string email, string p
         PasswordHash = hash,
         RoleId = roleId,
         CityId = cityId,
-        Age = 25,
         BirthDate = DateOnly.FromDateTime(DateTime.Now.AddYears(-25)),
         IsActive = true,
         CreatedAt = DateTime.UtcNow,

@@ -20,9 +20,6 @@ namespace TerminBA.Services.Database
         [MinLength(2)]
         public string? LastName { get; set; }
 
-        [Range(14, 100, ErrorMessage = "Age must be between 14 and 100")]
-        public int Age { get; set; }
-
         [Required]
         [EmailAddress]
         public string? Email { get; set; }
@@ -34,7 +31,7 @@ namespace TerminBA.Services.Database
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         public ICollection<UserReview> UserReviewsGiven { get; set; } = new List<UserReview>();
         public ICollection<UserReview> ReviewsReceived { get; set; } = new List<UserReview>();

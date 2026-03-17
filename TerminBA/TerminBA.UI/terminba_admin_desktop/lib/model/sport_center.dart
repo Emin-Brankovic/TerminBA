@@ -18,6 +18,7 @@ class SportCenter {
 	bool isEquipmentProvided;
 	String description;
 	DateTime createdAt;
+  DateTime? updatedAt;
 	int roleId;
   Role role;
   List<Sport> availableSports;
@@ -25,7 +26,7 @@ class SportCenter {
   List<WorkingHours> workingHours;
 
 
-	SportCenter(this.id,this.username,this.phoneNumber,this.cityId,this.address,this.isEquipmentProvided,this.description,this.createdAt,this.roleId,this.availableSports,this.availableAmenities,this.city,this.role,this.workingHours,);
+	SportCenter(this.id,this.username,this.phoneNumber,this.cityId,this.address,this.isEquipmentProvided,this.description,this.createdAt,this.updatedAt,this.roleId,this.availableSports,this.availableAmenities,this.city,this.role,this.workingHours,);
 
 	factory SportCenter.fromJson(Map<String, dynamic> json) => _$SportCenterFromJson(json);
 

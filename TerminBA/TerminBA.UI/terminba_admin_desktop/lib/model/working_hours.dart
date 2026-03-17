@@ -13,8 +13,8 @@ class WorkingHours {
   DayOfWeek endDay;
 	String openingHours;
 	String closeingHours;
-	String validFrom;
-	String validTo;
+	DateTime validFrom;
+	DateTime? validTo;
 	bool isActive;
 
 	WorkingHours(this.id,this.sportCenterId,this.startDay,this.endDay,this.openingHours,this.closeingHours,this.validFrom,this.validTo,this.isActive,);

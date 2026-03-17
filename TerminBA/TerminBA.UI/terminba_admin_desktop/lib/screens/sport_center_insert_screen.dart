@@ -66,7 +66,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
         _sports = (results[1].items ?? []).cast<Sport>();
         _amenities = (results[2].items ?? []).cast<Amenity>();
       });
-      print(_amenities);
+
       // Pre-fill working hours if editing
       if (_isEditing) {
         _workingHoursList = widget.sportCenter!.workingHours.map((wh) {
@@ -77,14 +77,14 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
               minute: int.parse(parts[1]),
             );
           }
-          DateTime _parseDate(String d) => DateTime.parse(d);
+
           return _WorkingHoursEntry(
             startDay: wh.startDay,
             endDay: wh.endDay,
             openingTime: _parseTime(wh.openingHours),
             closingTime: _parseTime(wh.closeingHours),
-            validFrom: _parseDate(wh.validFrom),
-            validTo: _parseDate(wh.validTo),
+            validFrom: wh.validFrom,
+            validTo: wh.validTo,
           );
         }).toList();
       }
@@ -108,8 +108,8 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
             e.endDay,
             _formatTime(e.openingTime),
             _formatTime(e.closingTime),
-            _formatDate(e.validFrom),
-            _formatDate(e.validTo),
+            e.validFrom,
+            e.validTo,
           ),
         )
         .toList();
@@ -130,7 +130,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
           (values['amenityIds'] as List<dynamic>).cast<int>(),
           workingHours,
         );
-        await _sportCenterProvider.update(widget.sportCenter!.id, updateRequest);
+        await _sportCenterProvider.update(
+          widget.sportCenter!.id,
+          updateRequest,
+        );
       } else {
         final insertRequest = SportCenterInsertRequest(
           values['username'] as String,
@@ -162,7 +165,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
       debugPrint('Error creating sport center: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
         );
       }
     } finally {
@@ -182,7 +185,13 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
 
   Widget _buildWorkingHoursRow(int index, _WorkingHoursEntry wh) {
     const dayNames = [
-      'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
     ];
     final days = DayOfWeek.values;
 
@@ -190,9 +199,28 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       color: Colors.grey.shade50,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  onPressed: () =>
+                      setState(() => _workingHoursList.removeAt(index)),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color.fromARGB(183, 255, 82, 82),
+                  ),
+                  iconSize: 20,
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(24, 24),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
             Row(
               children: [
                 Expanded(
@@ -250,17 +278,22 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         context: context,
                         initialTime: wh.openingTime,
                         builder: (context, child) => MediaQuery(
-                          data: MediaQuery.of(context)
-                              .copyWith(alwaysUse24HourFormat: true),
+                          data: MediaQuery.of(
+                            context,
+                          ).copyWith(alwaysUse24HourFormat: true),
                           child: child!,
                         ),
                       );
                       if (t != null) {
-                        setState(() => _workingHoursList[index].openingTime = t);
+                        setState(
+                          () => _workingHoursList[index].openingTime = t,
+                        );
                       }
                     },
                     icon: const Icon(Icons.access_time),
-                    label: Text('Open: ${_formatTime(wh.openingTime).substring(0, 5)}'),
+                    label: Text(
+                      'Open: ${_formatTime(wh.openingTime).substring(0, 5)}',
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -271,17 +304,22 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         context: context,
                         initialTime: wh.closingTime,
                         builder: (context, child) => MediaQuery(
-                          data: MediaQuery.of(context)
-                              .copyWith(alwaysUse24HourFormat: true),
+                          data: MediaQuery.of(
+                            context,
+                          ).copyWith(alwaysUse24HourFormat: true),
                           child: child!,
                         ),
                       );
                       if (t != null) {
-                        setState(() => _workingHoursList[index].closingTime = t);
+                        setState(
+                          () => _workingHoursList[index].closingTime = t,
+                        );
                       }
                     },
                     icon: const Icon(Icons.access_time),
-                    label: Text('Close: ${_formatTime(wh.closingTime).substring(0, 5)}'),
+                    label: Text(
+                      'Close: ${_formatTime(wh.closingTime).substring(0, 5)}',
+                    ),
                   ),
                 ),
               ],
@@ -312,7 +350,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                     onPressed: () async {
                       final d = await showDatePicker(
                         context: context,
-                        initialDate: wh.validTo,
+                        initialDate: wh.validTo ?? DateTime.now(),
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2100),
                       );
@@ -321,13 +359,18 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                       }
                     },
                     icon: const Icon(Icons.calendar_today),
-                    label: Text('To: ${_formatDate(wh.validTo)}'),
+                    label: Text(
+                      wh.validTo != null
+                          ? 'To: ${_formatDate(wh.validTo!)}'
+                          : 'To: No end date',
+                    ),
                   ),
                 ),
                 IconButton(
+                  tooltip: 'Clear end date',
                   onPressed: () =>
-                      setState(() => _workingHoursList.removeAt(index)),
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      setState(() => _workingHoursList[index].validTo = null),
+                  icon: const Icon(Icons.event_busy),
                 ),
               ],
             ),
@@ -451,7 +494,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             // Equipment provided
                             FormBuilderCheckbox(
                               name: 'isEquipmentProvided',
-                              initialValue: widget.sportCenter?.isEquipmentProvided ?? false,
+                              initialValue:
+                                  widget.sportCenter?.isEquipmentProvided ??
+                                  false,
                               title: const Text('Equipment Provided'),
                             ),
                             const SizedBox(height: 16),
@@ -464,7 +509,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 border: OutlineInputBorder(),
                               ),
                               initialValue: _isEditing
-                                  ? widget.sportCenter!.availableSports.map((s) => s.id).toList()
+                                  ? widget.sportCenter!.availableSports
+                                        .map((s) => s.id)
+                                        .toList()
                                   : const [],
                               options: _sports
                                   .map(
@@ -488,8 +535,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 labelText: 'Amenities',
                                 border: OutlineInputBorder(),
                               ),
-                              initialValue:_isEditing
-                                  ? widget.sportCenter!.availableAmenities.map((a) => a.id).toList()
+                              initialValue: _isEditing
+                                  ? widget.sportCenter!.availableAmenities
+                                        .map((a) => a.id)
+                                        .toList()
                                   : const [],
                               options: _amenities
                                   .map(
@@ -507,7 +556,8 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       'Working Hours',
@@ -552,7 +602,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                         ),
                                       )
                                     : Text(
-                                        _isEditing ? 'Update Sport Center' : 'Create Sport Center',
+                                        _isEditing
+                                            ? 'Update Sport Center'
+                                            : 'Create Sport Center',
                                         style: const TextStyle(fontSize: 16),
                                       ),
                               ),
@@ -575,7 +627,7 @@ class _WorkingHoursEntry {
   TimeOfDay openingTime;
   TimeOfDay closingTime;
   DateTime validFrom;
-  DateTime validTo;
+  DateTime? validTo;
 
   _WorkingHoursEntry({
     this.startDay = DayOfWeek.monday,
@@ -584,8 +636,8 @@ class _WorkingHoursEntry {
     TimeOfDay? closingTime,
     DateTime? validFrom,
     DateTime? validTo,
-  })  : openingTime = openingTime ?? const TimeOfDay(hour: 8, minute: 0),
-        closingTime = closingTime ?? const TimeOfDay(hour: 22, minute: 0),
-        validFrom = validFrom ?? DateTime.now(),
-        validTo = validTo ?? DateTime.now().add(const Duration(days: 365));
+  }) : openingTime = openingTime ?? const TimeOfDay(hour: 8, minute: 0),
+       closingTime = closingTime ?? const TimeOfDay(hour: 22, minute: 0),
+       validFrom = validFrom ?? DateTime.now(),
+       validTo = validTo;
 }

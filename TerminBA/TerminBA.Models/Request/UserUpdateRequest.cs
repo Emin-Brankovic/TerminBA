@@ -19,9 +19,6 @@ namespace TerminBA.Models.Request
         [MinLength(2)]
         public string? LastName { get; set; }
 
-        //[Range(14, 100)]
-        //public int Age { get; set; }
-
         [Required]
         [MaxLength(30)]
         [MinLength(2)]

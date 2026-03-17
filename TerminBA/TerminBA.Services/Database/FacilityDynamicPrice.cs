@@ -5,6 +5,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Xml;
 
 namespace TerminBA.Services.Database
 {
@@ -37,9 +39,13 @@ namespace TerminBA.Services.Database
               (ValidFrom <= DateOnly.FromDateTime(DateTime.Today)) &&
               (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
 
+        //public static Expression<Func<FacilityDynamicPrice, bool>> IsActiveExpr(DateOnly today) =>
+        //    x => x.ValidFrom <= today &&
+        //    (x.ValidTo == null || x.ValidTo >= today);
+
         [Required]
         public DateOnly ValidFrom { get; set; }
 
-        public DateOnly? ValidTo { get; set; } // can be null if the working hours are constant
+        public DateOnly? ValidTo { get; set; }
     }
 }

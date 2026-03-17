@@ -13,8 +13,8 @@ WorkingHours _$WorkingHoursFromJson(Map<String, dynamic> json) => WorkingHours(
   dayOfWeekFromJson((json['endDay'] as num).toInt()),
   json['openingHours'] as String,
   json['closeingHours'] as String,
-  json['validFrom'] as String,
-  json['validTo'] as String,
+  DateTime.parse(json['validFrom'] as String),
+  json['validTo'] == null ? null : DateTime.parse(json['validTo'] as String),
   json['isActive'] as bool,
 );
 
@@ -26,7 +26,7 @@ Map<String, dynamic> _$WorkingHoursToJson(WorkingHours instance) =>
       'endDay': dayOfWeekToJson(instance.endDay),
       'openingHours': instance.openingHours,
       'closeingHours': instance.closeingHours,
-      'validFrom': instance.validFrom,
-      'validTo': instance.validTo,
+      'validFrom': instance.validFrom.toIso8601String(),
+      'validTo': instance.validTo?.toIso8601String(),
       'isActive': instance.isActive,
     };

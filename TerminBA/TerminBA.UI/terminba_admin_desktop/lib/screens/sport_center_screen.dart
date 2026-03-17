@@ -27,7 +27,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
   bool _initialized = false;
   int _currentPage = 1;
   int _totalPages = 1;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void didChangeDependencies() {

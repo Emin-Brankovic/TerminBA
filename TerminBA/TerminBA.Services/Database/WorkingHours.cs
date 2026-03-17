@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using TerminBA.Models.Enums;
 
 namespace TerminBA.Services.Database
@@ -38,5 +40,8 @@ namespace TerminBA.Services.Database
             (ValidFrom <= DateOnly.FromDateTime(DateTime.Today)) &&
             (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
 
+        //public static Expression<Func<WorkingHours, bool>> IsActiveExpr(DateOnly today) =>
+        // x => x.ValidFrom <= today &&
+        //    (x.ValidTo == null || x.ValidTo >= today);
     }
 }

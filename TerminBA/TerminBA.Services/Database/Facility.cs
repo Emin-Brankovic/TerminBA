@@ -33,7 +33,7 @@ namespace TerminBA.Services.Database
         public TimeSpan Duration { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         [ForeignKey(nameof(SportCenter))]
         public int SportCenterId { get; set; }

@@ -24,6 +24,8 @@ namespace TerminBA.Services.Database
         public string? Description { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+
 
         public ICollection<WorkingHours> WorkingHours { get; set; } = new List<WorkingHours>();
 

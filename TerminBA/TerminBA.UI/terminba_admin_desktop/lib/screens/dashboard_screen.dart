@@ -85,7 +85,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           )
                           .toList(),
                       onChanged: (year) =>{
-                          print("Selected year: $year"),
                           setState(() => _selectedYear = year!),
                           _fetchDashboardData(),
                       }
@@ -335,8 +334,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _dashboardData = result;
     });
-
-    print(_dashboardData?.toJson());
   }
 
   Future<void> _captureAndSendToPdf() async {

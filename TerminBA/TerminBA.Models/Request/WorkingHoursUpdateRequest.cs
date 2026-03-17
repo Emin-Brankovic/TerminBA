@@ -27,8 +27,7 @@ namespace TerminBA.Models.Request
         [Required]
         public DateOnly ValidFrom { get; set; }
 
-        [Required]
-        public DateOnly ValidTo { get; set; }
+        public DateOnly? ValidTo { get; set; }
     }
 }
 

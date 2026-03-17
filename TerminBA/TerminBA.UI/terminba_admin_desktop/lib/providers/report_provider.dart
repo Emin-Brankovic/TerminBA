@@ -9,17 +9,10 @@ import 'package:terminba_admin_desktop/providers/base_provider.dart';
 import 'dart:convert';
 
 class ReportProvider extends BaseProvider<DashboardResponse> {
-  static String? _baseUrl;
-
-  ReportProvider() : super("Report") {
-    _baseUrl = const String.fromEnvironment(
-      "baseUrl",
-      defaultValue: "http://localhost:5078/api/",
-    );
-  }
+  ReportProvider() : super("Report");
 
   Future<DashboardResponse> fetchDashboardData(int year) async {
-    final url ="$baseUrl$endpoint/$year";
+    final url = "$baseUrl$endpoint/$year";
 
     var uri = Uri.parse(url);
     var headers = await createHeaders();
@@ -73,9 +66,14 @@ class ReportProvider extends BaseProvider<DashboardResponse> {
     final streamedResponse = await request.send();
     final responseBytes = await streamedResponse.stream.toBytes();
 
-    if (streamedResponse.statusCode >= 200 && streamedResponse.statusCode < 300) {
+    if (streamedResponse.statusCode >= 200 &&
+        streamedResponse.statusCode < 300) {
       final tempDir = await getApplicationDocumentsDirectory();
-      final safeTimestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
+      final safeTimestamp = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .split('.')
+          .first;
       final filePath = '${tempDir.path}/$safeTimestamp-report.pdf';
 
       final file = File(filePath);
@@ -83,13 +81,17 @@ class ReportProvider extends BaseProvider<DashboardResponse> {
 
       final openResult = await OpenFilex.open(filePath);
       if (openResult.type != ResultType.done) {
-        throw Exception('Report generated but could not be opened automatically. File saved at: $filePath');
+        throw Exception(
+          'Report generated but could not be opened automatically. File saved at: $filePath',
+        );
       }
 
       return filePath;
     }
 
     final errorBody = utf8.decode(responseBytes);
-    throw Exception('Error generating report: ${streamedResponse.statusCode} - $errorBody');
+    throw Exception(
+      'Error generating report: ${streamedResponse.statusCode} - $errorBody',
+    );
   }
 }

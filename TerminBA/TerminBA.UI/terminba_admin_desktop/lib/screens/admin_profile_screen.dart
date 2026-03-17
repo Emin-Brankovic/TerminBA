@@ -9,7 +9,6 @@ import 'package:terminba_admin_desktop/model/user_update_request.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/user_provider.dart';
-import 'package:intl/intl.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
