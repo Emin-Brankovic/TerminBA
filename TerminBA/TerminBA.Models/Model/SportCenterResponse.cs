@@ -30,6 +30,8 @@ namespace TerminBA.Models.Model
         public int RoleId { get; set; }
         public RoleResponse? Role { get; set; }
 
+        public byte[]? CredentialsReport { get; set; }
+
         public ICollection<WorkingHoursResponse> WorkingHours { get; set; } = new List<WorkingHoursResponse>();
 
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();

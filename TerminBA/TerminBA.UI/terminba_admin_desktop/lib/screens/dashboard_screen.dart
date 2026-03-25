@@ -17,20 +17,28 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late ReportProvider _reportProvider;
-  bool _initialized = false;
   bool _isGeneratingPdf = false;
   int _selectedYear = DateTime.now().year;
   DashboardResponse? _dashboardData;
   final ScreenshotController screenshotController = ScreenshotController();
 
+
+    @override
+  void initState() {
+    super.initState();
+    _reportProvider = context.read<ReportProvider>();
+
+    _fetchDashboardData();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _reportProvider = context.read<ReportProvider>();
-    if (!_initialized) {
-      _initialized = true;
-      _fetchDashboardData();
-    }
+    //_reportProvider = context.read<ReportProvider>();
+    // if (!_initialized) {
+    //   _initialized = true;
+    //   _fetchDashboardData();
+    // }
   }
 
   @override
@@ -330,10 +338,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _fetchDashboardData() async {
-    var result = await _reportProvider.fetchDashboardData(_selectedYear);
-    setState(() {
-      _dashboardData = result;
-    });
+    try {
+      var result = await _reportProvider.fetchDashboardData(_selectedYear);
+      if (!mounted) return;
+      setState(() {
+        _dashboardData = result;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load dashboard data: $e')),
+      );
+    }
   }
 
   Future<void> _captureAndSendToPdf() async {

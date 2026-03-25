@@ -27,6 +27,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
   bool _initialized = false;
   int _currentPage = 1;
   int _totalPages = 1;
+  int totalItems = 0;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,12 +40,6 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
       _loadCities();
       _loadSportCenters(page: 1);
     }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadCities() async {
@@ -71,7 +66,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
       };
 
       var result = await _sportCenterProvider.get(filter: filter);
-      final int totalItems = result.totalCount ?? 0;
+      totalItems = result.totalCount ?? 0;
       final int calculatedTotalPages = totalItems == 0
           ? 1
           : ((totalItems + _pageSize - 1) ~/ _pageSize);
@@ -245,7 +240,10 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sport center deleted successfully.')),
       );
-      _loadSportCenters(page: _currentPage);
+
+      final totalItemsAfterDeletion = totalItems - 1;
+      final page = ((totalItemsAfterDeletion + _pageSize - 1) ~/ _pageSize);
+      _loadSportCenters(page: page);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to delete sport center.')),

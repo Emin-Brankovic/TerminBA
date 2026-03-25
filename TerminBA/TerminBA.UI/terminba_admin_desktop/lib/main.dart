@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
+import 'package:terminba_admin_desktop/providers/base_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/report_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
@@ -12,11 +13,18 @@ import 'package:terminba_admin_desktop/providers/user_provider.dart';
 import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_admin_desktop/screens/login_screen.dart';
 
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final authProvider = AuthProvider();
   await authProvider.checkAuthStatus(); 
+
+  BaseProvider.onUnauthorized = () async {
+    await authProvider.checkAuthStatus();
+  };
 
   runApp(
     MultiProvider(
@@ -46,6 +54,7 @@ class MyApp extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'TerminBA Admin Desktop',
       theme: AppTheme.lightTheme,

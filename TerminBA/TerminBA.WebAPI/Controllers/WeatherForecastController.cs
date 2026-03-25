@@ -20,12 +20,22 @@ namespace TerminBA.WebAPI.Controllers
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly TerminBaContext _context;
         private readonly ICityService cityService;
+        private readonly IReportService reportService;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger,TerminBaContext context, ICityService cityService)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger,TerminBaContext context, ICityService cityService, IReportService reportService)
         {
             _logger = logger;
             _context = context;
             this.cityService = cityService;
+            this.reportService = reportService;
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            this.reportService.SportCenterCredentialsReport("skenderija", "password");
+                
+            return Ok();
         }
 
     }

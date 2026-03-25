@@ -11,5 +11,7 @@ namespace TerminBA.Services.Interfaces
     {
         public Task<DashboardResponse> GetDashboard(int year);
         public byte[] GetAdminReport(int totalUsers,int totalSportCenters, int totalReservations, int selectedYear, byte[] imageBytes);
+        public byte[] SportCenterCredentialsReport(string username, string password);
+
     }
 }

@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:terminba_admin_desktop/model/search_result.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
+  static Future<void> Function()? onUnauthorized;
   static String? _baseUrl;
   String _endpoint = "";
   static const _storage = FlutterSecureStorage();
@@ -64,8 +65,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
       try {
         var data = jsonDecode(response.body);
         if (data == null) return null;
-        return fromJson(data);
-      } catch (_) {
+        final result = fromJson(data);
+        return result;
+      } catch (e) {
         return null;
       }
     } else {
@@ -138,6 +140,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     if (response.statusCode < 299) {
       return true;
     } else if (response.statusCode == 401) {
+      onUnauthorized?.call();
       throw Exception("Unauthorized");
     } else {
       print(response.body);

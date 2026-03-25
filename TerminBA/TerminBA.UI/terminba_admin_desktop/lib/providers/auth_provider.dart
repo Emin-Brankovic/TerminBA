@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:terminba_admin_desktop/main.dart';
+import 'package:terminba_admin_desktop/screens/login_screen.dart';
 
 class AuthProvider extends ChangeNotifier {
   static String? _baseUrl;
@@ -14,7 +16,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     _baseUrl = const String.fromEnvironment(
-      'BASE_URL',
+      'baseUrl',
       defaultValue: 'http://localhost:5078/api',
     );
   }
@@ -23,11 +25,10 @@ class AuthProvider extends ChangeNotifier {
     final token = await _storage.read(key: _tokenKey);
     if (token != null && !JwtDecoder.isExpired(token)) {
       _isLoggedIn = true;
+      notifyListeners();
     } else {
-      await _storage.delete(key: _tokenKey);
-      _isLoggedIn = false;
+      await logout();
     }
-    notifyListeners();
   }
 
   Future<String?> getToken() async {
@@ -92,5 +93,8 @@ class AuthProvider extends ChangeNotifier {
     await _storage.delete(key: _tokenKey);
     _isLoggedIn = false;
     notifyListeners();
+    navigatorKey.currentState?.pushReplacement(
+      MaterialPageRoute(builder: (_) => LoginPage()),
+    );
   }
 }

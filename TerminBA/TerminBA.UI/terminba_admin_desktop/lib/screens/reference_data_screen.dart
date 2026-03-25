@@ -68,38 +68,91 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
 
   void _onAdd() {
     final TextEditingController controller = TextEditingController(text: '');
+    final formKey = GlobalKey<FormState>();
+    bool hasTriedSubmit = false;
+    String? submitError;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Add ${categories[_selectedIndex!]}'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(hintText: "Enter name"),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('Add ${categories[_selectedIndex!]}'),
+          content: Form(
+            key: formKey,
+            autovalidateMode: hasTriedSubmit
+                ? AutovalidateMode.always
+                : AutovalidateMode.disabled,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: controller,
+                  decoration: const InputDecoration(hintText: "Enter name"),
+                  validator: (value) {
+                    if ((value ?? '').trim().isEmpty) {
+                      return 'Name is required';
+                    }
+                    return null;
+                  },
+                ),
+                if (submitError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    submitError!,
+                    style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+            ),
+            TextButton(
+              onPressed: () async {
+                setDialogState(() {
+                  hasTriedSubmit = true;
+                  submitError = null;
+                });
+
+                if (!(formKey.currentState?.validate() ?? false)) {
+                  return;
+                }
+
+                final name = controller.text.trim();
+                try {
+                  if (categories[_selectedIndex!] == 'Turf Type') {
+                    await turfTypeProvider.insert({"name": name});
+                  } else if (categories[_selectedIndex!] == 'Amenity') {
+                    await amenityProvider.insert({"name": name});
+                  } else if (categories[_selectedIndex!] == 'City') {
+                    await cityProvider.insert({"name": name});
+                  } else if (categories[_selectedIndex!] == 'Sport') {
+                    await sportProvider.insert({"name": name});
+                  } else if (categories[_selectedIndex!] == 'Role') {
+                    await roleProvider.insert({"name": name});
+                  }
+
+                  Navigator.pop(ctx);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${categories[_selectedIndex!]} added successfully')),
+                  );
+
+                  await _refreshTable();
+                } catch (e) {
+                  setDialogState(() {
+                    submitError = e.toString().replaceFirst('Exception: ', '');
+                  });
+
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              if (categories[_selectedIndex!] == 'Turf Type') {
-                await turfTypeProvider.insert({"name": controller.text});
-              } else if (categories[_selectedIndex!] == 'Amenity') {
-                await amenityProvider.insert({"name": controller.text});
-              } else if (categories[_selectedIndex!] == 'City') {
-                await cityProvider.insert({"name": controller.text});
-              } else if (categories[_selectedIndex!] == 'Sport') {
-                await sportProvider.insert({"name": controller.text});
-              } else if (categories[_selectedIndex!] == 'Role') {
-                await roleProvider.insert({"name": controller.text});
-              }
-              await _refreshTable();
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

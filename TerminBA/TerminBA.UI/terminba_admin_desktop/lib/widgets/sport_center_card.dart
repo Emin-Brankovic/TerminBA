@@ -59,7 +59,7 @@ class FacilityCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          sportCenter.city.name,
+                          sportCenter.city?.name ?? '',
                           style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                         const SizedBox(height: 12),

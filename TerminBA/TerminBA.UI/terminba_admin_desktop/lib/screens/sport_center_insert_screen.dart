@@ -419,7 +419,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               name: 'username',
                               initialValue: widget.sportCenter?.username,
                               decoration: const InputDecoration(
-                                labelText: 'Name',
+                                labelText: 'Name*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
@@ -433,7 +433,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               name: 'phoneNumber',
                               initialValue: widget.sportCenter?.phoneNumber,
                               decoration: const InputDecoration(
-                                labelText: 'Phone Number',
+                                labelText: 'Phone Number*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
@@ -447,7 +447,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               name: 'cityId',
                               initialValue: widget.sportCenter?.cityId,
                               decoration: const InputDecoration(
-                                labelText: 'City',
+                                labelText: 'City*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.required(),
@@ -467,7 +467,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               name: 'address',
                               initialValue: widget.sportCenter?.address,
                               decoration: const InputDecoration(
-                                labelText: 'Address',
+                                labelText: 'Address*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
@@ -505,7 +505,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             FormBuilderCheckboxGroup<int>(
                               name: 'sportIds',
                               decoration: const InputDecoration(
-                                labelText: 'Available Sports',
+                                labelText: 'Available Sports*',
                                 border: OutlineInputBorder(),
                               ),
                               initialValue: _isEditing
@@ -532,7 +532,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             FormBuilderCheckboxGroup<int>(
                               name: 'amenityIds',
                               decoration: const InputDecoration(
-                                labelText: 'Amenities',
+                                labelText: 'Amenities*',
                                 border: OutlineInputBorder(),
                               ),
                               initialValue: _isEditing

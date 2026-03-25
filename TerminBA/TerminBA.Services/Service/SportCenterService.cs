@@ -18,10 +18,12 @@ namespace TerminBA.Services.Service
     public class SportCenterService : BaseCRUDService<SportCenterResponse, SportCenter, SportCenterSearchObject, SportCenterInsertRequest, SportCenterUpdateRequest>, ISportCenterService
     {
         private readonly IWorkingHoursService _workingHoursService;
+        private readonly IReportService _reportService;
 
-        public SportCenterService(TerminBaContext context, IMapper mapper,IWorkingHoursService workingHoursService) : base(context, mapper)
+        public SportCenterService(TerminBaContext context, IMapper mapper,IWorkingHoursService workingHoursService, IReportService reportService) : base(context, mapper)
         {
             _workingHoursService = workingHoursService;
+            _reportService = reportService;
         }
 
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
@@ -85,7 +87,15 @@ namespace TerminBA.Services.Service
 
             await _context.AddRangeAsync(workingHoursEntities);
 
-            return MapToResponse(entity);
+            string randomPassword = StringHelper.GenerateRandomString();
+
+            byte[] pdfBytes = _reportService.SportCenterCredentialsReport(entity.Username!, randomPassword);
+
+            var response = MapToResponse(entity);
+
+            response.CredentialsReport = pdfBytes;
+
+            return response;
         }
 
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)

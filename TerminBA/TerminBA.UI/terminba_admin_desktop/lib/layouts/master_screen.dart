@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/auth_provider.dart';
 import 'package:terminba_admin_desktop/screens/admin_profile_screen.dart';
 import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
-import 'package:terminba_admin_desktop/screens/login_screen.dart';
 import 'package:terminba_admin_desktop/screens/reference_data_screen.dart';
 import 'package:terminba_admin_desktop/screens/sport_center_screen.dart';
 import 'package:terminba_admin_desktop/screens/user_management_screen.dart';
@@ -85,12 +84,6 @@ class _MasterScreenState extends State<MasterScreen> {
                     );
                   } else if (value == 'logout') {
                     _authProvider.logout();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                    );
                   }
                 },
                 itemBuilder: (context) => [

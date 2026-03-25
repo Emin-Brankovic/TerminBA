@@ -25,11 +25,16 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['availableAmenities'] as List<dynamic>)
       .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
       .toList(),
-  City.fromJson(json['city'] as Map<String, dynamic>),
-  Role.fromJson(json['role'] as Map<String, dynamic>),
+  json['city'] == null
+      ? null
+      : City.fromJson(json['city'] as Map<String, dynamic>),
+  json['role'] == null
+      ? null
+      : Role.fromJson(json['role'] as Map<String, dynamic>),
   (json['workingHours'] as List<dynamic>)
       .map((e) => WorkingHours.fromJson(e as Map<String, dynamic>))
       .toList(),
+  _bytesFromJson(json['credentialsReport']),
 );
 
 Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
@@ -46,6 +51,7 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'roleId': instance.roleId,
       'role': instance.role,
+      'credentialsReport': _bytesToJson(instance.credentialsReport),
       'availableSports': instance.availableSports,
       'availableAmenities': instance.availableAmenities,
       'workingHours': instance.workingHours,

@@ -12,6 +12,7 @@ using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
+using QuestPDF.Companion;
 
 namespace TerminBA.Services.Service
 {
@@ -160,6 +161,88 @@ namespace TerminBA.Services.Service
 
                 return card;
             }
+        }
+
+
+        public byte[] SportCenterCredentialsReport(string username, string password)
+        {
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+
+                    page.Header()
+                        .AlignCenter()
+                        .Column(column =>
+                        {
+                            column.Spacing(0);
+
+                            //Company Name
+                            column.Item().AlignCenter().PaddingBottom(16).Text("TerminBA")
+                                .FontSize(25)
+                                .Bold();
+
+                        });
+
+
+                    page.Content()
+                        .AlignCenter()
+                        .Column(column =>
+                        {
+                            column.Spacing(15);
+
+                            column.Item().AlignCenter().PaddingBottom(10).Width(350).LineHorizontal(2);
+
+                            column.Item().AlignCenter().PaddingBottom(20).Text("Sport Center System Access Credentials")
+                                .Bold()
+                                .FontSize(20);
+
+
+                            column.Item().AlignCenter().Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(120); //Username Column 
+                                    columns.ConstantColumn(120); //Password Column 
+                                });
+
+                                //Table Header
+                                table.Header(header =>
+                                {
+                                    header.Cell().Background(Colors.LightBlue.Accent3).Border(1).AlignCenter().Text("Username").Bold();
+                                    header.Cell().Background(Colors.LightBlue.Accent3).Border(1).AlignCenter().Text("Password").Bold();
+                                });
+
+                                //Table Rows 
+                                table.Cell().Border(1).AlignCenter().Text(username);
+                                table.Cell().Border(1).AlignCenter().Text(password);
+                            });
+
+                            //Warning message
+                            column.Item().PaddingTop(20).AlignCenter().Text("Note that this password is temporary and you should change it immediately after receiving this document!").FontColor(Colors.Red.Medium)
+                            .FontSize(10);
+                        });
+
+                    page.Footer()
+                    .Column(column =>
+                    {
+                        column.Item()
+                        .PaddingVertical(10)
+                        .Text(text =>
+                        {
+                            text.Span("Page ");
+                            text.CurrentPageNumber();
+                            text.Span(" of ");
+                            text.TotalPages();
+                            text.AlignCenter();
+                        });
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
         }
     }
 }
