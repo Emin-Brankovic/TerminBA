@@ -143,9 +143,86 @@ abstract class BaseProvider<T> with ChangeNotifier {
       onUnauthorized?.call();
       throw Exception("Unauthorized");
     } else {
-      print(response.body);
-      throw Exception("Something went wrong, please try again");
+      final message = _extractErrorMessage(
+        response,
+        fallbackMessage: "Something went wrong, please try again",
+      );
+
+      if (_isUserExceptionResponse(response)) {
+        throw Exception(message);
+      }
+
+      if (response.statusCode >= 500) {
+        throw Exception(message);
+      }
+
+      throw Exception(message);
     }
+  }
+
+  bool _isUserExceptionResponse(Response response) {
+    if (response.statusCode != 400 || response.body.isEmpty) {
+      return false;
+    }
+
+    try {
+      final data = jsonDecode(response.body);
+      if (data is! Map<String, dynamic>) {
+        return false;
+      }
+
+      final errors = data['errors'];
+      if (errors is! Map<String, dynamic>) {
+        return false;
+      }
+
+      final userError = errors['userError'];
+      return userError is List && userError.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String _extractErrorMessage(
+    Response response, {
+    required String fallbackMessage,
+  }) {
+    if (response.body.isEmpty) {
+      return fallbackMessage;
+    }
+
+    try {
+      final data = jsonDecode(response.body);
+      if (data is! Map<String, dynamic>) {
+        return fallbackMessage;
+      }
+
+      final errors = data['errors'];
+      if (errors is Map<String, dynamic>) {
+        final userError = errors['userError'];
+        if (userError is List && userError.isNotEmpty) {
+          return userError.first.toString();
+        }
+
+        for (final value in errors.values) {
+          if (value is List && value.isNotEmpty) {
+            return value.first.toString();
+          }
+          if (value is String && value.isNotEmpty) {
+            return value;
+          }
+        }
+      }
+
+      final message = data['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+    } catch (_) {
+      // Fallback to default message when response is not JSON.
+    }
+
+    return fallbackMessage;
   }
 
   Future<Map<String, String>> createHeaders() async {

@@ -162,10 +162,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      debugPrint('Error creating sport center: $e');
+      debugPrint(e.toString().replaceFirst('Exception: ', ''));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          SnackBar(content: Text('Error creating sport center: ${e.toString().replaceFirst('Exception: ', '')}')),
         );
       }
     } finally {
@@ -183,7 +183,11 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
   String _formatDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  Widget _buildWorkingHoursRow(int index, _WorkingHoursEntry wh) {
+  Widget _buildWorkingHoursRow(
+    int index,
+    _WorkingHoursEntry wh,
+    VoidCallback onRemove,
+  ) {
     const dayNames = [
       'Sunday',
       'Monday',
@@ -206,8 +210,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  onPressed: () =>
-                      setState(() => _workingHoursList.removeAt(index)),
+                  onPressed: onRemove,
                   icon: const Icon(
                     Icons.close,
                     color: Color.fromARGB(183, 255, 82, 82),
@@ -438,6 +441,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               ),
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
+                                FormBuilderValidators.match(
+                                  RegExp(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{3,6}$'),
+                                  errorText: 'Enter a valid phone number.',
+                                ),
                               ]),
                             ),
                             const SizedBox(height: 16),
@@ -479,15 +486,17 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             // Description
                             FormBuilderTextField(
                               name: 'description',
-                              initialValue: widget.sportCenter?.description,
+                              initialValue: widget.sportCenter?.description ?? '',
                               decoration: const InputDecoration(
                                 labelText: 'Description',
                                 border: OutlineInputBorder(),
                               ),
                               maxLines: 3,
-                              validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                              ]),
+                              validator: FormBuilderValidators.maxLength(
+                                180,
+                                errorText: 'Description cannot exceed 180 characters.',
+                              ),
+                              
                             ),
                             const SizedBox(height: 16),
 
@@ -548,38 +557,95 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                     ),
                                   )
                                   .toList(),
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(),
+                              ]),
                             ),
                             const SizedBox(height: 16),
 
                             // Working Hours
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                            FormBuilderField<List<_WorkingHoursEntry>>(
+                              name: 'workingHours',
+                              initialValue:
+                                  List<_WorkingHoursEntry>.from(
+                                    _workingHoursList,
+                                  ),
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              validator: (value) {
+                                final entries = value ?? _workingHoursList;
+                                if (entries.isEmpty) {
+                                  return 'Add at least one working hours entry.';
+                                }
+                                return null;
+                              },
+                              builder: (field) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Working Hours',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Working Hours*',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            setState(
+                                              () => _workingHoursList.add(
+                                                _WorkingHoursEntry(),
+                                              ),
+                                            );
+                                            field.didChange(
+                                              List<_WorkingHoursEntry>.from(
+                                                _workingHoursList,
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.add),
+                                          label: const Text('Add'),
+                                        ),
+                                      ],
+                                    ),
+                                    ..._workingHoursList.asMap().entries.map(
+                                      (entry) => _buildWorkingHoursRow(
+                                        entry.key,
+                                        entry.value,
+                                        () {
+                                          setState(
+                                            () => _workingHoursList.removeAt(
+                                              entry.key,
+                                            ),
+                                          );
+                                          field.didChange(
+                                            List<_WorkingHoursEntry>.from(
+                                              _workingHoursList,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ),
-                                    TextButton.icon(
-                                      onPressed: _addWorkingHoursEntry,
-                                      icon: const Icon(Icons.add),
-                                      label: const Text('Add'),
-                                    ),
+                                    if (field.hasError)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          field.errorText!,
+                                          style: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
                                   ],
-                                ),
-                                ..._workingHoursList.asMap().entries.map(
-                                  (entry) => _buildWorkingHoursRow(
-                                    entry.key,
-                                    entry.value,
-                                  ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
                             const SizedBox(height: 32),
                             SizedBox(

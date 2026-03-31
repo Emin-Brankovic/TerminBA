@@ -189,6 +189,17 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
       return const Expanded(child: Center(child: CircularProgressIndicator()));
     }
 
+    if (_sportCenters.isEmpty) {
+      return const Expanded(
+        child: Center(
+          child: Text(
+            'No results found',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+        ),
+      );
+    }
+
     var screenWidth = MediaQuery.of(context).size.width;
     int itemCount;
     if (screenWidth < 1000) {

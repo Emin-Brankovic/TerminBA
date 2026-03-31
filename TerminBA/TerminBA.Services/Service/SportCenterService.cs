@@ -64,8 +64,10 @@ namespace TerminBA.Services.Service
                 entity.AvailableAmenities = amenities;
             }
 
+            string randomPassword = StringHelper.GenerateRandomString();
+
             entity.PasswordSalt = HashingHelper.GenerateSalt();
-            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, "password"); // temporary solution
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword); // temporary solution
 
             await BeforeInsert(entity,request);
 
@@ -86,8 +88,6 @@ namespace TerminBA.Services.Service
                     }).ToList();
 
             await _context.AddRangeAsync(workingHoursEntities);
-
-            string randomPassword = StringHelper.GenerateRandomString();
 
             byte[] pdfBytes = _reportService.SportCenterCredentialsReport(entity.Username!, randomPassword);
 
@@ -113,7 +113,7 @@ namespace TerminBA.Services.Service
             var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username!.ToLower() == request.Username!.ToLower());
 
             if (sameNameCenter)
-                throw new UserException($"Sport center with name:{request.Username} already exits.");
+                throw new UserException($"Sport center with name: {request.Username} already exits.");
         }
 
         protected override async Task BeforeUpdate(SportCenter entity, SportCenterUpdateRequest request)
@@ -123,7 +123,7 @@ namespace TerminBA.Services.Service
                 var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
 
                 if (sameNameCenter)
-                    throw new UserException($"Sport center with name:{request.Username} already exits.");
+                    throw new UserException($"Sport center with name: {request.Username} already exits.");
             }
 
             _context.Entry(entity).Collection(sc => sc.AvailableSports).Load();

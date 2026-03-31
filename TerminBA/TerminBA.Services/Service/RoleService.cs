@@ -20,6 +20,9 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Role> ApplyFilter(IQueryable<Role> query, RoleSearchObject search)
         {
+            query = query.Where(r => r.Name.ToLower() != "Administrator");
+
+
             if (!string.IsNullOrEmpty(search.RoleName))
             {
                 query = query.Where(r => r.Name.ToLower().Contains(search.RoleName.ToLower()));
