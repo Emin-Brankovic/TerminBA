@@ -25,6 +25,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   bool _providersInitialized = false;
   List<City> cities = <City>[];
   bool _citySelected = false;
+  int? _selectedCityId;
 
   @override
   void initState() {
@@ -127,34 +128,43 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
             const SizedBox(width: 10),
             SizedBox(
-              width: 200,
-              child: FormBuilderDropdown(
-                name: 'city',
-                initialValue: null,
+              width: 180,
+              child: DropdownButtonFormField<int?>(
+                value: _selectedCityId,
                 style: const TextStyle(
                   fontWeight: FontWeight.normal,
                   color: Colors.black,
                 ),
                 iconSize: _citySelected ? 0 : 24,
                 onChanged: (value) {
-                  setState(() => _citySelected = value != null);
+                  setState(() {
+                    _selectedCityId = value;
+                    _citySelected = value != null;
+                  });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Location',
+                  hintText: 'City',
                   border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
                   suffixIcon: _citySelected
                       ? IconButton(
                           icon: const Icon(Icons.close, size: 18),
                           onPressed: () {
-                            formKey.currentState!.fields['city']?.reset();
-                            setState(() => _citySelected = false);
+                            setState(() {
+                              _selectedCityId = null;
+                              _citySelected = false;
+                            });
                           },
                         )
                       : null,
                 ),
                 items: cities
                     .map(
-                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                      (c) =>
+                          DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
                     )
                     .toList(),
               ),
@@ -170,7 +180,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         if (values['search'] != null &&
                             (values['search'] as String).isNotEmpty)
                           'fullName': values['search'],
-                        if (values['city'] != null) 'cityId': values['city'],
+                        if (_selectedCityId != null) 'cityId': _selectedCityId,
                       },
                     );
                     setState(() {

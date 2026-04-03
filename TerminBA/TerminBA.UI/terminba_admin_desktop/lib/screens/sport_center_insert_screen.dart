@@ -441,10 +441,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               ),
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
-                                FormBuilderValidators.match(
-                                  RegExp(r'^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{3,6}$'),
-                                  errorText: 'Enter a valid phone number.',
-                                ),
+                                FormBuilderValidators.phoneNumber(),
                               ]),
                             ),
                             const SizedBox(height: 16),

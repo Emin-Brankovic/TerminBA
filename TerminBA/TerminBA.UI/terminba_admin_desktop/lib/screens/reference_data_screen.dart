@@ -138,7 +138,11 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                   Navigator.pop(ctx);
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${categories[_selectedIndex!]} added successfully')),
+                    SnackBar(
+                      content: Text(
+                        '${categories[_selectedIndex!]} added successfully',
+                      ),
+                    ),
                   );
 
                   await _refreshTable();
@@ -146,7 +150,6 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                   setDialogState(() {
                     submitError = e.toString().replaceFirst('Exception: ', '');
                   });
-
                 }
               },
               child: const Text('Save'),
@@ -198,6 +201,15 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                   "name": controller.text,
                 });
               }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${categories[_selectedIndex!]} updated successfully',
+                  ),
+                ),
+              );
+
               await _refreshTable();
             },
             child: const Text('Save'),
@@ -304,28 +316,29 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                 return ChoiceChip(
                   label: Text(categories[index]),
                   selected: _selectedIndex == index,
-                  onSelected: _selectedIndex == index ? null :
-                  (bool selected) async {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
-                    if (selected) {
-                      var source = await _getReferenceData(index);
-                      setState(() {
-                        _referenceDataDataSource = source;
-                      });
-                    } else {
-                      setState(() {
-                        _referenceDataDataSource =
-                            ReferenceDataDataSource<dynamic>(
-                              [],
-                              (item) => '',
-                              _onEdit,
-                              _onDelete,
-                            );
-                      });
-                    }
-                  },
+                  onSelected: _selectedIndex == index
+                      ? null
+                      : (bool selected) async {
+                          setState(() {
+                            _selectedIndex = index;
+                          });
+                          if (selected) {
+                            var source = await _getReferenceData(index);
+                            setState(() {
+                              _referenceDataDataSource = source;
+                            });
+                          } else {
+                            setState(() {
+                              _referenceDataDataSource =
+                                  ReferenceDataDataSource<dynamic>(
+                                    [],
+                                    (item) => '',
+                                    _onEdit,
+                                    _onDelete,
+                                  );
+                            });
+                          }
+                        },
                 );
               }),
             ),

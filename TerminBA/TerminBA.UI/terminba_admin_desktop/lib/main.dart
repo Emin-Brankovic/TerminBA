@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
@@ -12,12 +14,18 @@ import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_admin_desktop/providers/user_provider.dart';
 import 'package:terminba_admin_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_admin_desktop/screens/login_screen.dart';
+import 'package:window_manager/window_manager.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows) {
+    WindowManager.instance.setMinimumSize(const Size(1000, 844));
+    WindowManager.instance.setMaximumSize(const Size(3840, 2160));
+  }
 
   final authProvider = AuthProvider();
   await authProvider.checkAuthStatus(); 

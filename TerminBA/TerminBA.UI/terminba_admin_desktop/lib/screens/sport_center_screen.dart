@@ -25,6 +25,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
   int? _selectedCityId;
   bool _isLoading = false;
   bool _initialized = false;
+  bool _citySelected = false;
   int _currentPage = 1;
   int _totalPages = 1;
   int totalItems = 0;
@@ -114,7 +115,10 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
             },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(100, 46), // width, height
-              textStyle: const TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             child: const Text("Add Sport Center"),
           ),
@@ -140,31 +144,43 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
                     width: 180,
                     child: DropdownButtonFormField<int?>(
                       value: _selectedCityId,
-                      decoration: const InputDecoration(
-                        hintText: 'All cities',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
+                      style: const TextStyle(
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black,
+                      ),
+                      iconSize: _citySelected ? 0 : 24,
+                      decoration: InputDecoration(
+                        hintText: 'City',
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 14,
                         ),
+                        suffixIcon: _citySelected
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedCityId = null;
+                                    _citySelected = false;
+                                  });
+                                },
+                              )
+                            : null,
                       ),
-                      items: [
-                        const DropdownMenuItem<int?>(
-                          value: null,
-                          child: Text(
-                            'City',
-                            style: TextStyle(fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                        ..._cities.map(
-                          (c) => DropdownMenuItem<int?>(
-                            value: c.id,
-                            child: Text(c.name),
-                          ),
-                        ),
-                      ],
+                      items: _cities
+                          .map(
+                            (c) => DropdownMenuItem<int?>(
+                              value: c.id,
+                              child: Text(c.name),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (value) {
-                        setState(() => _selectedCityId = value);
+                        setState(() {
+                          _selectedCityId = value;
+                          _citySelected = value != null;
+                        });
                       },
                     ),
                   ),

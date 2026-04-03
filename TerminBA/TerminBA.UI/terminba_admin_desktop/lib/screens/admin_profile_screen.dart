@@ -77,6 +77,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     if (_currentUserId == null) return;
 
     final values = _formKey.currentState!.value;
+    final emailValue =
+      (values['email'] as String?)?.trim().isNotEmpty == true
+        ? values['email'] as String
+        : _currentUser!.email;
 
     setState(() => _isSaving = true);
     try {
@@ -84,13 +88,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         values['firstName'] as String,
         values['lastName'] as String,
         values['username'] as String,
-        values['email'] as String,
+        emailValue,
         values['phoneNumber'] as String?,
         null,
         values['birthDate'] as DateTime,
         values['cityId'] as int,
       );
-      print(request.toJson());
 
       await _userProvider.update(_currentUserId!, request.toJson());
 
@@ -215,6 +218,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             Expanded(
                               child: FormBuilderTextField(
                                 name: 'email',
+                                enabled: false,
                                 decoration: const InputDecoration(
                                   labelText: 'Email',
                                   border: OutlineInputBorder(),
