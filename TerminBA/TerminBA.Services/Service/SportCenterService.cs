@@ -19,11 +19,20 @@ namespace TerminBA.Services.Service
     {
         private readonly IWorkingHoursService _workingHoursService;
         private readonly IReportService _reportService;
+        private readonly IAuthService<SportCenter> _authService;
 
-        public SportCenterService(TerminBaContext context, IMapper mapper,IWorkingHoursService workingHoursService, IReportService reportService) : base(context, mapper)
+        public SportCenterService(TerminBaContext context, IMapper mapper,IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService) : base(context, mapper)
         {
             _workingHoursService = workingHoursService;
             _reportService = reportService;
+            _authService = authService;
+        }
+
+        public async Task<AuthResponse?> Login(SportCenterLoginRequest request)
+        {
+            var response = await _authService.Login(request);
+
+            return response;
         }
 
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
