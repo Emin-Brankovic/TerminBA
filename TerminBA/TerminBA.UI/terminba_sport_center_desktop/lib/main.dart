@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/base_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/city_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/login_screen.dart';
 import 'package:window_manager/window_manager.dart';
@@ -30,6 +34,11 @@ void main() async {
   runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
+        ChangeNotifierProvider<FacilityProvider>(create: (_) => FacilityProvider()),
+        ChangeNotifierProvider<CityProvider>(create: (_) => CityProvider()),
+        ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
+        ChangeNotifierProvider<TurfTypeProvider>(create: (_) => TurfTypeProvider()),
+
       ],
       child: const MyApp(),
     ),);
