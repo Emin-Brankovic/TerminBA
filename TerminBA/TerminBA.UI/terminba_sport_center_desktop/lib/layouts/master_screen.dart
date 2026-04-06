@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
+import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/facilities_screen.dart';
 
 class MasterScreen extends StatefulWidget {
   const MasterScreen({super.key, required this.title, required this.child});
@@ -61,6 +63,7 @@ class _MasterScreenState extends State<MasterScreen> {
                     _navItem(
                       "Facilities",
                       isSelected: widget.title == "Facilities",
+
                     ),
                   ],
                 ),
@@ -148,48 +151,47 @@ class _MasterScreenState extends State<MasterScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 4),
       child: TextButton(
         onPressed: () {
-          // switch (title) {
-          //   case "User Management":
-          //     {
-          //       // Navigate to User Management Screen
-          //       Navigator.pushReplacement(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const UserManagementScreen(),
-          //         ),
-          //       );
-          //     }
-          //     break;
-          //   case "Sport Centers":
-          //     {
-          //       Navigator.pushReplacement(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const SportCenterScreen(),
-          //         ),
-          //       );
-          //     }
-          //     break;
-          //   case "Reference Data":
-          //     {
-          //       Navigator.pushReplacement(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const ReferenceDataScreen(),
-          //         ),
-          //       );
-          //     }
-          //     break;
-          //   case "Dashboard":
-          //     {
-          //       Navigator.pushReplacement(
-          //         context,
-          //         MaterialPageRoute(
-          //           builder: (context) => const DashboardScreen(),
-          //         ),
-          //       );
-          //     }
-          // }
+          switch (title) {
+            case "Facilities":
+              {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FacilitiesScreen(),
+                  ),
+                );
+              }
+              break;
+            case "Sport Centers":
+              {
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(
+                //     // builder: (context) => const SportCenterScreen(),
+                //   ),
+                // );
+              }
+              break;
+            case "Reference Data":
+              {
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const ReferenceDataScreen(),
+                //   ),
+                // );
+              }
+              break;
+            case "Dashboard":
+              {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DashboardScreen(),
+                  ),
+                );
+              }
+          }
         },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

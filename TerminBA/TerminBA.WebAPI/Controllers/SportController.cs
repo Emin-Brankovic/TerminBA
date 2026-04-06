@@ -18,7 +18,6 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrator")]
         public override async Task<PagedResult<SportResponse>> Get([FromQuery] SportSearchObject? search = null)
         {
             return await base.Get(search);

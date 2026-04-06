@@ -80,7 +80,9 @@ namespace TerminBA.Services.Service
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
             query = query
-                .Include(f => f.DynamicPrices);
+                .Include(f => f.DynamicPrices)
+                .Include(f => f.TurfType)
+                .Include(f => f.AvailableSports);
 
             return query;
         }
