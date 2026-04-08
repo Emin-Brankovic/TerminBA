@@ -39,9 +39,9 @@ namespace TerminBA.Services.Database
               (ValidFrom <= DateOnly.FromDateTime(DateTime.Today)) &&
               (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
 
-        //public static Expression<Func<FacilityDynamicPrice, bool>> IsActiveExpr(DateOnly today) =>
-        //    x => x.ValidFrom <= today &&
-        //    (x.ValidTo == null || x.ValidTo >= today);
+        public static Expression<Func<FacilityDynamicPrice, bool>> IsActiveExpr(DateOnly today) =>
+            x => x.ValidFrom <= today &&
+            (x.ValidTo == null || x.ValidTo >= today);
 
         [Required]
         public DateOnly ValidFrom { get; set; }

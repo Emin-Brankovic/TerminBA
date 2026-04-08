@@ -21,6 +21,7 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Facility> ApplyFilter(IQueryable<Facility> query, FacilitySearchObject search)
         {
+
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
                 var nameLower = search.Name.ToLower();
@@ -79,8 +80,10 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
             query = query
-                .Include(f => f.DynamicPrices)
+                .Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr))
                 .Include(f => f.TurfType)
                 .Include(f => f.AvailableSports);
 
@@ -111,16 +114,16 @@ namespace TerminBA.Services.Service
             await _context.SaveChangesAsync();
 
             // The FE won't allow creating dynamic pricing if the chechbox is not selected
-            if (request.IsDynamicPricing)
-            {
-                foreach (var dynamicPriceRequest in request.DynamicPrices)
-                {
-                    dynamicPriceRequest.FacilityId = entity.Id;
-                    await _facilityDynamicPriceService.CreateAsync(dynamicPriceRequest);
-                }
+            //if (request.IsDynamicPricing)
+            //{
+            //    foreach (var dynamicPriceRequest in request.DynamicPrices)
+            //    {
+            //        dynamicPriceRequest.FacilityId = entity.Id;
+            //        await _facilityDynamicPriceService.CreateAsync(dynamicPriceRequest);
+            //    }
 
-                await _context.Entry(entity).Collection(f => f.DynamicPrices).LoadAsync();
-            }
+            //    await _context.Entry(entity).Collection(f => f.DynamicPrices).LoadAsync();
+            //}
 
             return MapToResponse(entity);
         }
@@ -157,7 +160,7 @@ namespace TerminBA.Services.Service
         {
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
-            ValidateDynamicPricesRequest(request.IsDynamicPricing, request.DynamicPrices);
+            await ValidateDynamicPricesRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
         }
 
         protected override async Task BeforeUpdate(Facility entity, FacilityUpdateRequest request)
@@ -216,12 +219,123 @@ namespace TerminBA.Services.Service
             }
         }
 
-        private void ValidateDynamicPricesRequest(bool isDynamicPricing, List<FacilityDynamicPriceInsertRequest>? dynamicPrices)
+        private async Task ValidateDynamicPricesRequest(bool isDynamicPricing, int sportCenterId, List<FacilityDynamicPriceInsertRequest>? dynamicPrices)
         {
             if (!isDynamicPricing && dynamicPrices != null && dynamicPrices.Any())
             {
                 throw new UserException("Dynamic prices cannot be provided when dynamic pricing is disabled.");
             }
+
+            if (!isDynamicPricing || dynamicPrices == null || !dynamicPrices.Any())
+            {
+                return;
+            }
+
+            var workingHours = await _context.WorkingHours
+                .Where(wh => wh.SportCenterId == sportCenterId)
+                .ToListAsync();
+
+            if (!workingHours.Any())
+            {
+                throw new UserException("Sport center does not have configured working hours.");
+            }
+
+            foreach (var dynamicPrice in dynamicPrices)
+            {
+                if (dynamicPrice.StartTime >= dynamicPrice.EndTime)
+                {
+                    throw new UserException("Start time must be before end time.");
+                }
+
+                if (dynamicPrice.ValidTo.HasValue && dynamicPrice.ValidFrom > dynamicPrice.ValidTo.Value)
+                {
+                    throw new UserException("ValidFrom date must be before or equal to ValidTo date.");
+                }
+
+                foreach (var day in GetDaysInRange(dynamicPrice.StartDay, dynamicPrice.EndDay))
+                {
+                    var matchingWorkingHours = workingHours.Where(wh =>
+                        TimeSlotHelper.IsInDayRange(day, wh.StartDay, wh.EndDay)
+                        && wh.OpeningHours <= dynamicPrice.StartTime
+                        && wh.CloseingHours >= dynamicPrice.EndTime);
+
+                    var hasMatchingWorkingHours = IsDateRangeCoveredByWorkingHours(
+                        dynamicPrice.ValidFrom,
+                        dynamicPrice.ValidTo,
+                        matchingWorkingHours);
+
+                    if (!hasMatchingWorkingHours)
+                    {
+                        throw new UserException(
+                            $"Dynamic price time range {dynamicPrice.StartTime:HH\\:mm}-{dynamicPrice.EndTime:HH\\:mm} is outside active working hours for the selected date range.");
+                    }
+                }
+            }
+        }
+
+        private static bool IsDateRangeCoveredByWorkingHours(DateOnly targetStart, DateOnly? targetEnd, IEnumerable<WorkingHours> workingHours)
+        {
+            var requiredEndDay = (targetEnd ?? DateOnly.MaxValue).DayNumber;
+            var cursorDay = targetStart.DayNumber;
+            var maxDayNumber = DateOnly.MaxValue.DayNumber;
+
+            var intervals = workingHours
+                .Select(wh => new
+                {
+                    StartDay = wh.ValidFrom.DayNumber,
+                    EndDay = (wh.ValidTo ?? DateOnly.MaxValue).DayNumber
+                })
+                .Where(x => x.EndDay >= x.StartDay)
+                .OrderBy(x => x.StartDay)
+                .ThenBy(x => x.EndDay)
+                .ToList();
+
+            foreach (var interval in intervals)
+            {
+                if (interval.EndDay < cursorDay)
+                {
+                    continue;
+                }
+
+                if (interval.StartDay > cursorDay)
+                {
+                    return false;
+                }
+
+                if (interval.EndDay >= requiredEndDay)
+                {
+                    return true;
+                }
+
+                if (interval.EndDay >= maxDayNumber)
+                {
+                    return true;
+                }
+
+                cursorDay = interval.EndDay + 1;
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<DayOfWeek> GetDaysInRange(DayOfWeek startDay, DayOfWeek endDay)
+        {
+            var days = new List<DayOfWeek>();
+            var current = startDay;
+
+            while (true)
+            {
+                days.Add(current);
+
+                if (current == endDay)
+                {
+                    break;
+                }
+
+                current = (DayOfWeek)(((int)current + 1) % 7);
+            }
+
+            return days;
         }
     }
 }

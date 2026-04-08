@@ -18,6 +18,7 @@ using System.Security.Claims;
 using Microsoft.Identity.Client;
 using TerminBA.Services.Helpers;
 using TerminBA.Models.Execptions;
+using Microsoft.AspNetCore.Http;
 
 namespace TerminBA.Services.Service
 {
@@ -26,13 +27,16 @@ namespace TerminBA.Services.Service
     {
         private readonly TerminBaContext _context;
         private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(TerminBaContext context, IConfiguration config)
+
+        public AuthService(TerminBaContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             this._context = context;
             this._config = config;
+            _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<AuthResponse?> Login(BaseLoginRequest request)
+        public async Task<AuthResponse?> Login(BaseLoginRequest request) 
         {
             var entity = await _context.Set<TEntity>()
                 .Include(x=>x.Role)
@@ -84,6 +88,12 @@ namespace TerminBA.Services.Service
             };
 
             return authResponse;
+        }
+
+        public string GetUserId()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            return user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
     }
 }

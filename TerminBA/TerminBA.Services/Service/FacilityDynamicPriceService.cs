@@ -83,11 +83,13 @@ namespace TerminBA.Services.Service
         protected override async Task BeforeInsert(FacilityDynamicPrice entity, FacilityDynamicPriceInsertRequest request)
         {
             ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
+            await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
         }
 
         protected override async Task BeforeUpdate(FacilityDynamicPrice entity, FacilityDynamicPriceUpdateRequest request)
         {
             ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
+            await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
         }
 
         public override IQueryable<FacilityDynamicPrice> ApplyIncludes(IQueryable<FacilityDynamicPrice> query)
@@ -108,6 +110,108 @@ namespace TerminBA.Services.Service
             {
                 throw new UserException("ValidFrom date must be before or equal to ValidTo date.");
             }
+        }
+
+        private async Task ValidateWithinSportCenterWorkingHours(int facilityId, DayOfWeek startDay, DayOfWeek endDay, TimeOnly startTime, TimeOnly endTime, DateOnly validFrom, DateOnly? validTo)
+        {
+            var facility = await _context.Facilities
+                .AsNoTracking()
+                .Select(f => new { f.Id, f.SportCenterId })
+                .FirstOrDefaultAsync(f => f.Id == facilityId);
+
+            if (facility == null)
+            {
+                throw new UserException("Facility was not found.");
+            }
+
+            var workingHours = await _context.WorkingHours
+                .Where(wh => wh.SportCenterId == facility.SportCenterId)
+                .ToListAsync();
+
+            if (!workingHours.Any())
+            {
+                throw new UserException("Sport center does not have configured working hours.");
+            }
+
+            foreach (var day in GetDaysInRange(startDay, endDay))
+            {
+                var matchingWorkingHours = workingHours.Where(wh =>
+                    TimeSlotHelper.IsInDayRange(day, wh.StartDay, wh.EndDay)
+                    && wh.OpeningHours <= startTime
+                    && wh.CloseingHours >= endTime);
+
+                var hasMatchingWorkingHours = IsDateRangeCoveredByWorkingHours(validFrom, validTo, matchingWorkingHours);
+
+                if (!hasMatchingWorkingHours)
+                {
+                    throw new UserException($"Dynamic price time range {startTime:HH\\:mm}-{endTime:HH\\:mm} is outside active working hours for the selected date range.");
+                }
+            }
+        }
+
+        private static bool IsDateRangeCoveredByWorkingHours(DateOnly targetStart, DateOnly? targetEnd, IEnumerable<WorkingHours> workingHours)
+        {
+            var requiredEndDay = (targetEnd ?? DateOnly.MaxValue).DayNumber;
+            var cursorDay = targetStart.DayNumber;
+            var maxDayNumber = DateOnly.MaxValue.DayNumber;
+
+            var intervals = workingHours
+                .Select(wh => new
+                {
+                    StartDay = wh.ValidFrom.DayNumber,
+                    EndDay = (wh.ValidTo ?? DateOnly.MaxValue).DayNumber
+                })
+                .Where(x => x.EndDay >= x.StartDay)
+                .OrderBy(x => x.StartDay)
+                .ThenBy(x => x.EndDay)
+                .ToList();
+
+            foreach (var interval in intervals)
+            {
+                if (interval.EndDay < cursorDay)
+                {
+                    continue;
+                }
+
+                if (interval.StartDay > cursorDay)
+                {
+                    return false;
+                }
+
+                if (interval.EndDay >= requiredEndDay)
+                {
+                    return true;
+                }
+
+                if (interval.EndDay >= maxDayNumber)
+                {
+                    return true;
+                }
+
+                cursorDay = interval.EndDay + 1;
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<DayOfWeek> GetDaysInRange(DayOfWeek startDay, DayOfWeek endDay)
+        {
+            var days = new List<DayOfWeek>();
+            var current = startDay;
+
+            while (true)
+            {
+                days.Add(current);
+
+                if (current == endDay)
+                {
+                    break;
+                }
+
+                current = (DayOfWeek)(((int)current + 1) % 7);
+            }
+
+            return days;
         }
     }
 }

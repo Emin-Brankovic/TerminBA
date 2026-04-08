@@ -4,8 +4,8 @@ import 'package:terminba_admin_desktop/model/sport_center.dart';
 import 'package:terminba_admin_desktop/model/working_hours.dart';
 import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
 
-class FacilityCard extends StatelessWidget {
-  const FacilityCard({
+class SportCenterCard extends StatelessWidget {
+  const SportCenterCard({
     super.key,
     required this.sportCenter,
     required this.onDelete,

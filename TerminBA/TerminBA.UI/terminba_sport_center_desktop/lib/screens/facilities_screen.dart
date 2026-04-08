@@ -4,7 +4,9 @@ import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
 import 'package:terminba_sport_center_desktop/model/turf_type.dart';
+import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
+import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_sport_center_desktop/widgets/facility_card.dart';
@@ -21,6 +23,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
   late FacilityProvider _facilityProvider;
   late SportProvider _sportProvider;
   late TurfTypeProvider _turfTypeProvider;
+  late AuthProvider _authProvider;
   static const int _pageSize = 8;
   List<Facility> _facilities = [];
   List<Sport> _sports = [];
@@ -42,6 +45,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
     _facilityProvider = context.read<FacilityProvider>();
     _sportProvider = context.read<SportProvider>();
     _turfTypeProvider = context.read<TurfTypeProvider>();
+    _authProvider = context.read<AuthProvider>();
     if (!_initialized) {
       _initialized = true;
       _loadSports();
@@ -76,6 +80,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
     setState(() => _isLoading = true);
     try {
       final int targetPage = page ?? _currentPage;
+      final int? currentUserId = _authProvider.isLoggedIn ? await _authProvider.getCurrentUserId() : null;
       final filter = <String, dynamic>{
         if (_searchController.text.trim().isNotEmpty)
           'name': _searchController.text.trim(),
@@ -84,7 +89,9 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
         if (_selectedIsIndoor != null) 'isIndoor': _selectedIsIndoor,
         'page': targetPage,
         'pageSize': _pageSize,
+        'sportCenterId': currentUserId,
       };
+
 
       final result = await _facilityProvider.get(filter: filter);
       totalItems = result.totalCount ?? 0;
@@ -128,7 +135,13 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
         children: [
           ElevatedButton(
             onPressed: () async {
-              _loadFacilities(page: _currentPage);
+              final created = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(builder: (_) => const FacilityInsertScreen()),
+              );
+
+              if (created == true) {
+                _loadFacilities(page: 1);
+              }
             },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(100, 46), // width, height

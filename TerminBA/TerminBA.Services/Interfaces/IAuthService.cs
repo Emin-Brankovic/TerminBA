@@ -12,5 +12,6 @@ namespace TerminBA.Services.Interfaces
     public interface IAuthService <TEntity> where TEntity : AccountBase
     {
         public Task<AuthResponse?> Login(BaseLoginRequest request);
+        public string GetUserId();
     }
 }

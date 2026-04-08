@@ -241,7 +241,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: FacilityCard(
+                  child: SportCenterCard(
                     sportCenter: _sportCenters[index],
                     onDelete: _onDelete,
                     onRefresh: () => _loadSportCenters(page: _currentPage),
