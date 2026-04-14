@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/facilities_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/reservations_overview_screen.dart';
 
 class MasterScreen extends StatefulWidget {
   const MasterScreen({super.key, required this.title, required this.child});
@@ -162,14 +163,14 @@ class _MasterScreenState extends State<MasterScreen> {
                 );
               }
               break;
-            case "Sport Centers":
+            case "Reservations":
               {
-                // Navigator.pushReplacement(
-                //   context,
-                //   MaterialPageRoute(
-                //     // builder: (context) => const SportCenterScreen(),
-                //   ),
-                // );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ReservationsOverviewScreen(),
+                  ),
+                );
               }
               break;
             case "Reference Data":

@@ -25,6 +25,9 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
         {
+            if (search.SportCenterId.HasValue)
+                query = query.Where(r => r.Facility.SportCenterId == search.SportCenterId);
+
             if (search.UserId.HasValue)
                 query = query.Where(r => r.UserId == search.UserId.Value);
 
@@ -89,6 +92,15 @@ namespace TerminBA.Services.Service
                     //implement stripe invoice logic
                 }
             }
+        }
+
+        public override IQueryable<Reservation> ApplyIncludes(IQueryable<Reservation> query)
+        {
+            query = query
+                .Include(r => r.Facility)
+                .Include(r => r.User);
+
+            return query;
         }
 
         private bool isPriceChanged(Reservation entity, ReservationUpdateRequest request,Facility facility)
