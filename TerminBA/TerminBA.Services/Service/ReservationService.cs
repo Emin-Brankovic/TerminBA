@@ -1,26 +1,63 @@
-using EasyNetQ;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using TerminBA.Models.Execptions;
-using TerminBA.Models.Messages;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
-using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
     public class ReservationService : BaseCRUDService<ReservationResponse, Reservation, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>, IReservationService
     {
-        protected readonly EmailService _emailService;
-        private readonly IBus _bus;
+        protected readonly BaseReservationState _baseReservationState;
 
-        public ReservationService(TerminBaContext context, IMapper mapper,EmailService emailService, IBus bus) : base(context, mapper)
+        public ReservationService(TerminBaContext context, IMapper mapper, BaseReservationState baseReservationState) : base(context, mapper)
         {
-            this._emailService = emailService;
-            this._bus = bus;
+            _baseReservationState = baseReservationState;
+        }
+
+        public override async Task<ReservationResponse> CreateAsync(ReservationInsertRequest request)
+        {
+            var baseState = _baseReservationState.GetReservationState(nameof(ActiveReservationState));
+
+            return await baseState.CreateAsync(request);
+        }
+
+        public override async Task<ReservationResponse?> UpdateAsync(int id, ReservationUpdateRequest request)
+        {
+            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                return null;
+
+            var baseState = _baseReservationState.GetReservationState(entity.Status);
+
+            return await baseState.UpdateAsync(id, request);
+        }
+
+        public override async Task<bool> DeleteAsync(int id)
+        {
+            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                return false;
+
+            var baseState = _baseReservationState.GetReservationState(entity.Status);
+
+            return await baseState.DeleteAsync(id);
+        }
+
+        public async Task<ReservationResponse> CancelAsync(int id)
+        {
+            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id)
+                ?? throw new UserException("Reservation was not found");
+
+            var baseState = _baseReservationState.GetReservationState(entity.Status);
+
+            return await baseState.CancelAsync(id);
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -35,7 +72,7 @@ namespace TerminBA.Services.Service
                 query = query.Where(r => r.FacilityId == search.FacilityId.Value);
 
             if (!string.IsNullOrEmpty(search.Status))
-                query = query.Where(r => r.Status!.ToLower().Contains(search.Status.ToLower()));
+                query = query.Where(r => r.Status!.ToLower() == search.Status.ToLower());
 
             if (search.ChosenSportId.HasValue)
                 query = query.Where(r => r.ChosenSportId == search.ChosenSportId.Value);
@@ -43,120 +80,28 @@ namespace TerminBA.Services.Service
             if (search.ReservationDate.HasValue)
                 query = query.Where(r => r.ReservationDate == search.ReservationDate.Value);
 
-            return query;
-        }
-
-        protected override async Task BeforeInsert(Reservation entity, ReservationInsertRequest request)
-        {
-            var timeSlots=await TimeSlotHelper.GenerateTimeSlots(request.FacilityId ,request.ReservationDate,_context);
-
-            var exists=timeSlots.Any(t=>t.Start==request.StartTime.ToTimeSpan() && t.End==request.EndTime.ToTimeSpan());
-
-            if(!exists)
-                throw new UserException("Can't pick a non existing time slot");
-
-           await SendEmailAsync(request);
-        }
-
-        protected async override Task BeforeUpdate(Reservation entity, ReservationUpdateRequest request)
-        {
-            var allSlots = await TimeSlotHelper.GenerateTimeSlots(entity.FacilityId, request.ReservationDate, _context);
-
-            var bookedSlots = await _context.Reservations
-                .Where(r => r.FacilityId == entity.FacilityId
-                            && r.ReservationDate == request.ReservationDate
-                            && r.Id != entity.Id) // ignore this reservation
-                .Select(r => r.StartTime)
-                .ToListAsync();
-
-            var occupiedStarts = new HashSet<TimeSpan>(bookedSlots.Select(ts => ts.ToTimeSpan()));
-
-            var slot = allSlots.FirstOrDefault(t =>
-                t.Start == request.StartTime.ToTimeSpan() &&
-                t.End == request.EndTime.ToTimeSpan());
-
-            if (slot == default)
-                throw new UserException("Can't pick a non existing time slot.");
-
-            if (occupiedStarts.Contains(slot.Start))
-                throw new UserException("Can't pick a booked time slot.");
-
-            var facility = await _context.Facilities
-                .Include(f=>f.DynamicPrices)
-                .FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
-
-            if (facility!.IsDynamicPricing)
+            if (search.SortByChosenTimeSlot)
             {
-                if (isPriceChanged(entity,request,facility))
-                {
-                    //implement stripe invoice logic
-                }
+                var desc = string.Equals(search.TimeSlotSortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+                query = desc
+                    ? query.OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.StartTime)
+                    : query.OrderBy(r => r.ReservationDate).ThenBy(r => r.StartTime);
             }
+
+            return query;
         }
 
         public override IQueryable<Reservation> ApplyIncludes(IQueryable<Reservation> query)
         {
             query = query
                 .Include(r => r.Facility)
-                .Include(r => r.User);
+                .Include(r => r.User)
+                .Include(r => r.ChosenSport);
 
             return query;
         }
 
-        private bool isPriceChanged(Reservation entity, ReservationUpdateRequest request,Facility facility)
-        {
-            var price = facility.DynamicPrices.Where(dp =>
-                             TimeSlotHelper.IsInDayRange(request.ReservationDate.DayOfWeek, dp.StartDay, dp.EndDay)
-                             && TimeSlotHelper.IsWithinValidityPeriod(request.ReservationDate, dp.ValidFrom, dp.ValidTo)
-                             && dp.StartTime <= request.StartTime
-                             && dp.EndTime >= request.EndTime).FirstOrDefault()
-                             ?? throw new UserException("No price is found for selected time and date");
-
-            bool priceChanged = false;
-
-            if (price.PricePerHour != entity.Price)
-            {
-                priceChanged = true;
-                request.Price = price.PricePerHour;
-            }
-
-            return priceChanged;
-        }
-
-
-        private async Task SendEmailAsync(ReservationInsertRequest reservation)
-        {
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == reservation.UserId);
-
-            if(user == null) 
-            {
-                throw new UserException("User not found");
-            }
-
-            var message = "Your reservation has been successfully created. Thank you";
-            var recepient = user.Email ?? "";
-
-            //// Build RabbitMQ connection string from environment variables
-            //var rabbitmqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
-            //var rabbitmqPort = Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672";
-            //var rabbitmqUser = Environment.GetEnvironmentVariable("RABBITMQ_USER") ?? "guest";
-            //var rabbitmqPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
-
-            //var connectionString = $"host={rabbitmqHost};port={rabbitmqPort};username={rabbitmqUser};password={rabbitmqPassword}";
-
-            //var bus = RabbitHutch.CreateBus(connectionString);
-
-            var emailMessage = new EmailMessage
-            {
-                RecipientEmail = recepient,
-                MessageBody = message
-            };
-
-            await _bus.PubSub.PublishAsync(emailMessage);
-
-           //await _emailService.SendEmailAsync(recepient, message);
-        }
     }
 }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
 
@@ -29,6 +30,9 @@ namespace TerminBA.Services.Helpers
             IsInDayRange(reservationDayOfWeek, rv.StartDay, rv.EndDay)
             && rv.ValidFrom <= pickedDate
             && (rv.ValidTo == null || rv.ValidTo >= pickedDate));
+
+            if (currentWorkingHours == null)
+                throw new UserException("No working hours for selected date");
 
             TimeSpan opening = currentWorkingHours.OpeningHours.ToTimeSpan();
             TimeSpan closing = currentWorkingHours.CloseingHours.ToTimeSpan();

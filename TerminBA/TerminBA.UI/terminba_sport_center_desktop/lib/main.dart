@@ -12,6 +12,7 @@ import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart'
 import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/login_screen.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -54,10 +55,20 @@ class MyApp extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
 
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      supportedLocales: [Locale('en', 'GB'), Locale('bs')],
+
+
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'TerminBA Sport Center Desktop',
       theme: AppTheme.lightTheme,
+      locale: Locale('en', 'GB'),
       home: authProvider.isLoggedIn ? const DashboardScreen() : const LoginPage(),
     );
   }

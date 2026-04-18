@@ -7,6 +7,7 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -134,7 +135,7 @@ namespace TerminBA.Services.Service
 
 
             var bookedReservations = await _context.Reservations
-                .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate)
+                .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate && r.Status==nameof(ActiveReservationState))
 
                 .Select(r => r.StartTime)
                 .ToListAsync();

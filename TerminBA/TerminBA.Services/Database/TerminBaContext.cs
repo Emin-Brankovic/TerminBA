@@ -68,14 +68,12 @@ namespace TerminBA.Services.Database
                       .HasForeignKey(r => r.ReviewedId)
                       .OnDelete(DeleteBehavior.ClientCascade);
 
-                entity.HasIndex(ur => new { ur.ReviewerId, ur.ReviewedId })
-                      .IsUnique();
+                entity.HasIndex(ur => new { ur.ReviewerId, ur.ReviewedId });
                        
             });
 
             modelBuilder.Entity<FacilityReview>()
-                        .HasIndex(fr => new { fr.UserId, fr.FacilityId })
-                        .IsUnique();
+                        .HasIndex(fr => new { fr.UserId, fr.FacilityId });
 
             modelBuilder.Entity<FacilityReview>()
                 .HasOne(fr => fr.User)
@@ -96,8 +94,7 @@ namespace TerminBA.Services.Database
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Reservation>()
-                .HasIndex(r => new { r.FacilityId, r.ReservationDate, r.StartTime })
-                .IsUnique();
+                .HasIndex(r => new { r.FacilityId, r.ReservationDate, r.StartTime });
 
 
             modelBuilder.Entity<Reservation>()
@@ -147,8 +144,7 @@ namespace TerminBA.Services.Database
                 .HasIndex(pr => pr.PostId);
 
             modelBuilder.Entity<PlayRequest>()
-                .HasIndex(pr => new { pr.PostId, pr.RequesterId })
-                .IsUnique();
+                .HasIndex(pr => new { pr.PostId, pr.RequesterId });
 
             modelBuilder.Entity<FacilityDynamicPrice>()
                 .HasIndex(fdp => fdp.FacilityId);

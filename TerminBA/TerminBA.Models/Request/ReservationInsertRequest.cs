@@ -23,10 +23,6 @@ namespace TerminBA.Models.Request
         public TimeOnly EndTime { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string? Status { get; set; }
-
-        [Required]
         [Range(0, double.MaxValue, ErrorMessage = "Price must be a non-negative value.")]
         public decimal Price { get; set; }
 

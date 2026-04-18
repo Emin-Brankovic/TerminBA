@@ -2,12 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:terminba_sport_center_desktop/helpers/currency_helper.dart';
+import 'package:terminba_sport_center_desktop/helpers/date_helper.dart';
 import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/reservation_response.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
+import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
+import 'package:terminba_sport_center_desktop/widgets/universal_pagination.dart';
 
 class ReservationsOverviewScreen extends StatefulWidget {
   const ReservationsOverviewScreen({super.key});
@@ -25,10 +29,10 @@ class _ReservationsOverviewScreenState
   static const int _bookedByFlex = 2;
   static const int _bookedOnFlex = 2;
   static const int _chosenSportFlex = 2;
-  static const int _startTimeFlex = 2;
-  static const int _endTimeFlex = 2;
+  static const int _statusFlex = 2;
+  static const int _slotFlex = 2;
   static const int _priceFlex = 2;
-
+  static const int _pageSize = 10;
 
   bool _initialized = false;
   bool _isLoading = true;
@@ -40,6 +44,7 @@ class _ReservationsOverviewScreenState
   late AuthProvider _authProvider;
   int? _currentSportCenterId;
   String _reservationNoSearch = '';
+  int _currentPage = 1;
   final List<Facility> _facilities = [];
   List<ReservationResponse> _reservations = [];
 
@@ -88,8 +93,6 @@ class _ReservationsOverviewScreenState
       filter: {'sportCenterId': _currentSportCenterId, 'page': 1},
     );
 
-    print(result.items?.first.toJson());
-
     if (!mounted) return;
     final facilities = result.items ?? [];
     _facilities
@@ -112,6 +115,7 @@ class _ReservationsOverviewScreenState
       final filter = <String, dynamic>{
         'sportCenterId': _currentSportCenterId,
         'reservationDate': _toDateOnly(_selectedDate),
+        'sortByChosenTimeSlot': true,
         if (_selectedFacilityId != null) 'facilityId': _selectedFacilityId,
         'page': 1,
       };
@@ -121,6 +125,7 @@ class _ReservationsOverviewScreenState
       if (!mounted) return;
       setState(() {
         _reservations = result.items ?? [];
+        _currentPage = 1;
       });
     } catch (e) {
       // Errors are intentionally not surfaced in the UI on this screen.
@@ -130,7 +135,41 @@ class _ReservationsOverviewScreenState
     }
   }
 
-  List<_ReservationRowData> get _rows {
+  Future<void> _cancelReservation(int reservationId) async {
+    final shouldCancel = await ConfirmationDialog.show(
+      context,
+      title: 'Cancel reservation',
+      message: 'Are you sure you want to cancel this reservation?',
+      cancelText: 'No',
+      confirmText: 'Yes, cancel',
+      confirmButtonColor: const Color(0xFFFF4405),
+    );
+
+    if (!shouldCancel) {
+      return;
+    }
+
+    try {
+      setState(() => _isLoading = true);
+      await _reservationProvider.cancelReservation(reservationId);
+      await _loadReservations();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Reservation cancelled successfully.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  List<_ReservationRowData> get _filteredRows {
     final mapped = _reservations.map(_toRowData).toList();
 
     if (_reservationNoSearch.trim().isEmpty) {
@@ -146,15 +185,43 @@ class _ReservationsOverviewScreenState
         .toList();
   }
 
+  int get _totalPages {
+    if (_filteredRows.isEmpty) {
+      return 1;
+    }
+
+    return (_filteredRows.length + _pageSize - 1) ~/ _pageSize;
+  }
+
+  int get _effectiveCurrentPage {
+    return _currentPage.clamp(1, _totalPages).toInt();
+  }
+
+  List<_ReservationRowData> get _pagedRows {
+    if (_filteredRows.isEmpty) {
+      return [];
+    }
+
+    final start = (_effectiveCurrentPage - 1) * _pageSize;
+    if (start >= _filteredRows.length) {
+      return [];
+    }
+
+    final end = math.min(start + _pageSize, _filteredRows.length);
+    return _filteredRows.sublist(start, end);
+  }
+
   _ReservationRowData _toRowData(ReservationResponse reservation) {
     return _ReservationRowData(
+      reservationId: reservation.id,
       reservationNo: reservation.id.toString(),
       courtPitch: reservation.facility?.name ?? 'N/A',
       bookedBy: reservation.user?.username ?? 'N/A',
-      bookedOn: _toDateOnly(reservation.reservationDate),
+      bookedOn: DateHelper.toLocalDateStatic(reservation.reservationDate),
       chosenSport: reservation.chosenSport?.name ?? 'N/A',
-      startTime: _toHourMinute(reservation.startTime),
-      endTime: _toHourMinute(reservation.endTime),
+      status: reservation.status?.split('Reservation')[0] ?? 'N/A',
+      slot:
+          '${_toHourMinute(reservation.startTime)} - ${_toHourMinute(reservation.endTime)}',
       price: reservation.price,
     );
   }
@@ -171,24 +238,6 @@ class _ReservationsOverviewScreenState
       return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
     }
     return value;
-  }
-
-  String _formatUser(Map<String, dynamic>? user) {
-    if (user == null) return 'N/A';
-
-    final firstName = user['firstName']?.toString().trim();
-    final lastName = user['lastName']?.toString().trim();
-    final username = user['username']?.toString().trim();
-
-    final fullName = [
-      firstName,
-      lastName,
-    ].where((name) => name != null && name.isNotEmpty).join(' ').trim();
-
-    if (fullName.isNotEmpty) return fullName;
-    if (username != null && username.isNotEmpty) return username;
-
-    return user['id']?.toString() ?? 'N/A';
   }
 
   @override
@@ -221,7 +270,12 @@ class _ReservationsOverviewScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
-            onChanged: (value) => setState(() => _reservationNoSearch = value),
+            onChanged: (value) {
+              setState(() {
+                _reservationNoSearch = value;
+                _currentPage = 1;
+              });
+            },
             decoration: InputDecoration(
               hintText: 'Reservation No.',
               hintStyle: const TextStyle(fontSize: 14),
@@ -246,6 +300,7 @@ class _ReservationsOverviewScreenState
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
+            height: 320,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -262,6 +317,7 @@ class _ReservationsOverviewScreenState
                 initialDate: _selectedDate,
                 firstDate: DateTime(2020),
                 lastDate: DateTime(DateTime.now().year + 1),
+                calendarDelegate: GregorianCalendarDelegate(),
                 onDateChanged: (value) {
                   setState(() => _selectedDate = value);
                   _loadReservations();
@@ -381,7 +437,7 @@ class _ReservationsOverviewScreenState
                       color: Color(0xFFF0F1F3),
                     ),
                     Expanded(
-                      child: _rows.isEmpty
+                      child: _filteredRows.isEmpty
                           ? const Center(
                               child: Text(
                                 'No reservations found.',
@@ -393,14 +449,14 @@ class _ReservationsOverviewScreenState
                               ),
                             )
                           : ListView.separated(
-                              itemCount: _rows.length,
+                              itemCount: _pagedRows.length,
                               separatorBuilder: (_, __) => const Divider(
                                 height: 1,
                                 thickness: 1,
                                 color: Color(0xFFF0F1F3),
                               ),
                               itemBuilder: (context, index) {
-                                final row = _rows[index];
+                                final row = _pagedRows[index];
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -411,6 +467,29 @@ class _ReservationsOverviewScreenState
                               },
                             ),
                     ),
+                    if (_filteredRows.isNotEmpty) ...[
+                      const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Color(0xFFF0F1F3),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: UniversalPagination(
+                            currentPage: _effectiveCurrentPage,
+                            totalPages: _totalPages,
+                            onPageChanged: (page) {
+                              setState(() => _currentPage = page);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -434,10 +513,10 @@ class _ReservationsOverviewScreenState
         _buildHeaderCell('Facility', _courtPitchFlex, headerStyle),
         _buildHeaderCell('Booked by', _bookedByFlex, headerStyle),
         _buildHeaderCell('Sport', _chosenSportFlex, headerStyle),
-        _buildHeaderCell('Start Time', _startTimeFlex, headerStyle),
-        _buildHeaderCell('End Time', _endTimeFlex, headerStyle),
+        _buildHeaderCell('Slot', _slotFlex, headerStyle),
         _buildHeaderCell('Price', _priceFlex, headerStyle),
         _buildHeaderCell('Booked on', _bookedOnFlex, headerStyle),
+        _buildHeaderCell('Status', _statusFlex, headerStyle),
         const SizedBox(width: 64),
       ],
     );
@@ -449,43 +528,89 @@ class _ReservationsOverviewScreenState
       color: Color(0xFF111827),
       fontWeight: FontWeight.w600,
     );
+    final normalizedStatus = row.status.toLowerCase();
+    final isCanceled = normalizedStatus.contains('canceled');
+    final isCompleted = normalizedStatus.contains('completed');
 
-    return Row(
-      children: [
-        _buildDataCell(row.reservationNo, _reservationNoFlex, cellStyle),
-        _buildDataCell(row.courtPitch, _courtPitchFlex, cellStyle),
-        _buildDataCell(row.bookedBy, _bookedByFlex, cellStyle),
-        _buildDataCell(row.chosenSport, _chosenSportFlex, cellStyle),
-        _buildDataCell(row.startTime, _startTimeFlex, cellStyle),
-        _buildDataCell(row.endTime, _endTimeFlex, cellStyle),
-        _buildDataCell('\$${row.price.toStringAsFixed(2)}', _priceFlex, cellStyle),
-        _buildDataCell(row.bookedOn, _bookedOnFlex, cellStyle),
-        SizedBox(
-          width: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              InkWell(
-                onTap: () {},
-                child: const Icon(
-                  Icons.edit,
-                  size: 22,
-                  color: Color(0xFF1570EF),
-                ),
-              ),
-              const SizedBox(width: 10),
-              InkWell(
-                onTap: () {},
-                child: const Icon(
-                  Icons.cancel,
-                  size: 22,
-                  color: Color(0xFFFF4405),
-                ),
-              ),
-            ],
+    final rowTextStyle = isCanceled
+        ? cellStyle.copyWith(
+            color: const Color(0xFF9CA3AF),
+            decoration: TextDecoration.lineThrough,
+            decorationColor: const Color(0xFF9CA3AF),
+          )
+        : isCompleted
+        ? cellStyle.copyWith(color: const Color(0xFF065F46))
+        : cellStyle;
+
+    final rowBackgroundColor = isCanceled
+        ? const Color(0xFFF3F4F6)
+        : isCompleted
+        ? const Color(0xFFECFDF3)
+        : Colors.transparent;
+
+    return Container(
+      color: rowBackgroundColor,
+      child: Row(
+        children: [
+          _buildDataCell(row.reservationNo, _reservationNoFlex, rowTextStyle),
+          _buildDataCell(row.courtPitch, _courtPitchFlex, rowTextStyle),
+          _buildDataCell(row.bookedBy, _bookedByFlex, rowTextStyle),
+          _buildDataCell(row.chosenSport, _chosenSportFlex, rowTextStyle),
+          _buildDataCell(row.slot, _slotFlex, rowTextStyle),
+          _buildDataCell(
+            CurrencyHelper.format(row.price),
+            _priceFlex,
+            rowTextStyle,
           ),
-        ),
-      ],
+          _buildDataCell(row.bookedOn, _bookedOnFlex, rowTextStyle),
+          _buildDataCell(row.status, _statusFlex, rowTextStyle),
+          SizedBox(
+            width: 64,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  onPressed: isCanceled || isCompleted ? null : () {},
+                  tooltip: 'Edit reservation',
+                  iconSize: 22,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 24,
+                    height: 24,
+                  ),
+                  splashRadius: 18,
+                  icon: Icon(
+                    Icons.edit,
+                    color: isCanceled || isCompleted
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFF1570EF),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  onPressed: isCanceled || isCompleted
+                      ? null
+                      : () => _cancelReservation(row.reservationId),
+                  tooltip: 'Cancel reservation',
+                  iconSize: 22,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 24,
+                    height: 24,
+                  ),
+                  splashRadius: 18,
+                  icon: Icon(
+                    Icons.cancel,
+                    color: isCanceled || isCompleted
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFFFF4405),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -515,23 +640,25 @@ class _ReservationsOverviewScreenState
 }
 
 class _ReservationRowData {
+  final int reservationId;
   final String reservationNo;
   final String courtPitch;
   final String bookedBy;
   final String bookedOn;
   final String chosenSport;
-  final String startTime;
-  final String endTime;
+  final String status;
+  final String slot;
   final double price;
 
   const _ReservationRowData({
+    required this.reservationId,
     required this.reservationNo,
     required this.courtPitch,
     required this.bookedBy,
     required this.bookedOn,
     required this.chosenSport,
-    required this.startTime,
-    required this.endTime,
+    required this.status,
+    required this.slot,
     required this.price,
   });
 }
