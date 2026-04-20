@@ -135,7 +135,8 @@ namespace TerminBA.Services.Service
 
 
             var bookedReservations = await _context.Reservations
-                .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate && r.Status==nameof(ActiveReservationState))
+                .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate && (r.Status == nameof(ActiveReservationState)
+                || r.Status == nameof(CompletedReservationState)))
 
                 .Select(r => r.StartTime)
                 .ToListAsync();

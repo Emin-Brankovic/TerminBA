@@ -10,6 +10,7 @@ import 'package:terminba_sport_center_desktop/model/reservation_response.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
+import 'package:terminba_sport_center_desktop/screens/reservation_edit_screen.dart';
 import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
 import 'package:terminba_sport_center_desktop/widgets/universal_pagination.dart';
 
@@ -570,7 +571,23 @@ class _ReservationsOverviewScreenState
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  onPressed: isCanceled || isCompleted ? null : () {},
+                  onPressed: isCanceled || isCompleted
+                      ? null
+                      : () async {
+                          final updated = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (_) => ReservationEditScreen(
+                                reservation: _reservations.firstWhere(
+                                  (r) => r.id == row.reservationId,
+                                ),
+                              ),
+                            ),
+                          );
+
+                          if (updated == true) {
+                            _loadReservations();
+                          }
+                        },
                   tooltip: 'Edit reservation',
                   iconSize: 22,
                   padding: EdgeInsets.zero,

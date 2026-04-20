@@ -94,7 +94,11 @@ namespace TerminBA.Services.ReservationStateMachine
             if (facility == null)
                 throw new UserException("Facility not found.");
 
-            var expectedPrice = GetExpectedPriceForInsert(request, facility);
+            var expectedPrice = DynamicPriceHelper.GetExpectedPrice(
+                facility,
+                request.ReservationDate,
+                request.StartTime,
+                request.EndTime);
 
             if (request.Price != expectedPrice)
                 throw new UserException($"Invalid price for selected time slot and reservation date.");
@@ -103,7 +107,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationUpdateAsync(Reservation entity, ReservationUpdateRequest request)
         {
-            var allSlots = await TimeSlotHelper.GenerateTimeSlots(entity.FacilityId, request.ReservationDate, _context);
+            var allSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
 
             var slot = allSlots.FirstOrDefault(t =>
                 t.Start == request.StartTime.ToTimeSpan() &&
@@ -113,7 +117,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 throw new UserException("Can't pick a non existing time slot.");
 
             var hasConflict = await _context.Reservations
-                .AnyAsync(r => r.FacilityId == entity.FacilityId
+                .AnyAsync(r => r.FacilityId == request.FacilityId
                                && r.ReservationDate == request.ReservationDate
                                && r.Id != entity.Id
                                && request.StartTime < r.EndTime
@@ -125,40 +129,20 @@ namespace TerminBA.Services.ReservationStateMachine
 
             var facility = await _context.Facilities
                 .Include(f => f.DynamicPrices)
-                .FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+                .FirstOrDefaultAsync(f => f.Id == request.FacilityId);
 
             if (facility == null)
                 throw new UserException("Facility not found.");
 
-            var expectedPrice = GetExpectedPriceForInsert(request, facility);
+            var expectedPrice = DynamicPriceHelper.GetExpectedPrice(
+                facility,
+                request.ReservationDate,
+                request.StartTime,
+                request.EndTime);
 
             if (request.Price != expectedPrice)
                 throw new UserException($"Invalid price for selected time slot and reservation date.");
         }
-
-        private decimal GetExpectedPriceForInsert(dynamic request, Facility facility)
-        {
-            var durationHours = (decimal)facility.Duration.TotalHours;
-
-            if (!facility.IsDynamicPricing)
-            {
-                if (!facility.StaticPrice.HasValue)
-                    throw new UserException("Static price is not configured for this facility.");
-
-                return decimal.Round(facility.StaticPrice.Value * durationHours, 2, MidpointRounding.AwayFromZero);
-            }
-
-            var dynamicPrice = facility.DynamicPrices
-                .FirstOrDefault(dp =>
-                    TimeSlotHelper.IsInDayRange(request.ReservationDate.DayOfWeek, dp.StartDay, dp.EndDay)
-                    && TimeSlotHelper.IsWithinValidityPeriod(request.ReservationDate, dp.ValidFrom, dp.ValidTo)
-                    && dp.StartTime <= request.StartTime
-                    && dp.EndTime >= request.EndTime)
-                ?? throw new UserException("No price is found for selected time and date");
-
-            return decimal.Round(dynamicPrice.PricePerHour * durationHours, 2, MidpointRounding.AwayFromZero);
-        }
-
 
         private async Task SendEmailAsync(ReservationInsertRequest reservation)
         {

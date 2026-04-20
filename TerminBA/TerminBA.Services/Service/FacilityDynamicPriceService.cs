@@ -21,6 +21,24 @@ namespace TerminBA.Services.Service
         {
         }
 
+        public async Task<decimal> DynamicPriceForDateAsync(DynamicPriceForDateRequest request)
+        {
+            var facility = await _context.Facilities
+                    .Include(f => f.DynamicPrices)
+                    .FirstOrDefaultAsync(f => f.Id == request.FacilityId);
+
+            if (facility == null)
+                throw new UserException("Facility not found.");
+
+            var price = DynamicPriceHelper.GetExpectedPrice(
+                facility,
+                request.ReservationDate,
+                request.StartTime,
+                request.EndTime);
+
+            return price;
+        }
+
         public override IQueryable<FacilityDynamicPrice> ApplyFilter(IQueryable<FacilityDynamicPrice> query, FacilityDynamicPriceSearchObject search)
         {
 
