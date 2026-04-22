@@ -13,16 +13,21 @@ using TerminBA.Services.Interfaces;
 using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
 using QuestPDF.Companion;
+using Microsoft.AspNetCore.Http;
+using EasyNetQ.Events;
+using TerminBA.Models.Request;
 
 namespace TerminBA.Services.Service
 {
     public class ReportService : IReportService
     {
         private readonly TerminBaContext _context;
+        private readonly IAuthService<AccountBase> _authService;
 
-        public ReportService(TerminBaContext context)
+        public ReportService(TerminBaContext context, IAuthService<AccountBase> _authService)
         {
             this._context = context;
+            this._authService = _authService;
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
         }
 
@@ -243,6 +248,216 @@ namespace TerminBA.Services.Service
             });
 
             return document.GeneratePdf();
+        }
+
+        public async Task<SportCenterReservationStatsResponse> SportCenterReservationStats(DateOnly? fromDate = null, DateOnly? toDate = null)
+        {
+            var currentSportCenterId = int.Parse(_authService.GetUserId());
+
+            var effectiveFromDate = fromDate;
+            var effectiveToDate = toDate;
+            if (effectiveFromDate.HasValue && effectiveToDate.HasValue && effectiveFromDate.Value > effectiveToDate.Value)
+            {
+                (effectiveFromDate, effectiveToDate) = (effectiveToDate, effectiveFromDate);
+            }
+
+            var reservationsQuery = _context.Reservations
+                .Where(r => r.Facility!.SportCenterId == currentSportCenterId);
+
+            if (effectiveFromDate.HasValue)
+            {
+                reservationsQuery = reservationsQuery.Where(r => r.ReservationDate >= effectiveFromDate.Value);
+            }
+
+            if (effectiveToDate.HasValue)
+            {
+                reservationsQuery = reservationsQuery.Where(r => r.ReservationDate <= effectiveToDate.Value);
+            }
+
+
+            var countBySport = await reservationsQuery
+                .GroupBy(r => r.ChosenSport!.Name)
+                .Select(g => new
+                {
+                    Sport = g.Key!,
+                    ReservationCount = g.Count()
+                }).ToDictionaryAsync(x => x.Sport, x => x.ReservationCount);
+
+            var countByFacility = await reservationsQuery
+                .GroupBy(r => r.Facility!.Name)
+                .Select(g => new
+                {
+                    Facility = g.Key!,
+                    ReservationCount = g.Count()
+                }).ToDictionaryAsync(x => x.Facility, x => x.ReservationCount);
+
+
+            var countByDay = (await reservationsQuery
+                .Select(r => r.ReservationDate)   
+                .ToListAsync())                   
+                .GroupBy(d => d.DayOfWeek)        
+                .ToDictionary(g => g.Key.ToString(), g => g.Count());
+
+
+
+            return new SportCenterReservationStatsResponse
+            {
+                ReservationCountByFacility = countByFacility,
+                ReservationCountBySport = countBySport,
+                ReservationCountByWeekDay = countByDay
+            };
+
+        }
+
+
+
+        public byte[] SportCenterReservationStatsReport(SportCenterReservationStatsReportRequest request)
+        {
+            var generatedAt = DateTime.Now;
+            var imageBytes = request.ChartImage ?? Array.Empty<byte>();
+
+            var effectiveFromDate = request.FromDate;
+            var effectiveToDate = request.ToDate;
+            if (effectiveFromDate.HasValue && effectiveToDate.HasValue && effectiveFromDate.Value > effectiveToDate.Value)
+            {
+                (effectiveFromDate, effectiveToDate) = (effectiveToDate, effectiveFromDate);
+            }
+            var totalReservations = request.TotalReservations;
+
+            var countBySport = (request.CountBySport ?? new Dictionary<string, int>())
+                .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Value >= 0)
+                .OrderByDescending(x => x.Value)
+                .ThenBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            var countByFacility = (request.CountByFacility ?? new Dictionary<string, int>())
+                .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Value >= 0)
+                .OrderByDescending(x => x.Value)
+                .ThenBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            var periodLabel = effectiveFromDate.HasValue && effectiveToDate.HasValue
+                ? $"{effectiveFromDate:yyyy-MM-dd} to {effectiveToDate:yyyy-MM-dd}"
+                : effectiveFromDate.HasValue
+                    ? $"From {effectiveFromDate:yyyy-MM-dd}"
+                    : effectiveToDate.HasValue
+                        ? $"Up to {effectiveToDate:yyyy-MM-dd}"
+                        : "All time";
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(1.2f, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(11));
+
+                    page.Header().Column(header =>
+                    {
+                        header.Item().Text("Sport Center Reservation Report").FontSize(24).Bold();
+                        header.Item().Text($"Period: {periodLabel}").FontColor(Colors.Grey.Darken1);
+                        header.Item().Text($"Generated: {generatedAt:yyyy-MM-dd HH:mm}").FontColor(Colors.Grey.Darken1);
+                        header.Item().PaddingTop(8).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                    });
+
+                    page.Content().PaddingVertical(12).Column(col =>
+                    {
+                        col.Spacing(14);
+
+                        col.Item().Text("Key Metrics").FontSize(16).SemiBold();
+                        col.Item().Row(row =>
+                        {
+                            row.Spacing(10);
+                            row.RelativeItem().Element(x => BuildMetricCard(x, "Total Reservations", totalReservations.ToString()));
+                            row.RelativeItem().Element(x => BuildMetricCard(x, "Sports With Reservations", countBySport.Count.ToString()));
+                            row.RelativeItem().Element(x => BuildMetricCard(x, "Facilities With Reservations", countByFacility.Count.ToString()));
+                        });
+
+                        col.Item().Text("Reservation Charts").FontSize(16).SemiBold();
+                        col.Item().Border(1).BorderColor(Colors.Grey.Lighten2).Padding(4).Column(chart =>
+                        {
+                            if (imageBytes != null && imageBytes.Length > 0)
+                            {
+                                chart.Item().Image(imageBytes).FitWidth();
+                            }
+                            else
+                            {
+                                chart.Item().Text("No chart image available for this report period.")
+                                    .FontColor(Colors.Grey.Darken1)
+                                    .Italic();
+                            }
+                        });
+
+                        col.Item().Text("Reservations By Sport").FontSize(16).SemiBold();
+                        col.Item().Element(x => BuildCountTable(x, "Sport", countBySport));
+
+                        col.Item().Text("Reservations By Facility").FontSize(16).SemiBold();
+                        col.Item().Element(x => BuildCountTable(x, "Facility", countByFacility));
+                    });
+
+                    page.Footer()
+                        .AlignRight()
+                        .Text($"TerminBA Report | {generatedAt:yyyy-MM-dd}")
+                        .FontSize(9)
+                        .FontColor(Colors.Grey.Darken1);
+                });
+            });
+
+            return document.GeneratePdf();
+
+            static IContainer BuildMetricCard(IContainer container, string title, string value)
+            {
+                var card = container
+                    .Border(1)
+                    .BorderColor(Colors.Grey.Lighten2)
+                    .Background(Colors.Grey.Lighten5)
+                    .Padding(10);
+
+                card.Column(column =>
+                {
+                    column.Spacing(4);
+                    column.Item().Text(title).FontColor(Colors.Grey.Darken1).SemiBold();
+                    column.Item().Text(value).FontSize(20).Bold();
+                });
+
+                return card;
+            }
+
+            static void BuildCountTable(IContainer container, string itemLabel, Dictionary<string, int> data)
+            {
+                container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(6).Column(column =>
+                {
+                    if (data.Count == 0)
+                    {
+                        column.Item().Text("No data available for this period.")
+                            .FontColor(Colors.Grey.Darken1)
+                            .Italic();
+                        return;
+                    }
+
+                    column.Item().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(3);
+                            columns.RelativeColumn(1);
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(6).Text(itemLabel).SemiBold();
+                            header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Grey.Lighten2).Padding(6).AlignRight().Text("Reservations").SemiBold();
+                        });
+
+                        foreach (var item in data)
+                        {
+                            table.Cell().Border(1).BorderColor(Colors.Grey.Lighten3).Padding(6).Text(item.Key);
+                            table.Cell().Border(1).BorderColor(Colors.Grey.Lighten3).Padding(6).AlignRight().Text(item.Value.ToString());
+                        }
+                    });
+                });
+            }
+
         }
     }
 }

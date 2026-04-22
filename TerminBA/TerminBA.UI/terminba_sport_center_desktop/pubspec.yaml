@@ -44,6 +44,10 @@ dependencies:
   intl: ^0.20.2
   window_manager: ^0.5.1
   flutter_localization: ^0.4.0
+  fl_chart: ^1.1.1
+  screenshot: ^3.0.0
+  path_provider: ^2.1.5
+  open_filex: ^4.5.0
 
 dev_dependencies:
   flutter_test:

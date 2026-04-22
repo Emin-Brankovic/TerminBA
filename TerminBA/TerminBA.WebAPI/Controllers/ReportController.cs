@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection.Metadata.Ecma335;
 using TerminBA.Models.Model;
+using TerminBA.Models.Request;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.WebAPI.Controllers
@@ -49,6 +50,20 @@ namespace TerminBA.WebAPI.Controllers
             byte[] pdfBytes = _reportService.GetAdminReport(totalUsers,totalSportCenters,totalReservations,selectedYear,imageBytes);
 
             return File(pdfBytes, "application/pdf", $"{DateTime.Now.ToString("dd.MM.yyyy")}-report.pdf");
+        }
+
+        [HttpGet("sportCenterReservationStats")]
+        public async Task<SportCenterReservationStatsResponse> SportCenterReservationData([FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate)
+        {
+            return await _reportService.SportCenterReservationStats(fromDate, toDate);
+        }
+
+        [HttpPost("generateSportCenterReservationStats")]
+        public IActionResult GenerateSportCenterReservationStatsReport([FromBody] SportCenterReservationStatsReportRequest request)
+        {
+            byte[] pdfBytes = _reportService.SportCenterReservationStatsReport(request);
+
+            return File(pdfBytes, "application/pdf", $"{DateTime.Now:dd.MM.yyyy}-sport-center-reservation-report.pdf");
         }
     }
 }

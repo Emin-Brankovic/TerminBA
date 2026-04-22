@@ -11,6 +11,7 @@ import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/reservation_edit_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/reservation_stats_screen.dart';
 import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
 import 'package:terminba_sport_center_desktop/widgets/universal_pagination.dart';
 
@@ -381,7 +382,13 @@ class _ReservationsOverviewScreenState
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ReservationStatsScreen(),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: const Color(0xFF12B76A),

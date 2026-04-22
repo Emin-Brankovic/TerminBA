@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TerminBA.Models.Model;
+using TerminBA.Models.Request;
 
 namespace TerminBA.Services.Interfaces
 {
@@ -12,6 +13,8 @@ namespace TerminBA.Services.Interfaces
         public Task<DashboardResponse> GetDashboard(int year);
         public byte[] GetAdminReport(int totalUsers,int totalSportCenters, int totalReservations, int selectedYear, byte[] imageBytes);
         public byte[] SportCenterCredentialsReport(string username, string password);
+        public Task<SportCenterReservationStatsResponse> SportCenterReservationStats(DateOnly? fromDate = null, DateOnly? toDate = null);
+        public byte[] SportCenterReservationStatsReport(SportCenterReservationStatsReportRequest request);
 
     }
 }
