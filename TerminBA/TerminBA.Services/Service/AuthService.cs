@@ -68,9 +68,9 @@ namespace TerminBA.Services.Service
             {
                 Subject=new ClaimsIdentity(new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, account.Username),
+                    new Claim(ClaimTypes.Name, account.Username!),
                     new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
-                    new Claim(ClaimTypes.Role, account.Role.Name)
+                    new Claim(ClaimTypes.Role, account.Role!.Name!)
                 }),
 
                 Expires=tokenExperation,
@@ -94,6 +94,25 @@ namespace TerminBA.Services.Service
         {
             var user = _httpContextAccessor.HttpContext?.User;
             return user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        }
+
+        public Dictionary<string, string> GetCurrentUser()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var userId= user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRole= user?.FindFirst(ClaimTypes.Role)?.Value;
+            var username= user?.FindFirst(ClaimTypes.Name)?.Value;
+
+            Dictionary<string, string> currentUser = new Dictionary<string, string>
+            {
+                {nameof(userId), userId!},
+                {nameof(userRole), userRole!},
+                {nameof(username), username!}
+
+            };
+
+
+            return currentUser;
         }
     }
 }

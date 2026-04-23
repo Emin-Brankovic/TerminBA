@@ -13,5 +13,6 @@ namespace TerminBA.Services.Interfaces
     {
         public Task<AuthResponse?> Login(BaseLoginRequest request);
         public string GetUserId();
+        public Dictionary<string, string> GetCurrentUser();
     }
 }

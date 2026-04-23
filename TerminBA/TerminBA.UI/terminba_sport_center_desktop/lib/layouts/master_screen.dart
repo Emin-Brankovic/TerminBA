@@ -5,6 +5,7 @@ import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/facilities_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/reservations_overview_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/reviews_overview_screen.dart';
 
 class MasterScreen extends StatefulWidget {
   const MasterScreen({super.key, required this.title, required this.child});
@@ -51,10 +52,7 @@ class _MasterScreenState extends State<MasterScreen> {
                       isSelected: widget.title == "Dashboard",
                     ),
                     _navDivider(),
-                    _navItem(
-                      "Reviews",
-                      isSelected: widget.title == "Reviews",
-                    ),
+                    _navItem("Reviews", isSelected: widget.title == "Reviews"),
                     _navDivider(),
                     _navItem(
                       "Reservations",
@@ -64,7 +62,6 @@ class _MasterScreenState extends State<MasterScreen> {
                     _navItem(
                       "Facilities",
                       isSelected: widget.title == "Facilities",
-
                     ),
                   ],
                 ),
@@ -169,6 +166,16 @@ class _MasterScreenState extends State<MasterScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ReservationsOverviewScreen(),
+                  ),
+                );
+              }
+              break;
+            case "Reviews":
+              {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ReviewsOverviewScreen(),
                   ),
                 );
               }
