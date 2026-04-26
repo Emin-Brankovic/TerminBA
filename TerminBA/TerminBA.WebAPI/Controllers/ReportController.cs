@@ -65,5 +65,12 @@ namespace TerminBA.WebAPI.Controllers
 
             return File(pdfBytes, "application/pdf", $"{DateTime.Now:dd.MM.yyyy}-sport-center-reservation-report.pdf");
         }
+
+
+        [HttpGet("sportCenterFinanceSummary")]
+        public async Task<FinanceSummaryResponse> SportCenterFinanceSummary([FromQuery] int year, [FromQuery] int month)
+        {
+            return await _reportService.SportCenterFinanceSummary(year, month);
+        }
     }
 }

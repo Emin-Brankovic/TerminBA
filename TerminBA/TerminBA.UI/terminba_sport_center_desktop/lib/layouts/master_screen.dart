@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/dashboard_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/facilities_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/finances_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/reservations_overview_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/reviews_overview_screen.dart';
 
@@ -62,6 +63,11 @@ class _MasterScreenState extends State<MasterScreen> {
                     _navItem(
                       "Facilities",
                       isSelected: widget.title == "Facilities",
+                    ),
+                     _navDivider(),
+                    _navItem(
+                      "Finances",
+                      isSelected: widget.title == "Finances",
                     ),
                   ],
                 ),
@@ -180,14 +186,14 @@ class _MasterScreenState extends State<MasterScreen> {
                 );
               }
               break;
-            case "Reference Data":
+            case "Finances":
               {
-                // Navigator.pushReplacement(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => const ReferenceDataScreen(),
-                //   ),
-                // );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FinancesScreen(),
+                  ),
+                );
               }
               break;
             case "Dashboard":

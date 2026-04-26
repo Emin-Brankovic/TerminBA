@@ -16,6 +16,7 @@ using QuestPDF.Companion;
 using Microsoft.AspNetCore.Http;
 using EasyNetQ.Events;
 using TerminBA.Models.Request;
+using System.Globalization;
 
 namespace TerminBA.Services.Service
 {
@@ -458,6 +459,59 @@ namespace TerminBA.Services.Service
                 });
             }
 
+        }
+
+        public async Task<FinanceSummaryResponse> SportCenterFinanceSummary(int year, int month)
+        {
+            if (month < 1 || month > 12)
+                throw new ArgumentOutOfRangeException(nameof(month), "Month must be between 1 and 12.");
+
+            var currentSportCenterId = int.Parse(_authService.GetUserId());
+            var monthStart = new DateOnly(year, month, 1);
+            var monthEnd = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var revenueQuery = _context.Reservations
+                .AsNoTracking()
+                .Where(r =>
+                    r.Facility!.SportCenterId == currentSportCenterId &&
+                    r.Status == "CompletedReservationState");
+
+            var todayRevenue = await revenueQuery
+                .Where(r => r.ReservationDate == today)
+                .SumAsync(r => (decimal?)r.Price) ?? 0m;
+
+            var monthReservations = revenueQuery
+                .Where(r => r.ReservationDate >= monthStart && r.ReservationDate <= monthEnd);
+
+            var monthRevenue = await monthReservations
+                .SumAsync(r => (decimal?)r.Price) ?? 0m;
+
+            var revenueByDay = await monthReservations
+                .GroupBy(r => r.ReservationDate.Day)
+                .Select(g => new
+                {
+                    Day = g.Key,
+                    Revenue = g.Sum(x => x.Price)
+                })
+                .ToDictionaryAsync(x => x.Day, x => x.Revenue);
+
+            var daysInMonth = DateTime.DaysInMonth(year, month);
+            var dailyPoints = Enumerable.Range(1, daysInMonth)
+                .Select(day => new FinanceDailyRevenuePointResponse
+                {
+                    Day = day,
+                    Revenue = revenueByDay.TryGetValue(day, out var revenue) ? revenue : 0m
+                })
+                .ToList();
+
+            return new FinanceSummaryResponse
+            {
+                TodayRevenue = todayRevenue,
+                MonthRevenue = monthRevenue,
+                MonthLabel = new DateTime(year, month, 1).ToString("MMMM yyyy", CultureInfo.InvariantCulture),
+                DailyRevenuePoints = dailyPoints
+            };
         }
     }
 }
