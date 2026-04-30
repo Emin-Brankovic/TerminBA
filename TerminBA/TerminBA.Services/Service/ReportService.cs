@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using EasyNetQ.Events;
 using TerminBA.Models.Request;
 using System.Globalization;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -32,7 +33,7 @@ namespace TerminBA.Services.Service
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
         }
 
-        public async Task<DashboardResponse> GetDashboard(int year)
+        public async Task<AdminDashboardResponse> GetDashboard(int year)
         {
             var userCount = await _context.Users.CountAsync();
             var sportCenterCount = await _context.SportCenters.CountAsync();
@@ -60,7 +61,7 @@ namespace TerminBA.Services.Service
                 .ToDictionaryAsync(x => x.Month, x => x.UserCount);
 
 
-            var response = new DashboardResponse
+            var response = new AdminDashboardResponse
             {
                 AppUserCount = userCount,
                 AppReservationCount = reservationCount,
@@ -511,6 +512,156 @@ namespace TerminBA.Services.Service
                 MonthRevenue = monthRevenue,
                 MonthLabel = new DateTime(year, month, 1).ToString("MMMM yyyy", CultureInfo.InvariantCulture),
                 DailyRevenuePoints = dailyPoints
+            };
+        }
+
+        public async Task<SportCenterDashboardResponse> SportCenterDashboard()
+        {
+            var currentSportCenterId = int.Parse(_authService.GetUserId());
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var nowTime = TimeOnly.FromDateTime(DateTime.Now);
+            var monthStart = new DateOnly(today.Year, today.Month, 1);
+            var monthEnd = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+            var todayDateTime = DateTime.Today;
+            var daysSinceMonday = (7 + (int)todayDateTime.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+            var weekStart = DateOnly.FromDateTime(todayDateTime.AddDays(-daysSinceMonday));
+            var weekEnd = weekStart.AddDays(6);
+
+            var reservationsQuery = _context.Reservations
+                .AsNoTracking()
+                .Where(r => r.Facility!.SportCenterId == currentSportCenterId);
+
+            var completedReservationsQuery = reservationsQuery
+                .Where(r => r.Status == nameof(CompletedReservationState));
+
+            var todayRevenue = await completedReservationsQuery
+                .Where(r => r.ReservationDate == today)
+                .SumAsync(r => (decimal?)r.Price) ?? 0m;
+
+            var weeklyRevenue = await completedReservationsQuery
+                .Where(r => r.ReservationDate >= weekStart && r.ReservationDate <= weekEnd)
+                .SumAsync(r => (decimal?)r.Price) ?? 0m;
+
+            var reservationsToday = await reservationsQuery
+                .Where(r => r.ReservationDate == today)
+                .CountAsync();
+
+            var activeFacilities = await _context.Facilities
+                .AsNoTracking()
+                .CountAsync(f => f.SportCenterId == currentSportCenterId);
+
+            var reviewsQuery = _context.FacilityReviews
+                .AsNoTracking()
+                .Where(fr => fr.Facility!.SportCenterId == currentSportCenterId);
+
+            var last7Days = today.AddDays(-6);
+            var last30Days = today.AddDays(-29);
+
+            var reviewsIn7d = await reviewsQuery
+                .Where(fr => fr.RatingDate >= last7Days && fr.RatingDate <= today)
+                .CountAsync();
+
+            var reviewsIn30d = await reviewsQuery
+                .Where(fr => fr.RatingDate >= last30Days && fr.RatingDate <= today)
+                .CountAsync();
+
+            var averageRating = await reviewsQuery
+                .AverageAsync(fr => (double?)fr.RatingNumber) ?? 0d;
+
+            var weeklyReservationsQuery = reservationsQuery
+                .Where(r => r.ReservationDate >= weekStart && r.ReservationDate <= weekEnd);
+
+            var reservationsBySport = await weeklyReservationsQuery
+                .Where(r => r.ChosenSport != null && r.ChosenSport.Name != null && r.ChosenSport.Name != "")
+                .GroupBy(r => r.ChosenSport!.Name!)
+                .Select(g => new { Sport = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Sport, x => x.Count);
+
+            var reservationsByFacility = await weeklyReservationsQuery
+                .Where(r => r.Facility != null && r.Facility.Name != null && r.Facility.Name != "")
+                .GroupBy(r => r.Facility!.Name!)
+                .Select(g => new { Facility = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Facility, x => x.Count);
+
+            var reservationDates = await weeklyReservationsQuery
+                .Select(r => r.ReservationDate)
+                .ToListAsync();
+
+            var reservationsByWeekday = reservationDates
+                .GroupBy(d => d.DayOfWeek)
+                .ToDictionary(g => GetAbbreviatedDayName(g.Key), g => g.Count());
+
+            var upcomingReservations = await reservationsQuery
+                .Where(r => r.ReservationDate > today || (r.ReservationDate == today && r.StartTime >= nowTime))
+                .OrderBy(r => r.ReservationDate)
+                .ThenBy(r => r.StartTime)
+                .Select(r => new
+                {
+                    r.StartTime,
+                    r.EndTime,
+                    FacilityName = r.Facility!.Name,
+                    FirstName = r.User != null ? r.User.FirstName : null,
+                    LastName = r.User != null ? r.User.LastName : null,
+                    r.Status
+                })
+                .Take(4)
+                .ToListAsync();
+
+            var upcomingReservationResponses = upcomingReservations
+                .Select(r => new DashboardUpcomingReservationResponse
+                {
+                    Slot = $"{r.StartTime:HH\\:mm} - {r.EndTime:HH\\:mm}",
+                    FacilityName = r.FacilityName ?? string.Empty,
+                    BookedBy = string.Join(" ", new[] { r.FirstName, r.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    Status = MapReservationStatus(r.Status)
+                })
+                .ToList();
+
+            var lowestRatedReviews = await reviewsQuery
+                .OrderBy(fr => fr.RatingNumber)
+                .ThenByDescending(fr => fr.RatingDate)
+                .Select(fr => new DashboardLowRatedReviewResponse
+                {
+                    FacilityName = fr.Facility!.Name ?? string.Empty,
+                    Rating = fr.RatingNumber,
+                    Comment = fr.Comment ?? string.Empty
+                })
+                .Take(3)
+                .ToListAsync();
+
+            return new SportCenterDashboardResponse
+            {
+                TodayRevenue = todayRevenue,
+                WeeklyRevenue = weeklyRevenue,
+                ReservationsToday = reservationsToday,
+                ActiveFacilities = activeFacilities,
+                NewReviews7d = reviewsIn7d,
+                AverageRating = (decimal)averageRating,
+                ReviewsIn7d = reviewsIn7d,
+                ReviewsIn30d = reviewsIn30d,
+                ReservationsByWeekday = reservationsByWeekday,
+                ReservationsBySport = reservationsBySport,
+                ReservationsByFacility = reservationsByFacility,
+                UpcomingReservations = upcomingReservationResponses,
+                LowestRatedReviews = lowestRatedReviews
+            };
+        }
+
+        private static string GetAbbreviatedDayName(DayOfWeek dayOfWeek)
+        {
+            return CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedDayName(dayOfWeek);
+        }
+
+        private static string MapReservationStatus(string? status)
+        {
+            return status switch
+            {
+                nameof(ActiveReservationState) => "Active",
+                nameof(CompletedReservationState) => "Completed",
+                nameof(CanceledReservationState) => "Cancelled",
+                "Confirmed" => "Active",
+                null => string.Empty,
+                _ => status
             };
         }
     }

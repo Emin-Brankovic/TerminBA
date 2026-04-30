@@ -14,6 +14,9 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
+  String? _currentUsername;
+  String get currentUsername => _currentUsername ?? 'User';
+
   AuthProvider() {
     _baseUrl = const String.fromEnvironment(
       'baseUrl',
@@ -24,6 +27,12 @@ class AuthProvider extends ChangeNotifier {
   Future<void> checkAuthStatus() async {
     final token = await _storage.read(key: _tokenKey);
     if (token != null && !JwtDecoder.isExpired(token)) {
+      try {
+        final claims = JwtDecoder.decode(token);
+        _currentUsername = claims['unique_name']?.toString();
+      } catch (_) {
+        _currentUsername = null;
+      }
       _isLoggedIn = true;
       notifyListeners();
     } else {
@@ -51,10 +60,16 @@ class AuthProvider extends ChangeNotifier {
       if (respone.statusCode == 200) {
         final responseBody = json.decode(respone.body);
         final token = responseBody['accessToken'];
+        print(token);
         await _storage.write(key: _tokenKey, value: token);
+        try {
+          final claims = JwtDecoder.decode(token);
+          _currentUsername = claims['unique_name']?.toString();
+        } catch (_) {
+          _currentUsername = null;
+        }
         _isLoggedIn = true;
         notifyListeners();
-        print("Login successful, token stored.");
       } else {
         // Login failed
         final responseBody = json.decode(respone.body);
@@ -90,12 +105,26 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<String?> getCurrentUsername() async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null) return null;
+    try {
+      final claims = JwtDecoder.decode(token);
+      final raw = claims['unique_name'];
+      if (raw == null) return null;
+      return raw.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
     _isLoggedIn = false;
+    _currentUsername = null;
     notifyListeners();
     navigatorKey.currentState?.pushReplacement(
-      MaterialPageRoute(builder: (_) => LoginPage()),
+      MaterialPageRoute(builder: (_) => const LoginPage()),
     );
   }
 }

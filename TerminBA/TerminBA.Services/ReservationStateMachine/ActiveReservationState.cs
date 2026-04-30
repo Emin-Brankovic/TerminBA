@@ -68,6 +68,8 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
+            ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
+
             var timeSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
 
             var exists = timeSlots.Any(t =>
@@ -107,6 +109,8 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationUpdateAsync(Reservation entity, ReservationUpdateRequest request)
         {
+            ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
+
             var allSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
 
             var slot = allSlots.FirstOrDefault(t =>
@@ -142,6 +146,22 @@ namespace TerminBA.Services.ReservationStateMachine
 
             if (request.Price != expectedPrice)
                 throw new UserException($"Invalid price for selected time slot and reservation date.");
+        }
+
+        private static void ValidateReservationNotInPast(DateOnly reservationDate, TimeOnly reservationStartTime)
+        {
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+
+            if (reservationDate < today)
+            {
+                throw new UserException("Can't make a reservation in the past.");
+            }
+
+            if (reservationDate == today && reservationStartTime.ToTimeSpan() <= now.TimeOfDay)
+            {
+                throw new UserException("Can't make a reservation in the past.");
+            }
         }
 
         private async Task SendEmailAsync(ReservationInsertRequest reservation)

@@ -22,7 +22,7 @@ namespace TerminBA.WebAPI.Controllers
 
         [HttpGet("{year}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<DashboardResponse> GetDashboardData(int year)
+        public async Task<AdminDashboardResponse> GetDashboardData(int year)
         {
             return await _reportService.GetDashboard(year);
         }
@@ -71,6 +71,12 @@ namespace TerminBA.WebAPI.Controllers
         public async Task<FinanceSummaryResponse> SportCenterFinanceSummary([FromQuery] int year, [FromQuery] int month)
         {
             return await _reportService.SportCenterFinanceSummary(year, month);
+        }
+
+        [HttpGet("sportCenterDashboard")]
+        public async Task<SportCenterDashboardResponse> SportCenterDashboard()
+        {
+            return await _reportService.SportCenterDashboard();
         }
     }
 }

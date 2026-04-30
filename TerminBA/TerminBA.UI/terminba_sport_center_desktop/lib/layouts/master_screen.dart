@@ -64,7 +64,7 @@ class _MasterScreenState extends State<MasterScreen> {
                       "Facilities",
                       isSelected: widget.title == "Facilities",
                     ),
-                     _navDivider(),
+                    _navDivider(),
                     _navItem(
                       "Finances",
                       isSelected: widget.title == "Finances",
@@ -115,22 +115,12 @@ class _MasterScreenState extends State<MasterScreen> {
                 ],
                 child: Row(
                   children: [
-                    const Text(
-                      "Admin",
-                      style: TextStyle(
+                    Text(
+                      _authProvider.currentUsername,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.person,
-                        size: 20,
-                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 4),

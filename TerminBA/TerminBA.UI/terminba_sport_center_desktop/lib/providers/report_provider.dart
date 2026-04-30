@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminba_sport_center_desktop/model/finance_summary_response.dart';
+import 'package:terminba_sport_center_desktop/model/sport_center_dashboard_response.dart';
 import 'package:terminba_sport_center_desktop/model/sport_center_reservation_stats_report_request.dart';
 import 'package:terminba_sport_center_desktop/model/sport_center_reservation_stats_response.dart';
 import 'package:terminba_sport_center_desktop/providers/base_provider.dart';
@@ -77,6 +78,25 @@ class ReportProvider extends BaseProvider {
       }
     } catch (e) {
       throw Exception('Error fetching data: $e');
+    }
+  }
+
+  Future<SportCenterDashboardResponse> fetchSportCenterDashboard() async {
+    final url = "$baseUrl$endpoint/sportCenterDashboard";
+    final uri = Uri.parse(url);
+    final headers = await createHeaders();
+
+    try {
+      final response = await http.get(uri, headers: headers);
+
+      if (isValidResponse(response)) {
+        final data = jsonDecode(response.body);
+        return SportCenterDashboardResponse.fromJson(data);
+      }
+
+      throw Exception('Unknown error');
+    } catch (e) {
+      throw Exception('Error fetching dashboard data: $e');
     }
   }
 

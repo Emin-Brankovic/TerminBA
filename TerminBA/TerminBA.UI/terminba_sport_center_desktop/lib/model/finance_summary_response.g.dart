@@ -14,7 +14,9 @@ FinanceSummaryResponse _$FinanceSummaryResponseFromJson(
   json['monthLabel'] as String,
   (json['dailyRevenuePoints'] as List<dynamic>)
       .map(
-        (e) => FinanceDailyRevenuePointResponse.fromJson(e as Map<String, dynamic>),
+        (e) => FinanceDailyRevenuePointResponse.fromJson(
+          e as Map<String, dynamic>,
+        ),
       )
       .toList(),
 );
@@ -37,7 +39,4 @@ FinanceDailyRevenuePointResponse _$FinanceDailyRevenuePointResponseFromJson(
 
 Map<String, dynamic> _$FinanceDailyRevenuePointResponseToJson(
   FinanceDailyRevenuePointResponse instance,
-) => <String, dynamic>{
-  'day': instance.day,
-  'revenue': instance.revenue,
-};
+) => <String, dynamic>{'day': instance.day, 'revenue': instance.revenue};

@@ -5,6 +5,7 @@ import 'package:terminba_sport_center_desktop/helpers/currency_helper.dart';
 import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
 import 'package:terminba_sport_center_desktop/model/finance_summary_response.dart';
 import 'package:terminba_sport_center_desktop/providers/report_provider.dart';
+import 'package:terminba_sport_center_desktop/widgets/report_card.dart';
 
 class FinancesScreen extends StatefulWidget {
   const FinancesScreen({super.key});
@@ -116,44 +117,29 @@ class _FinancesScreenState extends State<FinancesScreen> {
   Widget _buildRevenueCard() {
     final todayRevenue = _financeSummary?.todayRevenue ?? 0;
 
-    return Container(
+    return ReportCard(
+      title: "Today's revenue:",
+      value: CurrencyHelper.format(todayRevenue),
+      iconData: Icons.attach_money,
       width: 250,
+      backgroundColor: const Color(0xFFF2F4F7),
+      borderColor: const Color(0xFFD6D9DE),
+      borderRadius: 8,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F4F7),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFD6D9DE)),
+      iconBackgroundColor: const Color(0xFF20B26B),
+      iconColor: Colors.white,
+      iconSize: 18,
+      iconToTitleSpacing: 10,
+      titleToValueSpacing: 4,
+      titleStyle: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF2D2F33),
       ),
-      child: Column(
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: const BoxDecoration(
-              color: Color(0xFF20B26B),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.attach_money, color: Colors.white, size: 18),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            "Today's revenue:",
-            style: TextStyle(
-              fontSize: 36 / 2,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF2D2F33),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            CurrencyHelper.format(todayRevenue),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E2125),
-            ),
-          ),
-        ],
+      valueStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF1E2125),
       ),
     );
   }

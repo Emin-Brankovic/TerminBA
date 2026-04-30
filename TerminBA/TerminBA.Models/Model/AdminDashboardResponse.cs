@@ -7,7 +7,7 @@ using TerminBA.Models.Enums;
 
 namespace TerminBA.Models.Model
 {
-    public class DashboardResponse
+    public class AdminDashboardResponse
     {
         public int AppUserCount { get; set; }
         public int AppReservationCount { get; set; }
