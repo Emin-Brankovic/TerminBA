@@ -38,6 +38,9 @@ namespace TerminBA.Models.Request
         [Required]
         [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int> AvailableSportsIds { get; set; } = new List<int>();
+
+        [MinLength(1, ErrorMessage = "At least one price must be entered.")]
+        public List<FacilityDynamicPriceUpdateRequest>? DynamicPrices { get; set; }
     }
 }
 

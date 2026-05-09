@@ -4,6 +4,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/enums/day_of_week_enum.dart';
+import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price_insert_request.dart';
 import 'package:terminba_sport_center_desktop/model/facility_insert_request.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
@@ -14,7 +15,9 @@ import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart';
 
 class FacilityInsertScreen extends StatefulWidget {
-  const FacilityInsertScreen({super.key});
+  const FacilityInsertScreen({super.key, this.facility});
+
+  final Facility? facility;
 
   @override
   State<FacilityInsertScreen> createState() => _FacilityInsertScreenState();
@@ -35,6 +38,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   final List<_DynamicPriceEntry> _dynamicPrices = [];
 
   bool _initialized = false;
+  bool _prefilled = false;
   bool _isLoading = true;
   bool _isSaving = false;
   int? _sportCenterId;
@@ -59,7 +63,38 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     _sportProvider = context.read<SportProvider>();
     _turfTypeProvider = context.read<TurfTypeProvider>();
     _authProvider = context.read<AuthProvider>();
+    _applyFacilityDefaults();
     _loadReferenceData();
+  }
+
+  void _applyFacilityDefaults() {
+    if (_prefilled || widget.facility == null) {
+      return;
+    }
+
+    final facility = widget.facility!;
+    _hoursController.text = facility.duration.inHours.toString();
+    _minutesController.text =
+        (facility.duration.inMinutes % 60).toString().padLeft(2, '0');
+
+    _dynamicPrices
+      ..clear()
+      ..addAll(
+        facility.dynamicPrices.map(
+          (price) => _DynamicPriceEntry(
+            startDay: price.startDay,
+            endDay: price.endDay,
+            facilityId: facility.id,
+            startTime: _parseTimeOfDay(price.startTime),
+            endTime: _parseTimeOfDay(price.endTime),
+            pricePerHour: price.pricePerHour,
+            validFrom: price.validFrom,
+            validTo: price.validTo,
+          ),
+        ),
+      );
+
+    _prefilled = true;
   }
 
   Future<void> _loadReferenceData() async {
@@ -166,18 +201,34 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
             : null,
       );
 
-      await _facilityProvider.insert(request);
+      if (widget.facility == null) {
+        await _facilityProvider.insert(request);
+      } else {
+        await _facilityProvider.update(widget.facility!.id, request);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Facility created successfully.')),
+          SnackBar(
+            content: Text(
+              widget.facility == null
+                  ? 'Facility created successfully.'
+                  : 'Facility updated successfully.',
+            ),
+          ),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating facility: $e')),
+          SnackBar(
+            content: Text(
+              widget.facility == null
+                  ? 'Error creating facility: $e'
+                  : 'Error updating facility: $e',
+            ),
+          ),
         );
       }
     } finally {
@@ -191,6 +242,17 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     final hh = time.hour.toString().padLeft(2, '0');
     final mm = time.minute.toString().padLeft(2, '0');
     return '$hh:$mm:00';
+  }
+
+  TimeOfDay _parseTimeOfDay(String value) {
+    final parts = value.split(':');
+    if (parts.length < 2) {
+      return const TimeOfDay(hour: 0, minute: 0);
+    }
+
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = int.tryParse(parts[1]) ?? 0;
+    return TimeOfDay(hour: hours, minute: minutes);
   }
 
   String _formatDate(DateTime date) {
@@ -295,6 +357,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
           FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
         ],
         decoration: _inputDecoration('Static Price (EUR)*'),
+        initialValue: widget.facility?.staticPrice?.toString(),
         valueTransformer: (value) =>
             value == null || value.trim().isEmpty ? null : double.tryParse(value),
         validator: FormBuilderValidators.compose([
@@ -503,15 +566,19 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   @override
   Widget build(BuildContext context) {
     final isDynamicPricing =
-        _formKey.currentState?.instantValue['isDynamicPricing'] as bool? ?? false;
+      _formKey.currentState?.instantValue['isDynamicPricing'] as bool? ??
+        (widget.facility?.isDynamicPricing ?? false);
 
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: const Center(
+        title: Center(
           child: Text(
-            'Add Facility',
-            style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
+            widget.facility == null ? 'Add Facility' : 'Edit Facility',
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -539,6 +606,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                             _sectionHeader('Basic Information'),
                             FormBuilderTextField(
                               name: 'name',
+                              initialValue: widget.facility?.name,
                               decoration: _inputDecoration('Facility Name*'),
                               validator: FormBuilderValidators.required(),
                             ),
@@ -547,6 +615,8 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               name: 'maxCapacity',
                               keyboardType: TextInputType.number,
                               decoration: _inputDecoration('Max Capacity*'),
+                              initialValue:
+                                widget.facility?.maxCapacity.toString(),
                               valueTransformer: (value) =>
                                   value == null || value.trim().isEmpty
                                       ? null
@@ -657,6 +727,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                             FormBuilderDropdown<int>(
                               name: 'turfTypeId',
                               decoration: _inputDecoration('Turf Type*'),
+                              initialValue: widget.facility?.turfTypeId,
                               validator: FormBuilderValidators.required(),
                               items: _turfTypes
                                   .map(
@@ -679,7 +750,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               ),
                               child: FormBuilderCheckbox(
                                 name: 'isIndoor',
-                                initialValue: true,
+                                initialValue: widget.facility?.isIndoor ?? true,
                                 title: const Text('Indoor Facility', style: TextStyle(fontSize: 14),),
                               ),
                             ),
@@ -696,7 +767,8 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               child: FormBuilderSwitch(
                                 name: 'isDynamicPricing',
                                 title: const Text('Use dynamic pricing', style: TextStyle(fontSize: 14),),
-                                initialValue: false,
+                                initialValue:
+                                    widget.facility?.isDynamicPricing ?? false,
                                 onChanged: (_) => setState(() {}),
                               ),
                             ),
@@ -708,6 +780,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                             FormBuilderCheckboxGroup<int>(
                               name: 'availableSportsIds',
                               decoration: _inputDecoration('Sports*'),
+                              initialValue: widget.facility?.availableSports
+                                  .map((s) => s.id)
+                                  .toList(),
                               options: _sports
                                   .map(
                                     (s) => FormBuilderFieldOption<int>(
@@ -735,7 +810,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                child: _isSaving
+                                  child: _isSaving
                                     ? const SizedBox(
                                         width: 24,
                                         height: 24,
@@ -744,10 +819,12 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text(
-                                        'Create Facility',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
+                                      : Text(
+                                          widget.facility == null
+                                              ? 'Create Facility'
+                                              : 'Save Changes',
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
                               ),
                             ),
                           ],

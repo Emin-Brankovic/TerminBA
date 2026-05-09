@@ -114,18 +114,6 @@ namespace TerminBA.Services.Service
 
             await _context.SaveChangesAsync();
 
-            // The FE won't allow creating dynamic pricing if the chechbox is not selected
-            //if (request.IsDynamicPricing)
-            //{
-            //    foreach (var dynamicPriceRequest in request.DynamicPrices)
-            //    {
-            //        dynamicPriceRequest.FacilityId = entity.Id;
-            //        await _facilityDynamicPriceService.CreateAsync(dynamicPriceRequest);
-            //    }
-
-            //    await _context.Entry(entity).Collection(f => f.DynamicPrices).LoadAsync();
-            //}
-
             return MapToResponse(entity);
         }
 
@@ -165,15 +153,78 @@ namespace TerminBA.Services.Service
 
     protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)
         {
+            bool nameExists = await _context.Facilities.AnyAsync(f =>
+            f.SportCenterId == request.SportCenterId &&
+            f.Name.ToLower() == request.Name.ToLower());
+
+
+            if (nameExists)
+                throw new UserException($"Facility with name: {request.Name} already exits for entered sport center.");
+
+
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
             await ValidateDynamicPricesRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
+
+            if(request.IsDynamicPricing)
+            {
+                _context.Entry(entity).Collection(f => f.DynamicPrices).Load();
+                var existingDynamicPrices = await _context.FacilityDynamicPrices
+                    .Where(fdp => fdp.FacilityId == entity.Id)
+                    .ToListAsync();
+                entity.DynamicPrices = existingDynamicPrices;
+
+            }
+
         }
 
         protected override async Task BeforeUpdate(Facility entity, FacilityUpdateRequest request)
         {
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
+
+            if (entity.Name!.ToLower() != request.Name!.ToLower())
+            {
+                var sameNameCenter = await _context.Facilities.AnyAsync(sc => sc.Name!.ToLower() == request.Name!.ToLower());
+
+                if (sameNameCenter)
+                    throw new UserException($"Facility with name: {request.Name} already exits.");
+            }
+
+
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
+
+            _context.Entry(entity).Collection(f => f.AvailableSports).Load();
+
+            if (request.AvailableSportsIds != null && request.AvailableSportsIds.Any())
+            {
+                var existingSports = await _context.Sports
+                    .Where(s => request.AvailableSportsIds.Contains(s.Id))
+                    .ToListAsync();
+
+                entity.AvailableSports = existingSports;
+            }
+
+
+            if (request.IsDynamicPricing)
+            {
+                _context.Entry(entity).Collection(f => f.DynamicPrices).Load();
+
+                var existingDynamicPrices = await _context.FacilityDynamicPrices
+                    .Where(fdp => fdp.FacilityId == entity.Id)
+                    .ToListAsync();
+
+                entity.DynamicPrices = existingDynamicPrices;
+            }
+
+            if(entity.IsDynamicPricing && !request.IsDynamicPricing)
+            {
+                var dynamicPrices = await _context.FacilityDynamicPrices
+                    .Where(fdp => fdp.FacilityId == entity.Id)
+                    .ToListAsync();
+                _context.FacilityDynamicPrices.RemoveRange(dynamicPrices);
+            }
+
+
         }
 
         protected override async Task BeforeDelete(Facility entity)
@@ -197,12 +248,6 @@ namespace TerminBA.Services.Service
             if (sportCenter == null)
                 throw new UserException($"Sport center was not found.");
 
-            bool nameExists = await _context.Facilities.AnyAsync(f =>
-                f.SportCenterId == sportCenterId &&
-                f.Name.ToLower() == name.ToLower());
-
-            if (nameExists)
-                throw new UserException($"Facility with name: {name} already exits for entered sport center.");
 
             bool allSportsPresent = availableSportsIds.All(x => sportCenter.AvailableSportIds.Contains(x));
 

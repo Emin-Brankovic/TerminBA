@@ -27,7 +27,7 @@ class _ReservationsOverviewScreenState
     extends State<ReservationsOverviewScreen> {
   static const double _tableMinWidth = 1100;
   static const int _reservationNoFlex = 1;
-  static const int _courtPitchFlex = 3;
+  static const int _courtPitchFlex = 4;
   static const int _bookedByFlex = 2;
   static const int _bookedOnFlex = 2;
   static const int _chosenSportFlex = 2;

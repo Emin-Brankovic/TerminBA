@@ -156,6 +156,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _demandSubsection(String title, List<_DemandItem> data) {
+    if (data.isEmpty) {
+      final placeholderItems = List.generate(3, (_) => const _DemandItem('—', 0));
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            ...placeholderItems.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        item.label,
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                      ),
+                    ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(7),
+                        child: LinearProgressIndicator(
+                          minHeight: 12,
+                          value: 0,
+                          backgroundColor: const Color(0xFFE5E7EB),
+                          color: const Color(0xFF12B76A),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 32,
+                      child: Text(
+                        '0',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final int maxValue = data
         .map((e) => e.value)
         .fold<int>(1, (prev, element) => element > prev ? element : prev);

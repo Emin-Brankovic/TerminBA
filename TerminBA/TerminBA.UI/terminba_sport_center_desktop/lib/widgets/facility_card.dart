@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:terminba_sport_center_desktop/enums/day_of_week_enum.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price.dart';
+import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dart';
 // import 'package:terminba_admin_desktop/enums/day_of_week_enum.dart';
 // import 'package:terminba_admin_desktop/model/sport_center.dart';
 // import 'package:terminba_admin_desktop/model/working_hours.dart';
@@ -95,14 +96,17 @@ class FacilityCard extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        // await Navigator.of(context).push(
-                        //   MaterialPageRoute(
-                        //     builder: (_) => facilityInsertScreen(
-                        //       facility: facility,
-                        //     ),
-                        //   ),
-                        // );
-                        // onRefresh();
+                        final updated = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute(
+                            builder: (_) => FacilityInsertScreen(
+                              facility: facility,
+                            ),
+                          ),
+                        );
+
+                        if (updated == true) {
+                          onRefresh();
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00C853), // Green
