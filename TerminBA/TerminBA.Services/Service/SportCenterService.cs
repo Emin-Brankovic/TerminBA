@@ -107,6 +107,23 @@ namespace TerminBA.Services.Service
             return response;
         }
 
+        public async Task<SportCenterResponse> GetCurrentSportCenter()
+        {
+            var id = int.Parse(_authService.GetUserId());
+
+            var query = _context.SportCenters.AsQueryable();
+
+            query = ApplyIncludes(query);
+
+            var entity = await query.FirstOrDefaultAsync(sc=>sc.Id==id);
+
+            if (entity == null)
+                throw new UserException("Sport center not found");
+
+
+            return MapToResponse(entity);
+        }
+
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
         {
             return query

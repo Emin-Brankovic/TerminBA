@@ -12,6 +12,7 @@ namespace TerminBA.Services.Interfaces
     public interface ISportCenterService : IBaseCRUDService<SportCenterResponse, SportCenterSearchObject, SportCenterInsertRequest, SportCenterUpdateRequest>
     {
         public Task<AuthResponse?> Login(SportCenterLoginRequest request);
+        public Task<SportCenterResponse> GetCurrentSportCenter();
     }
 }
 

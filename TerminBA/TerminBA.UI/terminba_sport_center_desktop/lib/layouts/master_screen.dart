@@ -7,6 +7,7 @@ import 'package:terminba_sport_center_desktop/screens/facilities_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/finances_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/reservations_overview_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/reviews_overview_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/sport_center_profile_screen.dart';
 
 class MasterScreen extends StatefulWidget {
   const MasterScreen({super.key, required this.title, required this.child});
@@ -77,12 +78,12 @@ class _MasterScreenState extends State<MasterScreen> {
                 offset: const Offset(0, 40),
                 onSelected: (value) {
                   if (value == 'profile') {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const AdminProfileScreen(),
-                    //   ),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SportCenterProfileScreen(),
+                      ),
+                    );
                   } else if (value == 'logout') {
                     _authProvider.logout();
                   }

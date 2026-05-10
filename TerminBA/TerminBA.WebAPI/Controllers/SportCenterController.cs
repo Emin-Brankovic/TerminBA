@@ -25,5 +25,11 @@ namespace TerminBA.WebAPI.Controllers
         {
             return (await _sportCenterService.Login(request));
         }
+
+        [HttpGet("getCurrent")]
+        public async Task<SportCenterResponse> GetCurrentSportCenter()
+        {
+            return await _sportCenterService.GetCurrentSportCenter();
+        }
     }
 }
