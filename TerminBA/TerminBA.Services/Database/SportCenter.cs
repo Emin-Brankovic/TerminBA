@@ -20,6 +20,10 @@ namespace TerminBA.Services.Database
         [Required]
         public bool IsEquipmentProvided { get; set; }
 
+        [EmailAddress]
+        [MaxLength(150)]
+        public string? ContactEmail { get; set; }
+
         [MaxLength(180)]
         public string? Description { get; set; }
 

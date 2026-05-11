@@ -65,6 +65,11 @@ class SportCenterCard extends StatelessWidget {
                         const SizedBox(height: 12),
                         _buildDetailRow('Address:', sportCenter.address),
                         _buildDetailRow('Phone:', sportCenter.phoneNumber),
+                        if ((sportCenter.contactEmail ?? '').trim().isNotEmpty)
+                          _buildDetailRow(
+                            'Email:',
+                            sportCenter.contactEmail!.trim(),
+                          ),
                         _buildDetailRow(
                           'Equipment provided:',
                           sportCenter.isEquipmentProvided ? 'Yes' : 'No',

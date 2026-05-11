@@ -15,6 +15,7 @@ class SportCenter {
   int id;
   String username;
   String phoneNumber;
+  String? contactEmail;
   int cityId;
   City? city;
   String address;
@@ -34,6 +35,7 @@ class SportCenter {
     this.id,
     this.username,
     this.phoneNumber,
+    this.contactEmail,
     this.cityId,
     this.address,
     this.isEquipmentProvided,

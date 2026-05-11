@@ -7,6 +7,7 @@ part 'sport_center_insert_request.g.dart';
 class SportCenterInsertRequest {
 	String username;
 	String phoneNumber;
+	String? contactEmail;
 	int cityId;
 	String address;
 	bool isEquipmentProvided;
@@ -16,7 +17,7 @@ class SportCenterInsertRequest {
 	List<int> amenityIds;
   List<WorkingHoursInsertRequest> workingHours;
 
-	SportCenterInsertRequest(this.username,this.phoneNumber,this.cityId,this.address,this.isEquipmentProvided,this.description,this.roleId,this.sportIds,this.amenityIds,this.workingHours);
+	SportCenterInsertRequest(this.username,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.roleId,this.sportIds,this.amenityIds,this.workingHours);
 
 	factory SportCenterInsertRequest.fromJson(Map<String, dynamic> json) => _$SportCenterInsertRequestFromJson(json);
 

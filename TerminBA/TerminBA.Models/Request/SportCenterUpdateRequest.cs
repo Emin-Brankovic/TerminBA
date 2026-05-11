@@ -18,6 +18,10 @@ namespace TerminBA.Models.Request
         [Phone]
         public string? PhoneNumber { get; set; }
 
+        [EmailAddress]
+        [MaxLength(150)]
+        public string? ContactEmail { get; set; }
+
         [Required]
         public int CityId { get; set; }
 

@@ -4,6 +4,7 @@ import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
 import 'package:terminba_sport_center_desktop/model/sport_center.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
+import 'package:terminba_sport_center_desktop/screens/sport_center_edit_screen.dart';
 
 class SportCenterProfileScreen extends StatefulWidget {
 	const SportCenterProfileScreen({super.key});
@@ -168,7 +169,18 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 			runSpacing: 10,
 			children: [
 				ElevatedButton.icon(
-					onPressed: () {},
+					onPressed: () async {
+						final updated = await Navigator.of(context).push<bool>(
+							MaterialPageRoute(
+								builder: (context) => SportCenterEditScreen(
+									sportCenter: sportCenter,
+								),
+							),
+						);
+						if (updated == true) {
+							_loadSportCenter();
+						}
+					},
 					icon: const Icon(Icons.edit),
 					label: const Text('Edit Profile'),
 				),
@@ -273,6 +285,7 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 		final String phone = sportCenter.phoneNumber.trim().isEmpty
 				? 'Not provided'
 				: sportCenter.phoneNumber;
+		final String? email = sportCenter.contactEmail?.trim();
 
 		return _sectionCard(
 			context,
@@ -280,13 +293,9 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 			icon: Icons.contact_phone_outlined,
 			child: Column(
 				children: [
-					_infoRow(context, label: 'Username', value: sportCenter.username),
 					_infoRow(context, label: 'Phone', value: phone),
-					_infoRow(
-						context,
-						label: 'Equipment',
-						value: sportCenter.isEquipmentProvided ? 'Yes' : 'No',
-					),
+					if (email != null && email.isNotEmpty)
+						_infoRow(context, label: 'Email', value: email),
 				],
 			),
 		);

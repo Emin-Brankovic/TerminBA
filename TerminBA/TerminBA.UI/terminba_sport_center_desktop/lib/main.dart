@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/base_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/amenity_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/city_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_dynamic_price_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
@@ -42,6 +43,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
         ChangeNotifierProvider<FacilityProvider>(create: (_) => FacilityProvider()),
+        ChangeNotifierProvider<AmenityProvider>(create: (_) => AmenityProvider()),
         ChangeNotifierProvider<CityProvider>(create: (_) => CityProvider()),
         ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
         ChangeNotifierProvider<TurfTypeProvider>(create: (_) => TurfTypeProvider()),

@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:terminba_admin_desktop/model/working_hours_insert_request.dart';
+import 'package:terminba_sport_center_desktop/model/working_hours_insert_request.dart';
 
 part 'sport_center_update_request.g.dart';
 

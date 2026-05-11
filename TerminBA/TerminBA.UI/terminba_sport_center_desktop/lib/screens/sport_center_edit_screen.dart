@@ -2,30 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:terminba_admin_desktop/enums/day_of_week_enum.dart';
-import 'package:terminba_admin_desktop/model/amenity.dart';
-import 'package:terminba_admin_desktop/model/city.dart';
-import 'package:terminba_admin_desktop/model/sport.dart';
-import 'package:terminba_admin_desktop/model/sport_center.dart';
-import 'package:terminba_admin_desktop/model/sport_center_insert_request.dart';
-import 'package:terminba_admin_desktop/model/sport_center_update_request.dart';
-import 'package:terminba_admin_desktop/model/working_hours_insert_request.dart';
-import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
-import 'package:terminba_admin_desktop/providers/city_provider.dart';
-import 'package:terminba_admin_desktop/providers/sport_center_provider.dart';
-import 'package:terminba_admin_desktop/providers/sport_provider.dart';
+import 'package:terminba_sport_center_desktop/enums/day_of_week_enum.dart';
+import 'package:terminba_sport_center_desktop/model/amenity.dart';
+import 'package:terminba_sport_center_desktop/model/city.dart';
+import 'package:terminba_sport_center_desktop/model/sport.dart';
+import 'package:terminba_sport_center_desktop/model/sport_center.dart';
+import 'package:terminba_sport_center_desktop/model/sport_center_update_request.dart';
+import 'package:terminba_sport_center_desktop/model/working_hours_insert_request.dart';
+import 'package:terminba_sport_center_desktop/providers/amenity_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/city_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
 
-class SportCenterInsertScreen extends StatefulWidget {
-  const SportCenterInsertScreen({super.key, this.sportCenter});
+class SportCenterEditScreen extends StatefulWidget {
+  const SportCenterEditScreen({super.key, required this.sportCenter});
 
-  final SportCenter? sportCenter;
+  final SportCenter sportCenter;
 
   @override
-  State<SportCenterInsertScreen> createState() =>
-      _SportCenterInsertScreenState();
+  State<SportCenterEditScreen> createState() => _SportCenterEditScreenState();
 }
 
-class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
+class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
 
   late SportCenterProvider _sportCenterProvider;
@@ -33,23 +31,54 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
   late SportProvider _sportProvider;
   late AmenityProvider _amenityProvider;
 
-  List<City> _cities = [];
-  List<Sport> _sports = [];
-  List<Amenity> _amenities = [];
-  List<_WorkingHoursEntry> _workingHoursList = [];
+  final List<City> _cities = [];
+  final List<Sport> _sports = [];
+  final List<Amenity> _amenities = [];
+  final List<_WorkingHoursEntry> _workingHoursList = [];
+
+  bool _initialized = false;
+  bool _prefilled = false;
   bool _isLoading = true;
   bool _isSaving = false;
-
-  bool get _isEditing => widget.sportCenter != null;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_initialized) {
+      return;
+    }
+
+    _initialized = true;
     _sportCenterProvider = context.read<SportCenterProvider>();
     _cityProvider = context.read<CityProvider>();
     _sportProvider = context.read<SportProvider>();
     _amenityProvider = context.read<AmenityProvider>();
+
+    _applyWorkingHoursDefaults();
     _loadReferenceData();
+  }
+
+  void _applyWorkingHoursDefaults() {
+    if (_prefilled) {
+      return;
+    }
+
+    _workingHoursList
+      ..clear()
+      ..addAll(
+        widget.sportCenter.workingHours.map(
+          (wh) => _WorkingHoursEntry(
+            startDay: wh.startDay,
+            endDay: wh.endDay,
+            openingTime: _parseTimeOfDay(wh.openingHours),
+            closingTime: _parseTimeOfDay(wh.closeingHours),
+            validFrom: wh.validFrom,
+            validTo: wh.validTo,
+          ),
+        ),
+      );
+
+    _prefilled = true;
   }
 
   Future<void> _loadReferenceData() async {
@@ -62,128 +91,103 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
       ]);
 
       setState(() {
-        _cities = (results[0].items ?? []).cast<City>();
-        _sports = (results[1].items ?? []).cast<Sport>();
-        _amenities = (results[2].items ?? []).cast<Amenity>();
+        _cities
+          ..clear()
+          ..addAll((results[0] as dynamic).items?.cast<City>() ?? <City>[]);
+        _sports
+          ..clear()
+          ..addAll((results[1] as dynamic).items?.cast<Sport>() ?? <Sport>[]);
+        _amenities
+          ..clear()
+          ..addAll((results[2] as dynamic).items?.cast<Amenity>() ?? <Amenity>[]);
       });
-
-      // Pre-fill working hours if editing
-      if (_isEditing) {
-        _workingHoursList = widget.sportCenter!.workingHours.map((wh) {
-          TimeOfDay _parseTime(String t) {
-            final parts = t.split(':');
-            return TimeOfDay(
-              hour: int.parse(parts[0]),
-              minute: int.parse(parts[1]),
-            );
-          }
-
-          return _WorkingHoursEntry(
-            startDay: wh.startDay,
-            endDay: wh.endDay,
-            openingTime: _parseTime(wh.openingHours),
-            closingTime: _parseTime(wh.closeingHours),
-            validFrom: wh.validFrom,
-            validTo: wh.validTo,
-          );
-        }).toList();
-      }
     } catch (e) {
-      debugPrint('Error loading reference data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $e')),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.saveAndValidate() ?? false)) return;
+    if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
+      return;
+    }
+
+    if (_workingHoursList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add at least one working hours entry.')),
+      );
+      return;
+    }
 
     final values = _formKey.currentState!.value;
 
     final workingHours = _workingHoursList
         .map(
-          (e) => WorkingHoursInsertRequest(
-            0,
-            e.startDay,
-            e.endDay,
-            _formatTime(e.openingTime),
-            _formatTime(e.closingTime),
-            e.validFrom,
-            e.validTo,
+          (entry) => WorkingHoursInsertRequest(
+            widget.sportCenter.id,
+            entry.startDay,
+            entry.endDay,
+            _formatTime(entry.openingTime),
+            _formatTime(entry.closingTime),
+            entry.validFrom,
+            entry.validTo,
           ),
         )
         .toList();
 
-    setState(() => _isSaving = true);
-    try {
-      print(_formKey.currentState?.value.toString());
+    final request = SportCenterUpdateRequest(
+      values['username'] as String,
+      values['phoneNumber'] as String,
+      values['contactEmail'] as String?,
+      values['cityId'] as int,
+      values['address'] as String,
+      values['isEquipmentProvided'] as bool,
+      values['description'] as String? ?? '',
+      (values['sportIds'] as List<dynamic>).cast<int>(),
+      (values['amenityIds'] as List<dynamic>).cast<int>(),
+      workingHours,
+    );
 
-      if (_isEditing) {
-        final updateRequest = SportCenterUpdateRequest(
-          values['username'] as String,
-          values['phoneNumber'] as String,
-          values['contactEmail'] as String?,
-          values['cityId'] as int,
-          values['address'] as String,
-          values['isEquipmentProvided'] as bool,
-          values['description'] as String,
-          (values['sportIds'] as List<dynamic>).cast<int>(),
-          (values['amenityIds'] as List<dynamic>).cast<int>(),
-          workingHours,
-        );
-        await _sportCenterProvider.update(
-          widget.sportCenter!.id,
-          updateRequest,
-        );
-      } else {
-        final insertRequest = SportCenterInsertRequest(
-          values['username'] as String,
-          values['phoneNumber'] as String,
-          values['contactEmail'] as String?,
-          values['cityId'] as int,
-          values['address'] as String,
-          values['isEquipmentProvided'] as bool,
-          values['description'] as String,
-          2, // default roleId for sport center
-          (values['sportIds'] as List<dynamic>).cast<int>(),
-          (values['amenityIds'] as List<dynamic>).cast<int>(),
-          workingHours,
-        );
-        await _sportCenterProvider.insert(insertRequest);
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditing
-                  ? 'Sport center updated successfully.'
-                  : 'Sport center created successfully.',
-            ),
-          ),
-        );
-        Navigator.of(context).pop();
-      }
+    setState(() => _isSaving = true);
+
+    try {
+      await _sportCenterProvider.update(widget.sportCenter.id, request);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sport center updated successfully.')),
+      );
+      Navigator.of(context).pop(true);
     } catch (e) {
-      debugPrint(e.toString().replaceFirst('Exception: ', ''));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating sport center: ${e.toString().replaceFirst('Exception: ', '')}')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Update failed: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  void _addWorkingHoursEntry() {
-    setState(() => _workingHoursList.add(_WorkingHoursEntry()));
+  TimeOfDay _parseTimeOfDay(String value) {
+    final parts = value.split(':');
+    if (parts.length < 2) return const TimeOfDay(hour: 0, minute: 0);
+    return TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: int.tryParse(parts[1]) ?? 0,
+    );
   }
 
-  String _formatTime(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:00';
+  String _formatTime(TimeOfDay t) {
+    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:00';
+  }
 
-  String _formatDate(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _formatDate(DateTime d) {
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
 
   Widget _buildWorkingHoursRow(
     int index,
@@ -213,10 +217,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
               children: [
                 IconButton(
                   onPressed: onRemove,
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color.fromARGB(183, 255, 82, 82),
-                  ),
+                  icon: const Icon(Icons.close, color: Colors.redAccent),
                   iconSize: 20,
                   style: IconButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -283,22 +284,19 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         context: context,
                         initialTime: wh.openingTime,
                         builder: (context, child) => MediaQuery(
-                          data: MediaQuery.of(
-                            context,
-                          ).copyWith(alwaysUse24HourFormat: true),
+                          data: MediaQuery.of(context)
+                              .copyWith(alwaysUse24HourFormat: true),
                           child: child!,
                         ),
                       );
                       if (t != null) {
-                        setState(
-                          () => _workingHoursList[index].openingTime = t,
-                        );
+                        setState(() =>
+                            _workingHoursList[index].openingTime = t);
                       }
                     },
                     icon: const Icon(Icons.access_time),
-                    label: Text(
-                      'Open: ${_formatTime(wh.openingTime).substring(0, 5)}',
-                    ),
+                    label:
+                        Text('Open: ${_formatTime(wh.openingTime).substring(0, 5)}'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -309,22 +307,19 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         context: context,
                         initialTime: wh.closingTime,
                         builder: (context, child) => MediaQuery(
-                          data: MediaQuery.of(
-                            context,
-                          ).copyWith(alwaysUse24HourFormat: true),
+                          data: MediaQuery.of(context)
+                              .copyWith(alwaysUse24HourFormat: true),
                           child: child!,
                         ),
                       );
                       if (t != null) {
-                        setState(
-                          () => _workingHoursList[index].closingTime = t,
-                        );
+                        setState(() =>
+                            _workingHoursList[index].closingTime = t);
                       }
                     },
                     icon: const Icon(Icons.access_time),
-                    label: Text(
-                      'Close: ${_formatTime(wh.closingTime).substring(0, 5)}',
-                    ),
+                    label:
+                        Text('Close: ${_formatTime(wh.closingTime).substring(0, 5)}'),
                   ),
                 ),
               ],
@@ -390,13 +385,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: Center(
+        title: const Center(
           child: Text(
-            _isEditing ? 'Edit Sport Center' : 'Add Sport Center',
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
+            'Edit Sport Center',
+            style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
           ),
         ),
       ),
@@ -408,9 +400,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 700),
                   child: Card(
-                    elevation: 2,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -419,24 +412,19 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Username
                             FormBuilderTextField(
                               name: 'username',
-                              initialValue: widget.sportCenter?.username,
+                              initialValue: widget.sportCenter.username,
                               decoration: const InputDecoration(
                                 labelText: 'Name*',
                                 border: OutlineInputBorder(),
                               ),
-                              validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                              ]),
+                              validator: FormBuilderValidators.required(),
                             ),
                             const SizedBox(height: 16),
-
-                            // Phone number
                             FormBuilderTextField(
                               name: 'phoneNumber',
-                              initialValue: widget.sportCenter?.phoneNumber,
+                              initialValue: widget.sportCenter.phoneNumber,
                               decoration: const InputDecoration(
                                 labelText: 'Phone Number*',
                                 border: OutlineInputBorder(),
@@ -447,11 +435,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               ]),
                             ),
                             const SizedBox(height: 16),
-
-                            // Contact email
                             FormBuilderTextField(
                               name: 'contactEmail',
-                              initialValue: widget.sportCenter?.contactEmail,
+                              initialValue: widget.sportCenter.contactEmail,
                               decoration: const InputDecoration(
                                 labelText: 'Contact Email',
                                 border: OutlineInputBorder(),
@@ -464,11 +450,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               },
                             ),
                             const SizedBox(height: 16),
-
-                            // City dropdown
                             FormBuilderDropdown<int>(
                               name: 'cityId',
-                              initialValue: widget.sportCenter?.cityId,
+                              initialValue: widget.sportCenter.cityId,
                               decoration: const InputDecoration(
                                 labelText: 'City*',
                                 border: OutlineInputBorder(),
@@ -476,33 +460,27 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               validator: FormBuilderValidators.required(),
                               items: _cities
                                   .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c.id,
-                                      child: Text(c.name),
+                                    (city) => DropdownMenuItem(
+                                      value: city.id,
+                                      child: Text(city.name),
                                     ),
                                   )
                                   .toList(),
                             ),
                             const SizedBox(height: 16),
-
-                            // Address
                             FormBuilderTextField(
                               name: 'address',
-                              initialValue: widget.sportCenter?.address,
+                              initialValue: widget.sportCenter.address,
                               decoration: const InputDecoration(
                                 labelText: 'Address*',
                                 border: OutlineInputBorder(),
                               ),
-                              validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                              ]),
+                              validator: FormBuilderValidators.required(),
                             ),
                             const SizedBox(height: 16),
-
-                            // Description
                             FormBuilderTextField(
                               name: 'description',
-                              initialValue: widget.sportCenter?.description ?? '',
+                              initialValue: widget.sportCenter.description,
                               decoration: const InputDecoration(
                                 labelText: 'Description',
                                 border: OutlineInputBorder(),
@@ -512,37 +490,28 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 180,
                                 errorText: 'Description cannot exceed 180 characters.',
                               ),
-                              
                             ),
                             const SizedBox(height: 16),
-
-                            // Equipment provided
                             FormBuilderCheckbox(
                               name: 'isEquipmentProvided',
-                              initialValue:
-                                  widget.sportCenter?.isEquipmentProvided ??
-                                  false,
+                              initialValue: widget.sportCenter.isEquipmentProvided,
                               title: const Text('Equipment Provided'),
                             ),
                             const SizedBox(height: 16),
-
-                            // Available Sports (multi-select)
                             FormBuilderCheckboxGroup<int>(
                               name: 'sportIds',
                               decoration: const InputDecoration(
                                 labelText: 'Available Sports*',
                                 border: OutlineInputBorder(),
                               ),
-                              initialValue: _isEditing
-                                  ? widget.sportCenter!.availableSports
-                                        .map((s) => s.id)
-                                        .toList()
-                                  : const [],
+                              initialValue: widget.sportCenter.availableSports
+                                  .map((s) => s.id)
+                                  .toList(),
                               options: _sports
                                   .map(
-                                    (s) => FormBuilderFieldOption(
-                                      value: s.id,
-                                      child: Text(s.name ?? ''),
+                                    (sport) => FormBuilderFieldOption(
+                                      value: sport.id,
+                                      child: Text(sport.name ?? ''),
                                     ),
                                   )
                                   .toList(),
@@ -552,40 +521,30 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-
-                            // Amenities (multi-select)
                             FormBuilderCheckboxGroup<int>(
                               name: 'amenityIds',
                               decoration: const InputDecoration(
                                 labelText: 'Amenities*',
                                 border: OutlineInputBorder(),
                               ),
-                              initialValue: _isEditing
-                                  ? widget.sportCenter!.availableAmenities
-                                        .map((a) => a.id)
-                                        .toList()
-                                  : const [],
+                              initialValue: widget.sportCenter.availableAmenities
+                                  .map((a) => a.id)
+                                  .toList(),
                               options: _amenities
                                   .map(
-                                    (a) => FormBuilderFieldOption(
-                                      value: a.id,
-                                      child: Text(a.name),
+                                    (amenity) => FormBuilderFieldOption(
+                                      value: amenity.id,
+                                      child: Text(amenity.name),
                                     ),
                                   )
                                   .toList(),
-                              validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                              ]),
+                              validator: FormBuilderValidators.required(),
                             ),
                             const SizedBox(height: 16),
-
-                            // Working Hours
                             FormBuilderField<List<_WorkingHoursEntry>>(
                               name: 'workingHours',
                               initialValue:
-                                  List<_WorkingHoursEntry>.from(
-                                    _workingHoursList,
-                                  ),
+                                  List<_WorkingHoursEntry>.from(_workingHoursList),
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                               validator: (value) {
@@ -612,11 +571,8 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                         ),
                                         TextButton.icon(
                                           onPressed: () {
-                                            setState(
-                                              () => _workingHoursList.add(
-                                                _WorkingHoursEntry(),
-                                              ),
-                                            );
+                                            setState(() =>
+                                                _workingHoursList.add(_WorkingHoursEntry()));
                                             field.didChange(
                                               List<_WorkingHoursEntry>.from(
                                                 _workingHoursList,
@@ -633,11 +589,8 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                         entry.key,
                                         entry.value,
                                         () {
-                                          setState(
-                                            () => _workingHoursList.removeAt(
-                                              entry.key,
-                                            ),
-                                          );
+                                          setState(() =>
+                                              _workingHoursList.removeAt(entry.key));
                                           field.didChange(
                                             List<_WorkingHoursEntry>.from(
                                               _workingHoursList,
@@ -652,9 +605,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                         child: Text(
                                           field.errorText!,
                                           style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -683,11 +636,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : Text(
-                                        _isEditing
-                                            ? 'Update Sport Center'
-                                            : 'Create Sport Center',
-                                        style: const TextStyle(fontSize: 16),
+                                    : const Text(
+                                        'Update Sport Center',
+                                        style: TextStyle(fontSize: 16),
                                       ),
                               ),
                             ),
@@ -717,9 +668,8 @@ class _WorkingHoursEntry {
     TimeOfDay? openingTime,
     TimeOfDay? closingTime,
     DateTime? validFrom,
-    DateTime? validTo,
-  }) : openingTime = openingTime ?? const TimeOfDay(hour: 8, minute: 0),
-       closingTime = closingTime ?? const TimeOfDay(hour: 22, minute: 0),
-       validFrom = validFrom ?? DateTime.now(),
-       validTo = validTo;
+    this.validTo,
+  })  : openingTime = openingTime ?? const TimeOfDay(hour: 8, minute: 0),
+        closingTime = closingTime ?? const TimeOfDay(hour: 20, minute: 0),
+        validFrom = validFrom ?? DateTime.now();
 }

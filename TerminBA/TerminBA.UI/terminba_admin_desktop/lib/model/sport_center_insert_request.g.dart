@@ -11,6 +11,7 @@ SportCenterInsertRequest _$SportCenterInsertRequestFromJson(
 ) => SportCenterInsertRequest(
   json['username'] as String,
   json['phoneNumber'] as String,
+  json['contactEmail'] as String?,
   (json['cityId'] as num).toInt(),
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
@@ -28,6 +29,7 @@ Map<String, dynamic> _$SportCenterInsertRequestToJson(
 ) => <String, dynamic>{
   'username': instance.username,
   'phoneNumber': instance.phoneNumber,
+  'contactEmail': instance.contactEmail,
   'cityId': instance.cityId,
   'address': instance.address,
   'isEquipmentProvided': instance.isEquipmentProvided,

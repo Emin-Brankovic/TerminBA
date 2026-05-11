@@ -15,6 +15,8 @@ namespace TerminBA.Models.Model
 
         public string? PhoneNumber { get; set; }
 
+        public string? ContactEmail { get; set; }
+
         public int CityId { get; set; }
 
         public CityResponse? City { get; set; }

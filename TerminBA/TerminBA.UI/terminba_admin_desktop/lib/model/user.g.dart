@@ -16,8 +16,8 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   json['phoneNumber'] as String,
   json['instagramAccount'] as String?,
   DateTime.parse(json['birthDate'] as String),
-  (json['cityId'] as num).toInt(),
-  (json['roleId'] as num).toInt(),
+    (json['cityId'] as num?)?.toInt(),
+    (json['roleId'] as num?)?.toInt(),
   json['isActive'] as bool,
   json['createdAt'] == null
       ? null

@@ -14,9 +14,9 @@ class User {
 	String phoneNumber;
 	String? instagramAccount;
 	DateTime birthDate;
-	int cityId;
+	int? cityId;
   City? city;
-	int roleId;
+	int? roleId;
   Role? role;
 	bool isActive;
 	DateTime? createdAt;
