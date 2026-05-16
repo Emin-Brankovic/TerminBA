@@ -46,6 +46,7 @@ builder.Services.AddScoped<ActiveReservationState>();
 builder.Services.AddScoped<CanceledReservationState>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<IReportService,ReportService>();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();

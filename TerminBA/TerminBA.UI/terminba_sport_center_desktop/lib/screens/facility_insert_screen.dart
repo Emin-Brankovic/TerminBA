@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/enums/day_of_week_enum.dart';
+import 'package:terminba_sport_center_desktop/helpers/image_validator.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price_insert_request.dart';
 import 'package:terminba_sport_center_desktop/model/facility_insert_request.dart';
@@ -36,6 +39,8 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   final List<Sport> _sports = [];
   final List<TurfType> _turfTypes = [];
   final List<_DynamicPriceEntry> _dynamicPrices = [];
+  final List<Uint8List> _selectedPhotos = [];
+  final Set<int> _removedPhotoIds = {};
 
   bool _initialized = false;
   bool _prefilled = false;
@@ -172,6 +177,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     setState(() => _isSaving = true);
 
     try {
+      print(_removedPhotoIds);
       final request = FacilityInsertRequest(
         name: values['name'] as String,
         maxCapacity: values['maxCapacity'] as int,
@@ -199,6 +205,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                 )
                 .toList()
             : null,
+        photos: _selectedPhotos.isEmpty ? null : List.unmodifiable(_selectedPhotos),
+        removedPhotoIds:
+            _removedPhotoIds.isEmpty ? null : _removedPhotoIds.toList(),
       );
 
       if (widget.facility == null) {
@@ -230,6 +239,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
             ),
           ),
         );
+        print(e);
       }
     } finally {
       if (mounted) {
@@ -283,6 +293,266 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
           letterSpacing: 0.2,
         ),
       ),
+    );
+  }
+
+  Future<void> _pickPhotos({bool replace = false}) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+      withData: true,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final picked = <Uint8List>[];
+    final errors = <String>[];
+
+    for (final file in result.files) {
+      final validationError = ImageValidator.validatePickedImage(file);
+      if (validationError != null) {
+        errors.add('${file.name}: $validationError');
+        continue;
+      }
+
+      if (file.bytes != null) {
+        picked.add(file.bytes!);
+      }
+    }
+
+    if (picked.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              errors.isNotEmpty
+                  ? errors.first
+                  : 'No readable images selected.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (errors.isNotEmpty && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            errors.length == 1
+                ? errors.first
+                : '${errors.first} (+${errors.length - 1} more)',
+          ),
+        ),
+      );
+    }
+
+    setState(() {
+      if (replace) {
+        _selectedPhotos
+          ..clear()
+          ..addAll(picked);
+        final existing = widget.facility?.photos ?? [];
+        if (existing.isNotEmpty) {
+          _removedPhotoIds
+            ..clear()
+            ..addAll(existing.map((photo) => photo.id));
+        }
+      } else {
+        _selectedPhotos.addAll(picked);
+      }
+    });
+  }
+
+  Widget _buildPhotoPickerSection() {
+    final existingPhotos = widget.facility?.photos
+            .where((photo) => (photo.url ?? '').trim().isNotEmpty)
+            .toList() ??
+        [];
+    final hasExisting = existingPhotos.isNotEmpty;
+    final hasRemoved = _removedPhotoIds.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Photos',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _pickPhotos(replace: false),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Add photos'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _pickPhotos(replace: true),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: const Text('Replace photos'),
+                ),
+                if (_selectedPhotos.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: TextButton(
+                      onPressed: () => setState(() => _selectedPhotos.clear()),
+                      child: const Text('Clear'),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        // if (hasExisting)
+        //   Padding(
+        //     padding: const EdgeInsets.only(bottom: 8),
+        //     child: Text(
+        //       'Existing photos will be kept unless you replace them.',
+        //       style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        //     ),
+        //   ),
+        if (hasExisting)
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _removedPhotoIds
+                      ..clear()
+                      ..addAll(existingPhotos.map((photo) => photo.id));
+                  });
+                },
+                icon: const Icon(Icons.delete_forever),
+                label: const Text('Remove all existing'),
+              ),
+              if (hasRemoved)
+                TextButton.icon(
+                  onPressed: () => setState(() => _removedPhotoIds.clear()),
+                  icon: const Icon(Icons.undo),
+                  label: const Text('Undo removals'),
+                ),
+            ],
+          ),
+        if (hasExisting)
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: existingPhotos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final photo = existingPhotos[index];
+                final url = photo.url;
+                final isRemoved = _removedPhotoIds.contains(photo.id);
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Stack(
+                    children: [
+                      Opacity(
+                        opacity: isRemoved ? 0.4 : 1,
+                        child: Image.network(
+                          url!,
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 90,
+                              height: 90,
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.broken_image),
+                            );
+                          },
+                        ),
+                      ),
+                      Positioned(
+                        top: 2,
+                        right: 2,
+                        child: IconButton(
+                          visualDensity: VisualDensity.compact,
+                          iconSize: 18,
+                          onPressed: () {
+                            setState(() {
+                              if (isRemoved) {
+                                _removedPhotoIds.remove(photo.id);
+                              } else {
+                                _removedPhotoIds.add(photo.id);
+                              }
+                            });
+                          },
+                          icon: Icon(
+                            isRemoved ? Icons.undo : Icons.delete_outline,
+                            color: isRemoved
+                                ? Colors.orange.shade700
+                                : Colors.red.shade600,
+                          ),
+                        ),
+                      ),
+                      if (isRemoved)
+                        Positioned(
+                          left: 4,
+                          bottom: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Removed',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
+        else
+          Text(
+            'No existing photos uploaded.',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+        const SizedBox(height: 8),
+        if (_selectedPhotos.isNotEmpty)
+          SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedPhotos.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.memory(
+                    _selectedPhotos[index],
+                    width: 90,
+                    height: 90,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          )
+        else
+          Text(
+            'No new photos selected.',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+      ],
     );
   }
 
@@ -796,6 +1066,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                 errorText: 'Select at least one sport.',
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            _sectionHeader('Photos'),
+                            _buildPhotoPickerSection(),
                             const SizedBox(height: 34),
                             SizedBox(
                               width: double.infinity,

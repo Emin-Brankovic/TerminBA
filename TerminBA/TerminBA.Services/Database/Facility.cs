@@ -50,5 +50,7 @@ namespace TerminBA.Services.Database
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
         public ICollection<FacilityDynamicPrice> DynamicPrices { get; set; } = new List<FacilityDynamicPrice>();
+
+        public ICollection<FacilityPhoto> Photos { get; set; } = new List<FacilityPhoto>();
     }
 }

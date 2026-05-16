@@ -8,7 +8,7 @@ import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dar
 // import 'package:terminba_admin_desktop/model/working_hours.dart';
 // import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
 
-class FacilityCard extends StatelessWidget {
+class FacilityCard extends StatefulWidget {
   const FacilityCard({
     super.key,
     required this.facility,
@@ -20,6 +20,25 @@ class FacilityCard extends StatelessWidget {
   final Function(int id) onDelete;
   final VoidCallback onRefresh;
 
+  @override
+  State<FacilityCard> createState() => _FacilityCardState();
+}
+
+class _FacilityCardState extends State<FacilityCard> {
+  late final PageController _photoController;
+  int _currentPhotoIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _photoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +52,11 @@ class FacilityCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            // 1. Placeholder Image Section
-            Container(
+            // 1. Photo Section
+            SizedBox(
               height: 150,
               width: double.infinity,
-              color: const Color(0xFFE8F0FE),
-              child: const Icon(
-                Icons.image,
-                color: Colors.blueAccent,
-                size: 50,
-              ),
+              child: _buildPhoto(),
             ),
 
             // 2. Content Section
@@ -56,31 +70,40 @@ class FacilityCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          facility.name ?? '',
+                          widget.facility.name ?? '',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _buildDetailRow('Surface Type:', facility.turfType?.name ?? ''),
-                        _buildDetailRow('Duration:', facility.durationHms + ' h'),
-                        _buildDetailRow('Indoor:', facility.isIndoor ? 'Yes' : 'No'),
+                        _buildDetailRow(
+                          'Surface Type:',
+                          widget.facility.turfType?.name ?? '',
+                        ),
+                        _buildDetailRow('Duration:', widget.facility.durationHms + ' h'),
+                        _buildDetailRow(
+                          'Indoor:',
+                          widget.facility.isIndoor ? 'Yes' : 'No',
+                        ),
                         _buildDetailRow(
                           'Max players on court:',
-                          facility.maxCapacity.toString(),
+                          widget.facility.maxCapacity.toString(),
                         ),
                         _buildDetailRow(
                           'Available Sports:',
-                          facility.availableSports
+                          widget.facility.availableSports
                               .map((s) => s.name ?? '')
                               .join(', '),
                         ),
 
-                        if (facility.isDynamicPricing)
-                          ..._buildDynamicPrices(facility.dynamicPrices)
+                        if (widget.facility.isDynamicPricing)
+                          ..._buildDynamicPrices(widget.facility.dynamicPrices)
                         else
-                           _buildDetailRow('Price:', facility.staticPrice.toString() + ' €'),
+                           _buildDetailRow(
+                             'Price:',
+                             widget.facility.staticPrice.toString() + ' €',
+                           ),
                       ],
                     ),
                   ),
@@ -99,13 +122,13 @@ class FacilityCard extends StatelessWidget {
                         final updated = await Navigator.of(context).push<bool>(
                           MaterialPageRoute(
                             builder: (_) => FacilityInsertScreen(
-                              facility: facility,
+                              facility: widget.facility,
                             ),
                           ),
                         );
 
                         if (updated == true) {
-                          onRefresh();
+                          widget.onRefresh();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -140,7 +163,7 @@ class FacilityCard extends StatelessWidget {
                               TextButton(
                                 onPressed: () async {
                                   Navigator.pop(ctx);
-                                  onDelete(facility.id);
+                                  widget.onDelete(widget.facility.id);
                                 },
                                 child: const Text('Confirm'),
                               ),
@@ -214,5 +237,144 @@ class FacilityCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPhoto() {
+    final photoUrls = _buildPhotoUrls();
+    if (photoUrls.isEmpty) {
+      return Container(
+        color: const Color(0xFFE8F0FE),
+        child: const Icon(
+          Icons.image,
+          color: Colors.blueAccent,
+          size: 50,
+        ),
+      );
+    }
+
+    if (photoUrls.length == 1) {
+      return _buildPhotoImage(photoUrls.first);
+    }
+
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _photoController,
+          itemCount: photoUrls.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentPhotoIndex = index;
+            });
+          },
+          itemBuilder: (context, index) {
+            return _buildPhotoImage(photoUrls[index]);
+          },
+        ),
+        Positioned(
+          left: 8,
+          top: 0,
+          bottom: 0,
+          child: _buildNavButton(
+            icon: Icons.chevron_left,
+            onPressed: () => _goToPhoto(photoUrls.length, -1),
+          ),
+        ),
+        Positioned(
+          right: 8,
+          top: 0,
+          bottom: 0,
+          child: _buildNavButton(
+            icon: Icons.chevron_right,
+            onPressed: () => _goToPhoto(photoUrls.length, 1),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 8,
+          child: _buildDots(photoUrls.length),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoImage(String url) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: const Color(0xFFE8F0FE),
+          child: const Icon(
+            Icons.broken_image,
+            color: Colors.blueAccent,
+            size: 50,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNavButton({required IconData icon, required VoidCallback onPressed}) {
+    return Center(
+      child: Material(
+        color: Colors.black.withOpacity(0.35),
+        shape: const CircleBorder(),
+        child: IconButton(
+          icon: Icon(icon, color: Colors.white),
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDots(int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        final isActive = index == _currentPhotoIndex;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: isActive ? 10 : 6,
+          height: isActive ? 10 : 6,
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.white70,
+            shape: BoxShape.circle,
+          ),
+        );
+      }),
+    );
+  }
+
+  void _goToPhoto(int total, int step) {
+    if (total <= 1) {
+      return;
+    }
+
+    final nextIndex = (_currentPhotoIndex + step) % total;
+    _photoController.animateToPage(
+      nextIndex < 0 ? total - 1 : nextIndex,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  List<String> _buildPhotoUrls() {
+    if (widget.facility.photos.isEmpty) {
+      return const [];
+    }
+
+    final mainPhotos = widget.facility.photos
+        .where((p) => p.isMain == true && (p.url?.isNotEmpty ?? false))
+        .map((p) => p.url!)
+        .toList();
+
+    final otherPhotos = widget.facility.photos
+        .where((p) => p.isMain != true && (p.url?.isNotEmpty ?? false))
+        .map((p) => p.url!)
+        .toList();
+
+    return [...mainPhotos, ...otherPhotos];
   }
 }

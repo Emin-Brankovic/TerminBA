@@ -1,5 +1,8 @@
 ﻿using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.IO;
 using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
@@ -14,10 +17,12 @@ namespace TerminBA.Services.Service
     public class FacilityService : BaseCRUDService<FacilityResponse,Facility,FacilitySearchObject,FacilityInsertRequest,FacilityUpdateRequest>, IFacilityService
     {
         private readonly IFacilityDynamicPriceService _facilityDynamicPriceService;
+        private readonly IPhotoService _photoService;
 
-        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService) : base(context, mapper)
+        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService,IPhotoService photoService) : base(context, mapper)
         {
             _facilityDynamicPriceService = facilityDynamicPriceService;
+            this._photoService = photoService;
         }
 
         public override IQueryable<Facility> ApplyFilter(IQueryable<Facility> query, FacilitySearchObject search)
@@ -86,7 +91,8 @@ namespace TerminBA.Services.Service
             query = query
                 .Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr))
                 .Include(f => f.TurfType)
-                .Include(f => f.AvailableSports);
+                .Include(f => f.AvailableSports)
+                .Include(f => f.Photos);
 
             return query;
         }
@@ -94,7 +100,6 @@ namespace TerminBA.Services.Service
 
         public override async Task<FacilityResponse> CreateAsync(FacilityInsertRequest request)
         {
-
             Facility entity = new Facility();
 
             entity = MapInsertToEntity(entity, request);
@@ -108,11 +113,67 @@ namespace TerminBA.Services.Service
                 entity.AvailableSports = sports;
             }
 
+            var photos = new List<FacilityPhoto>();
+
+            if (request.PhotoFiles != null && request.PhotoFiles.Any())
+            {
+                foreach (var photo in request.PhotoFiles)
+                {
+                    var reuslt = await _photoService.UploadFacilityPhotoAsync(photo);
+                    photos.Add(new FacilityPhoto
+                    {
+                        Url = reuslt.SecureUrl.AbsoluteUri,
+                        PublicId = reuslt.PublicId,
+                        Facility = entity
+                    });
+                }
+            }
+            else if (request.PhotosBase64 != null && request.PhotosBase64.Any())
+            {
+                foreach (var base64Photo in request.PhotosBase64)
+                {
+                    if (string.IsNullOrWhiteSpace(base64Photo))
+                    {
+                        continue;
+                    }
+
+                    var photoBytes = DecodeBase64Photo(base64Photo);
+                    using var stream = new MemoryStream(photoBytes);
+                    var fileName = $"facility_{Guid.NewGuid():N}.jpg";
+                    var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = "image/jpeg"
+                    };
+
+                    var result = await _photoService.UploadFacilityPhotoAsync(formFile);
+                    photos.Add(new FacilityPhoto
+                    {
+                        Url = result.SecureUrl.AbsoluteUri,
+                        PublicId = result.PublicId,
+                        Facility = entity
+                    });
+                }
+            }
+
+
             await BeforeInsert(entity, request);
 
             await _context.Facilities.AddAsync(entity);
 
             await _context.SaveChangesAsync();
+
+            if (photos.Any())
+            {
+                foreach (var photo in photos)
+                {
+                    photo.FacilityId = entity.Id;
+                }
+
+                entity.Photos = photos;
+                await _context.FacilityPhotos.AddRangeAsync(photos);
+                await _context.SaveChangesAsync();
+            }
 
             return MapToResponse(entity);
         }
@@ -224,7 +285,69 @@ namespace TerminBA.Services.Service
                 _context.FacilityDynamicPrices.RemoveRange(dynamicPrices);
             }
 
+            if (request.RemovedPhotoIds != null && request.RemovedPhotoIds.Any())
+            {
+                _context.Entry(entity).Collection(f => f.Photos).Load();
 
+                var photosToRemove = entity.Photos
+                    .Where(p => request.RemovedPhotoIds.Contains(p.Id))
+                    .ToList();
+
+                if (photosToRemove.Any())
+                {
+                    foreach (var photo in photosToRemove)
+                    {
+                        if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                        {
+                            await _photoService.DeleteFacilityPhotoAsync(photo.PublicId);
+                        }
+                    }
+
+                    _context.FacilityPhotos.RemoveRange(photosToRemove);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (request.PhotosBase64 != null && request.PhotosBase64.Any())
+            {
+                var photos = new List<FacilityPhoto>();
+                foreach (var base64Photo in request.PhotosBase64)
+                {
+                    if (string.IsNullOrWhiteSpace(base64Photo))
+                    {
+                        continue;
+                    }
+
+                    var photoBytes = DecodeBase64Photo(base64Photo);
+                    using var stream = new MemoryStream(photoBytes);
+                    var fileName = $"facility_{Guid.NewGuid():N}.jpg";
+                    var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = "image/jpeg"
+                    };
+
+                    var result = await _photoService.UploadFacilityPhotoAsync(formFile);
+                    photos.Add(new FacilityPhoto
+                    {
+                        Url = result.SecureUrl.AbsoluteUri,
+                        PublicId = result.PublicId,
+                        Facility = entity
+                    });
+                }
+
+                if (photos.Any())
+                {
+                    foreach (var photo in photos)
+                    {
+                        photo.FacilityId = entity.Id;
+                    }
+
+                    entity.Photos = photos;
+                    await _context.FacilityPhotos.AddRangeAsync(photos);
+                    await _context.SaveChangesAsync();
+                }
+            }
         }
 
         protected override async Task BeforeDelete(Facility entity)
@@ -388,6 +511,18 @@ namespace TerminBA.Services.Service
             }
 
             return days;
+        }
+
+        private static byte[] DecodeBase64Photo(string base64Photo)
+        {
+            var trimmed = base64Photo.Trim();
+            var commaIndex = trimmed.IndexOf(",", StringComparison.Ordinal);
+            if (commaIndex >= 0 && trimmed.Substring(0, commaIndex).Contains("base64", StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = trimmed[(commaIndex + 1)..];
+            }
+
+            return Convert.FromBase64String(trimmed);
         }
     }
 }

@@ -27,6 +27,10 @@ FacilityInsertRequest _$FacilityInsertRequestFromJson(
         ),
       )
       .toList(),
+  photos: _bytesListFromJson(json['photos'] as List?),
+  removedPhotoIds: (json['removedPhotoIds'] as List<dynamic>?)
+      ?.map((e) => (e as num).toInt())
+      .toList(),
 );
 
 Map<String, dynamic> _$FacilityInsertRequestToJson(
@@ -42,4 +46,6 @@ Map<String, dynamic> _$FacilityInsertRequestToJson(
   'turfTypeId': instance.turfTypeId,
   'availableSportsIds': instance.availableSportsIds,
   'dynamicPrices': instance.dynamicPrices,
+  'photos': _bytesListToJson(instance.photos),
+  'removedPhotoIds': instance.removedPhotoIds,
 };

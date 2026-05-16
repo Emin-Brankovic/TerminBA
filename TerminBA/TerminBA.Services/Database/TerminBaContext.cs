@@ -35,6 +35,7 @@ namespace TerminBA.Services.Database
         public DbSet<Amenity> Amenity { get; set; }
         public DbSet<PlayRequest> PlayRequests { get; set; }
         public DbSet<FacilityDynamicPrice> FacilityDynamicPrices { get; set; }
+        public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

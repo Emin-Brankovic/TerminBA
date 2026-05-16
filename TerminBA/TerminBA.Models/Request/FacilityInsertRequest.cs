@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using TerminBA.Models.Model;
 
@@ -41,6 +43,14 @@ namespace TerminBA.Models.Request
         public List<int> AvailableSportsIds { get; set; } = new List<int>();
 
         public List<FacilityDynamicPriceInsertRequest>? DynamicPrices { get; set; }
+
+        [JsonIgnore]
+        public List<IFormFile>? PhotoFiles { get; set; }
+
+        [JsonPropertyName("photos")]
+        public List<string>? PhotosBase64 { get; set; }
+
+        public List<int>? RemovedPhotoIds { get; set; }
     }
 }
 

@@ -28,6 +28,9 @@ Facility _$FacilityFromJson(Map<String, dynamic> json) => Facility(
   dynamicPrices: (json['dynamicPrices'] as List<dynamic>?)
       ?.map((e) => FacilityDynamicPrice.fromJson(e as Map<String, dynamic>))
       .toList(),
+  photos: (json['photos'] as List<dynamic>?)
+      ?.map((e) => FacilityPhotoResponse.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$FacilityToJson(Facility instance) => <String, dynamic>{
@@ -44,4 +47,5 @@ Map<String, dynamic> _$FacilityToJson(Facility instance) => <String, dynamic>{
   'turfType': instance.turfType,
   'availableSports': instance.availableSports,
   'dynamicPrices': instance.dynamicPrices,
+  'photos': instance.photos,
 };

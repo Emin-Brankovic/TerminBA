@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace TerminBA.Models.Request
@@ -41,6 +43,14 @@ namespace TerminBA.Models.Request
 
         [MinLength(1, ErrorMessage = "At least one price must be entered.")]
         public List<FacilityDynamicPriceUpdateRequest>? DynamicPrices { get; set; }
+
+        [JsonIgnore]
+        public List<IFormFile>? PhotoFiles { get; set; }
+
+        [JsonPropertyName("photos")]
+        public List<string>? PhotosBase64 { get; set; }
+
+        public List<int>? RemovedPhotoIds { get; set; }
     }
 }
 

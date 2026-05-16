@@ -1,4 +1,5 @@
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price.dart';
+import 'package:terminba_sport_center_desktop/model/facility_photo_response.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
 import 'package:terminba_sport_center_desktop/model/sport_center.dart';
 import 'package:terminba_sport_center_desktop/model/turf_type.dart';
@@ -22,6 +23,8 @@ class Facility {
   TurfType? turfType;
   List<Sport> availableSports;
   List<FacilityDynamicPrice> dynamicPrices;
+  List<FacilityPhotoResponse> photos;
+
 
   Facility({
     required this.id,
@@ -37,8 +40,10 @@ class Facility {
     this.turfType,
     List<Sport>? availableSports,
     List<FacilityDynamicPrice>? dynamicPrices,
+    List<FacilityPhotoResponse>? photos,
   })  : availableSports = availableSports ?? [],
-        dynamicPrices = dynamicPrices ?? [];
+        dynamicPrices = dynamicPrices ?? [],
+        photos = photos ?? [];
 
 
   factory Facility.fromJson(Map<String, dynamic> json) =>

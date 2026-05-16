@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price_insert_request.dart';
 
@@ -16,6 +18,9 @@ class FacilityInsertRequest {
 	int turfTypeId;
 	List<int> availableSportsIds;
 	List<FacilityDynamicPriceInsertRequest>? dynamicPrices;
+	@JsonKey(fromJson: _bytesListFromJson, toJson: _bytesListToJson)
+	List<Uint8List>? photos;
+	List<int>? removedPhotoIds;
 
 	FacilityInsertRequest({
 		required this.name,
@@ -28,6 +33,8 @@ class FacilityInsertRequest {
 		required this.turfTypeId,
 		List<int>? availableSportsIds,
 		this.dynamicPrices,
+		this.photos,
+		this.removedPhotoIds,
 	}) : availableSportsIds = availableSportsIds ?? [];
 
 	factory FacilityInsertRequest.fromJson(Map<String, dynamic> json) =>
@@ -63,4 +70,20 @@ String _durationToJson(Duration value) {
 	final hours = value.inHours.toString().padLeft(2, '0');
 	final minutes = (value.inMinutes % 60).toString().padLeft(2, '0');
 	return '$hours:$minutes';
+}
+
+List<Uint8List>? _bytesListFromJson(List<dynamic>? value) {
+	if (value == null) {
+		return null;
+	}
+	return value
+			.map((item) => base64Decode(item as String))
+			.toList();
+}
+
+List<String>? _bytesListToJson(List<Uint8List>? value) {
+	if (value == null) {
+		return null;
+	}
+	return value.map(base64Encode).toList();
 }

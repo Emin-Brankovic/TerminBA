@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Services.Database;
 
 namespace TerminBA.Models.Model
 {
@@ -34,6 +35,8 @@ namespace TerminBA.Models.Model
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();
 
         public ICollection<FacilityDynamicPriceResponse> DynamicPrices { get; set; } = new List<FacilityDynamicPriceResponse>();
+        public ICollection<FacilityPhotoResponse> Photos { get; set; } = new List<FacilityPhotoResponse>();
+
 
         //public ICollection<FacilityReviewResponse> ReviewsReceived { get; set; } = new List<FacilityReviewResponse>();
 
