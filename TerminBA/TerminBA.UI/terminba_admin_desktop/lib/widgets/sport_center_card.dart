@@ -4,7 +4,7 @@ import 'package:terminba_admin_desktop/model/sport_center.dart';
 import 'package:terminba_admin_desktop/model/working_hours.dart';
 import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
 
-class SportCenterCard extends StatelessWidget {
+class SportCenterCard extends StatefulWidget {
   const SportCenterCard({
     super.key,
     required this.sportCenter,
@@ -16,6 +16,25 @@ class SportCenterCard extends StatelessWidget {
   final Function(int id) onDelete;
   final VoidCallback onRefresh;
 
+  @override
+  State<SportCenterCard> createState() => _SportCenterCardState();
+}
+
+class _SportCenterCardState extends State<SportCenterCard> {
+  late final PageController _photoController;
+  int _currentPhotoIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _photoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,16 +48,11 @@ class SportCenterCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            // 1. Placeholder Image Section
-            Container(
+            // 1. Photo Section
+            SizedBox(
               height: 150,
               width: double.infinity,
-              color: const Color(0xFFE8F0FE),
-              child: const Icon(
-                Icons.image,
-                color: Colors.blueAccent,
-                size: 50,
-              ),
+              child: _buildPhoto(),
             ),
 
             // 2. Content Section
@@ -52,47 +66,47 @@ class SportCenterCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          sportCenter.username,
+                          widget.sportCenter.username,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          sportCenter.city?.name ?? '',
+                          widget.sportCenter.city?.name ?? '',
                           style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                         const SizedBox(height: 12),
-                        _buildDetailRow('Address:', sportCenter.address),
-                        _buildDetailRow('Phone:', sportCenter.phoneNumber),
-                        if ((sportCenter.contactEmail ?? '').trim().isNotEmpty)
+                        _buildDetailRow('Address:', widget.sportCenter.address),
+                        _buildDetailRow('Phone:', widget.sportCenter.phoneNumber),
+                        if ((widget.sportCenter.contactEmail ?? '').trim().isNotEmpty)
                           _buildDetailRow(
                             'Email:',
-                            sportCenter.contactEmail!.trim(),
+                            widget.sportCenter.contactEmail!.trim(),
                           ),
                         _buildDetailRow(
                           'Equipment provided:',
-                          sportCenter.isEquipmentProvided ? 'Yes' : 'No',
+                          widget.sportCenter.isEquipmentProvided ? 'Yes' : 'No',
                         ),
                         _buildDetailRow(
                           'Available Sports:',
-                          sportCenter.availableSports
+                          widget.sportCenter.availableSports
                               .map((s) => s.name ?? '')
                               .join(', '),
                         ),
                         _buildDetailRow(
                           'Amenities:',
-                          sportCenter.availableAmenities
+                          widget.sportCenter.availableAmenities
                               .map((a) => a.name)
                               .join(', '),
                         ),
-                        if (sportCenter.description.isNotEmpty)
+                        if (widget.sportCenter.description.isNotEmpty)
                           _buildDetailRow(
                             'Description:',
-                            sportCenter.description,
+                            widget.sportCenter.description,
                           ),
-                        if (sportCenter.workingHours.isNotEmpty)
-                          ..._buildWorkingHours(sportCenter.workingHours),
+                        if (widget.sportCenter.workingHours.isNotEmpty)
+                          ..._buildWorkingHours(widget.sportCenter.workingHours),
                       ],
                     ),
                   ),
@@ -111,11 +125,11 @@ class SportCenterCard extends StatelessWidget {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => SportCenterInsertScreen(
-                              sportCenter: sportCenter,
+                              sportCenter: widget.sportCenter,
                             ),
                           ),
                         );
-                        onRefresh();
+                        //onRefresh();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00C853), // Green
@@ -149,7 +163,7 @@ class SportCenterCard extends StatelessWidget {
                               TextButton(
                                 onPressed: () async {
                                   Navigator.pop(ctx);
-                                  onDelete(sportCenter.id);
+                                  widget.onDelete(widget.sportCenter.id);
                                 },
                                 child: const Text('Confirm'),
                               ),
@@ -222,5 +236,144 @@ class SportCenterCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildPhoto() {
+    final photoUrls = _buildPhotoUrls();
+    if (photoUrls.isEmpty) {
+      return Container(
+        color: const Color(0xFFE8F0FE),
+        child: const Icon(
+          Icons.image,
+          color: Colors.blueAccent,
+          size: 50,
+        ),
+      );
+    }
+
+    if (photoUrls.length == 1) {
+      return _buildPhotoImage(photoUrls.first);
+    }
+
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _photoController,
+          itemCount: photoUrls.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentPhotoIndex = index;
+            });
+          },
+          itemBuilder: (context, index) {
+            return _buildPhotoImage(photoUrls[index]);
+          },
+        ),
+        Positioned(
+          left: 8,
+          top: 0,
+          bottom: 0,
+          child: _buildNavButton(
+            icon: Icons.chevron_left,
+            onPressed: () => _goToPhoto(photoUrls.length, -1),
+          ),
+        ),
+        Positioned(
+          right: 8,
+          top: 0,
+          bottom: 0,
+          child: _buildNavButton(
+            icon: Icons.chevron_right,
+            onPressed: () => _goToPhoto(photoUrls.length, 1),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 8,
+          child: _buildDots(photoUrls.length),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoImage(String url) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: const Color(0xFFE8F0FE),
+          child: const Icon(
+            Icons.broken_image,
+            color: Colors.blueAccent,
+            size: 50,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNavButton({required IconData icon, required VoidCallback onPressed}) {
+    return Center(
+      child: Material(
+        color: Colors.black.withOpacity(0.35),
+        shape: const CircleBorder(),
+        child: IconButton(
+          icon: Icon(icon, color: Colors.white),
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDots(int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (index) {
+        final isActive = index == _currentPhotoIndex;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: isActive ? 10 : 6,
+          height: isActive ? 10 : 6,
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.white70,
+            shape: BoxShape.circle,
+          ),
+        );
+      }),
+    );
+  }
+
+  void _goToPhoto(int total, int step) {
+    if (total <= 1) {
+      return;
+    }
+
+    final nextIndex = (_currentPhotoIndex + step) % total;
+    _photoController.animateToPage(
+      nextIndex < 0 ? total - 1 : nextIndex,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  List<String> _buildPhotoUrls() {
+    if (widget.sportCenter.photos.isEmpty) {
+      return const [];
+    }
+
+    final mainPhotos = widget.sportCenter.photos
+        .where((p) => p.isMain == true && (p.url?.isNotEmpty ?? false))
+        .map((p) => p.url!)
+        .toList();
+
+    final otherPhotos = widget.sportCenter.photos
+        .where((p) => p.isMain != true && (p.url?.isNotEmpty ?? false))
+        .map((p) => p.url!)
+        .toList();
+
+    return [...mainPhotos, ...otherPhotos];
   }
 }

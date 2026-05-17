@@ -1,7 +1,9 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,12 +22,14 @@ namespace TerminBA.Services.Service
         private readonly IWorkingHoursService _workingHoursService;
         private readonly IReportService _reportService;
         private readonly IAuthService<SportCenter> _authService;
+        private readonly IPhotoService _photoService;
 
-        public SportCenterService(TerminBaContext context, IMapper mapper,IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService) : base(context, mapper)
+        public SportCenterService(TerminBaContext context, IMapper mapper, IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService, IPhotoService photoService) : base(context, mapper)
         {
             _workingHoursService = workingHoursService;
             _reportService = reportService;
             _authService = authService;
+            _photoService = photoService;
         }
 
         public async Task<AuthResponse?> Login(SportCenterLoginRequest request)
@@ -124,6 +128,23 @@ namespace TerminBA.Services.Service
             return MapToResponse(entity);
         }
 
+        public async Task<SportCenterResponse> UpdateCurrentGallery(SportCenterGalleryUpdateRequest request)
+        {
+            var id = int.Parse(_authService.GetUserId());
+
+            var query = _context.SportCenters.AsQueryable();
+            query = ApplyIncludes(query);
+
+            var entity = await query.FirstOrDefaultAsync(sc => sc.Id == id);
+
+            if (entity == null)
+                throw new UserException("Sport center not found");
+
+            await UpdateGalleryAsync(entity, request.RemovedPhotoIds, request.PhotosBase64);
+
+            return MapToResponse(entity);
+        }
+
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
         {
             return query
@@ -131,7 +152,8 @@ namespace TerminBA.Services.Service
                  .Include(sc => sc.Role)
                  .Include(sc => sc.AvailableAmenities)
                  .Include(sc => sc.AvailableSports)
-                 .Include(sc => sc.WorkingHours);
+                  .Include(sc => sc.WorkingHours)
+                  .Include(sc => sc.Photos);
         }
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
@@ -176,6 +198,89 @@ namespace TerminBA.Services.Service
             entity.AvailableSports = existingSports;
             entity.AvailableAmenities = existingAmenities;
 
+           // await UpdateGalleryAsync(entity, request.RemovedPhotoIds, request.PhotosBase64);
+
+        }
+
+        private async Task UpdateGalleryAsync(SportCenter entity, List<int>? removedPhotoIds, List<string>? photosBase64)
+        {
+            if (removedPhotoIds != null && removedPhotoIds.Any())
+            {
+                _context.Entry(entity).Collection(sc => sc.Photos).Load();
+
+                var photosToRemove = entity.Photos
+                    .Where(p => removedPhotoIds.Contains(p.Id))
+                    .ToList();
+
+                if (photosToRemove.Any())
+                {
+                    foreach (var photo in photosToRemove)
+                    {
+                        if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                        {
+                            await _photoService.DeleteSportCenterPhotoAsync(photo.PublicId);
+                        }
+                    }
+
+                    _context.SportCenterPhotos.RemoveRange(photosToRemove);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            if (photosBase64 == null || !photosBase64.Any())
+            {
+                return;
+            }
+
+            var photos = new List<SportCenterPhoto>();
+            foreach (var base64Photo in photosBase64)
+            {
+                if (string.IsNullOrWhiteSpace(base64Photo))
+                {
+                    continue;
+                }
+
+                var photoBytes = DecodeBase64Photo(base64Photo);
+                using var stream = new MemoryStream(photoBytes);
+                var fileName = $"sportcenter_{Guid.NewGuid():N}.jpg";
+                var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = "image/jpeg"
+                };
+
+                var result = await _photoService.UploadSportCenterPhotoAsync(formFile);
+                photos.Add(new SportCenterPhoto
+                {
+                    Url = result.SecureUrl.AbsoluteUri,
+                    PublicId = result.PublicId,
+                    SportCenter = entity
+                });
+            }
+
+            if (photos.Any())
+            {
+                foreach (var photo in photos)
+                {
+                    photo.SportCenterId = entity.Id;
+                }
+
+                entity.Photos = photos;
+                await _context.SportCenterPhotos.AddRangeAsync(photos);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private static byte[] DecodeBase64Photo(string base64Photo)
+        {
+            var trimmed = base64Photo.Trim();
+            var commaIndex = trimmed.IndexOf(",", StringComparison.Ordinal);
+            if (commaIndex >= 0 && trimmed.Substring(0, commaIndex).Contains("base64", StringComparison.OrdinalIgnoreCase))
+            {
+                trimmed = trimmed[(commaIndex + 1)..];
+            }
+
+            return Convert.FromBase64String(trimmed);
         }
 
         //public override async Task<SportCenterResponse?> UpdateAsync(int id, SportCenterUpdateRequest request)

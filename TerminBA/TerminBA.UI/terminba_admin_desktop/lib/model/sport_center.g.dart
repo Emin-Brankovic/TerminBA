@@ -35,6 +35,10 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['workingHours'] as List<dynamic>)
       .map((e) => WorkingHours.fromJson(e as Map<String, dynamic>))
       .toList(),
+  (json['photos'] as List<dynamic>?)
+          ?.map((e) => SportCenterPhotoResponse.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
   _bytesFromJson(json['credentialsReport']),
 );
 
@@ -57,4 +61,5 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'availableSports': instance.availableSports,
       'availableAmenities': instance.availableAmenities,
       'workingHours': instance.workingHours,
+      'photos': instance.photos,
     };

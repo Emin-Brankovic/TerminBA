@@ -204,10 +204,12 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(),
-        title:Text(
-            'Reservation statistics',
-            style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
-      )),
+        title:Center(
+          child: Text(
+              'Reservation statistics',
+              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.white),
+                ),
+        )),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(

@@ -116,8 +116,6 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
 
     setState(() => _isSaving = true);
     try {
-      print(_formKey.currentState?.value.toString());
-
       if (_isEditing) {
         final updateRequest = SportCenterUpdateRequest(
           values['username'] as String,

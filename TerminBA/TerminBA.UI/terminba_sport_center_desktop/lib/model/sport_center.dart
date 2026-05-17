@@ -6,6 +6,7 @@ import 'package:terminba_sport_center_desktop/model/amenity.dart';
 import 'package:terminba_sport_center_desktop/model/city.dart';
 import 'package:terminba_sport_center_desktop/model/role.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
+import 'package:terminba_sport_center_desktop/model/sport_center_photo_response.dart';
 import 'package:terminba_sport_center_desktop/model/working_hours.dart';
 
 part 'sport_center.g.dart';
@@ -30,6 +31,7 @@ class SportCenter {
   List<Sport> availableSports;
   List<Amenity> availableAmenities;
   List<WorkingHours> workingHours;
+  List<SportCenterPhotoResponse> photos;
 
   SportCenter(
     this.id,
@@ -48,6 +50,7 @@ class SportCenter {
     this.city,
     this.role,
     this.workingHours,
+    this.photos,
     this.credentialsReport,
   );
 

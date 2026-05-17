@@ -10,6 +10,7 @@ import 'package:terminba_sport_center_desktop/helpers/image_validator.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price_insert_request.dart';
 import 'package:terminba_sport_center_desktop/model/facility_insert_request.dart';
+import 'package:terminba_sport_center_desktop/model/facility_photo_response.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
 import 'package:terminba_sport_center_desktop/model/turf_type.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
@@ -27,6 +28,7 @@ class FacilityInsertScreen extends StatefulWidget {
 }
 
 class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
+  static const int _maxGalleryPhotos = 12;
   final _formKey = GlobalKey<FormBuilderState>();
   final _hoursController = TextEditingController();
   final _minutesController = TextEditingController();
@@ -297,6 +299,20 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   }
 
   Future<void> _pickPhotos({bool replace = false}) async {
+    final existingPhotos = _getExistingPhotos();
+    final activeExistingCount = existingPhotos.length - _removedPhotoIds.length;
+    final remainingSlots = _maxGalleryPhotos -
+        (replace ? 0 : (_selectedPhotos.length + activeExistingCount));
+
+    if (remainingSlots <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo gallery is full.')),
+        );
+      }
+      return;
+    }
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       allowMultiple: true,
@@ -311,6 +327,11 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     final errors = <String>[];
 
     for (final file in result.files) {
+      if (picked.length >= remainingSlots) {
+        errors.add('Photo limit reached. Max 12 photos allowed.');
+        break;
+      }
+
       final validationError = ImageValidator.validatePickedImage(file);
       if (validationError != null) {
         errors.add('${file.name}: $validationError');
@@ -354,7 +375,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
         _selectedPhotos
           ..clear()
           ..addAll(picked);
-        final existing = widget.facility?.photos ?? [];
+        final existing = existingPhotos;
         if (existing.isNotEmpty) {
           _removedPhotoIds
             ..clear()
@@ -366,11 +387,15 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     });
   }
 
-  Widget _buildPhotoPickerSection() {
-    final existingPhotos = widget.facility?.photos
+  List<FacilityPhotoResponse> _getExistingPhotos() {
+    return widget.facility?.photos
             .where((photo) => (photo.url ?? '').trim().isNotEmpty)
             .toList() ??
         [];
+  }
+
+  Widget _buildPhotoPickerSection() {
+    final existingPhotos = _getExistingPhotos();
     final hasExisting = existingPhotos.isNotEmpty;
     final hasRemoved = _removedPhotoIds.isNotEmpty;
     return Column(

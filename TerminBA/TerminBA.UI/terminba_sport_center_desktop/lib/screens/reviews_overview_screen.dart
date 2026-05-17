@@ -257,22 +257,7 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
   }
 
   String _formatDate(DateTime date) {
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    return '${monthNames[date.month - 1]} ${date.day}';
+    return DateFormat('MMMM d, yyyy').format(date);
   }
 
   @override

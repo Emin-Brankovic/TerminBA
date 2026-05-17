@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace TerminBA.Services.Database
 {
-    public class FacilityPhoto : PhotoBase
+    public class PhotoBase
     {
+        [Key]
+        public int Id { get; set; }
         [Required]
-        public int FacilityId { get; set; }
-        public Facility? Facility { get; set; }
+        public string? Url { get; set; }
+        [Required]
+        public string? PublicId { get; set; }
+        public bool? IsMain { get; set; }
     }
 }

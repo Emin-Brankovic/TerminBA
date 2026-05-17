@@ -12,5 +12,7 @@ namespace TerminBA.Services.Interfaces
     {
         Task<ImageUploadResult> UploadFacilityPhotoAsync(IFormFile file);
         Task DeleteFacilityPhotoAsync(string publicId);
+        Task<ImageUploadResult> UploadSportCenterPhotoAsync(IFormFile file);
+        Task DeleteSportCenterPhotoAsync(string publicId);
     }
 }

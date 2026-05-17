@@ -5,6 +5,7 @@ import 'package:terminba_sport_center_desktop/model/sport_center.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/sport_center_edit_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/sport_center_gallery_screen.dart';
 
 class SportCenterProfileScreen extends StatefulWidget {
 	const SportCenterProfileScreen({super.key});
@@ -185,7 +186,18 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 					label: const Text('Edit Profile'),
 				),
 				OutlinedButton.icon(
-					onPressed: () {},
+					onPressed: () async {
+						final updated = await Navigator.of(context).push<bool>(
+							MaterialPageRoute(
+								builder: (context) => SportCenterGalleryScreen(
+									sportCenter: sportCenter,
+								),
+							),
+						);
+						if (updated == true) {
+							_loadSportCenter();
+						}
+					},
 					icon: const Icon(Icons.photo_library_outlined),
 					label: const Text('Manage Gallery'),
 				),

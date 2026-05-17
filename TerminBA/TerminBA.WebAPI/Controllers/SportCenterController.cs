@@ -31,5 +31,11 @@ namespace TerminBA.WebAPI.Controllers
         {
             return await _sportCenterService.GetCurrentSportCenter();
         }
+
+        [HttpPut("gallery")]
+        public async Task<SportCenterResponse> UpdateGallery([FromBody] SportCenterGalleryUpdateRequest request)
+        {
+            return await _sportCenterService.UpdateCurrentGallery(request);
+        }
     }
 }

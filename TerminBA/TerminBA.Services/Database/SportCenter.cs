@@ -39,5 +39,7 @@ namespace TerminBA.Services.Database
 
         public ICollection<Facility> Facilities { get; set; } = new List<Facility>();
 
+        public ICollection<SportCenterPhoto> Photos { get; set; } = new List<SportCenterPhoto>();
+
     }
 }
