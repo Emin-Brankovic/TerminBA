@@ -44,9 +44,11 @@ namespace TerminBA.Models.Request
         [MinLength(1, ErrorMessage = "At least one price must be entered.")]
         public List<FacilityDynamicPriceUpdateRequest>? DynamicPrices { get; set; }
 
+        [MaxLength(12)]
         [JsonIgnore]
         public List<IFormFile>? PhotoFiles { get; set; }
 
+        [MaxLength(12)]
         [JsonPropertyName("photos")]
         public List<string>? PhotosBase64 { get; set; }
 

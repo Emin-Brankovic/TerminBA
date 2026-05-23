@@ -1,0 +1,68 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "terminba_admin_desktop",
+            "cwd": "TerminBA.UI\\terminba_admin_desktop",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "terminba_admin_desktop (profile mode)",
+            "cwd": "TerminBA.UI\\terminba_admin_desktop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "terminba_admin_desktop (release mode)",
+            "cwd": "TerminBA.UI\\terminba_admin_desktop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "terminba_mobile",
+            "cwd": "TerminBA.UI\\terminba_mobile",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "terminba_mobile (profile mode)",
+            "cwd": "TerminBA.UI\\terminba_mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "terminba_mobile (release mode)",
+            "cwd": "TerminBA.UI\\terminba_mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "terminba_sport_center_desktop",
+            "cwd": "TerminBA.UI\\terminba_sport_center_desktop",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "terminba_sport_center_desktop (profile mode)",
+            "cwd": "TerminBA.UI\\terminba_sport_center_desktop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "terminba_sport_center_desktop (release mode)",
+            "cwd": "TerminBA.UI\\terminba_sport_center_desktop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

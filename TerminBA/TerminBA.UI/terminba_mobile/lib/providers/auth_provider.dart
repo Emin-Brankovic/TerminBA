@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:terminba_mobile/main.dart';
+import 'package:terminba_mobile/screens/login_screen.dart';
 // import 'package:terminba_sport_center_desktop/main.dart';
 // import 'package:terminba_sport_center_desktop/screens/login_screen.dart';
 
@@ -20,7 +22,7 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     _baseUrl = const String.fromEnvironment(
       'baseUrl',
-      defaultValue: 'http://localhost:5078/api',
+      defaultValue: 'http://10.0.2.2:5078/api',
     );
   }
 
@@ -36,7 +38,7 @@ class AuthProvider extends ChangeNotifier {
       _isLoggedIn = true;
       notifyListeners();
     } else {
-      //await logout();
+      await logout();
     }
   }
 
@@ -45,7 +47,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> login(String username, String password, int roleId) async {
-    var url = '$_baseUrl/SportCenter/login';
+    var url = '$_baseUrl/User/login';
     try {
       final respone = await http.post(
         Uri.parse(url),
@@ -118,13 +120,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Future<void> logout() async {
-  //   await _storage.delete(key: _tokenKey);
-  //   _isLoggedIn = false;
-  //   _currentUsername = null;
-  //   notifyListeners();
-  //   navigatorKey.currentState?.pushReplacement(
-  //     MaterialPageRoute(builder: (_) => const LoginPage()),
-  //   );
-  // }
+  Future<void> logout() async {
+    await _storage.delete(key: _tokenKey);
+    _isLoggedIn = false;
+    _currentUsername = null;
+    notifyListeners();
+    navigatorKey.currentState?.pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
 }

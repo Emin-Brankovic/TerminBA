@@ -17,7 +17,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     _endpoint = endpoint;
     _baseUrl = const String.fromEnvironment(
       "baseUrl",
-      defaultValue: "http://localhost:5078/api/",
+      defaultValue: "http://10.0.2.2:5078/api/",
     );
   }
 
@@ -58,6 +58,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     var jsonRequest = jsonEncode(request);
     var response = await http.post(uri, headers: headers, body: jsonRequest);
+    print(response.body);
 
     if (isValidResponse(response)) {
       if (response.body.isEmpty) return null;
