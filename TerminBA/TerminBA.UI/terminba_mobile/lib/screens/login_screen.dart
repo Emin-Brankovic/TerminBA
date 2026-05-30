@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:terminba_mobile/main.dart';
+import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/sign_up_screen.dart';
 
@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
 			Navigator.pushReplacement(
 				context,
 				MaterialPageRoute(
-					builder: (context) => const MyHomePage(title: 'TerminBA'),
+					builder: (context) => const MasterScreenBottomNav(),
 				),
 			);
 		} on Exception catch (e) {
