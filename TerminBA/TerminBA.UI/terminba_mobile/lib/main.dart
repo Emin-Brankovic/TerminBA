@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/base_provider.dart';
 import 'package:terminba_mobile/providers/city_provider.dart';
+import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/providers/facility_review_provider.dart';
 import 'package:terminba_mobile/providers/role_provider.dart';
+import 'package:terminba_mobile/providers/sport_center_provider.dart';
+import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
@@ -28,6 +32,11 @@ void main() async {
         ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
         ChangeNotifierProvider<CityProvider>(create: (_) => CityProvider()),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+        ChangeNotifierProvider<FacilityProvider>(create: (_) => FacilityProvider()),
+        ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
+        ChangeNotifierProvider<SportCenterProvider>(create: (_) => SportCenterProvider()),
+        ChangeNotifierProvider<FacilityReviewProvider>(create: (_) => FacilityReviewProvider()),
+
       ],
       child: const MyApp(),
     ),);

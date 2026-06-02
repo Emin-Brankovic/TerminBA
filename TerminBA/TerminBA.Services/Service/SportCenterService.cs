@@ -14,6 +14,7 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -145,6 +146,93 @@ namespace TerminBA.Services.Service
             return MapToResponse(entity);
         }
 
+        public async Task<PagedResult<SportCenterResponse>> SearchAvailableAsync(
+            SportCenterAvailabilitySearchObject search)
+        {
+            if (!search.Date.HasValue)
+                throw new UserException("Date is required for availability search.");
+
+            //if (!search.SportId.HasValue)
+            //    throw new UserException("Sport is required for availability search.");
+
+            if (!search.CityId.HasValue && string.IsNullOrWhiteSpace(search.CityName))
+                throw new UserException("City is required for availability search.");
+
+            var date = search.Date.Value;
+            var sportId = search.SportId;
+
+            var facilitiesQuery = _context.Facilities.AsQueryable();
+            if(sportId != null)
+                facilitiesQuery = facilitiesQuery.Where(f =>
+                    f.AvailableSports.Any(s => s.Id == sportId));
+
+            if (search.CityId.HasValue)
+            {
+                facilitiesQuery = facilitiesQuery.Where(
+                    f => f.SportCenter != null && f.SportCenter.CityId == search.CityId);
+            }
+            else if (!string.IsNullOrWhiteSpace(search.CityName))
+            {
+                var cityName = search.CityName.Trim().ToLower();
+                facilitiesQuery = facilitiesQuery.Where(
+                    f =>
+                        f.SportCenter!.City!.Name!.ToLower().Contains(cityName));
+            }
+
+            var facilities = await facilitiesQuery
+                .Select(f => new { f.Id, f.SportCenterId })
+                .ToListAsync();
+
+            if (!facilities.Any())
+            {
+                return new PagedResult<SportCenterResponse>
+                {
+                    Items = new List<SportCenterResponse>(),
+                    Count = 0
+                };
+            }
+
+            var availableSportCenterIds = new HashSet<int>();
+
+            foreach (var facility in facilities)
+            {
+                if (await FacilityHasFreeSlotAsync(facility.Id, date))
+                {
+                    availableSportCenterIds.Add(facility.SportCenterId);
+                }
+            }
+
+            if (availableSportCenterIds.Count == 0)
+            {
+                return new PagedResult<SportCenterResponse>
+                {
+                    Items = new List<SportCenterResponse>(),
+                    Count = 0
+                };
+            }
+
+            var query = _context.SportCenters.AsQueryable();
+            query = ApplyIncludes(query);
+            query = query.Where(sc => availableSportCenterIds.Contains(sc.Id));
+
+            var totalCount = await query.CountAsync();
+
+            if (search.Page.HasValue && search.PageSize.HasValue)
+            {
+                query = query
+                    .Skip((search.Page.Value - 1) * search.PageSize.Value)
+                    .Take(search.PageSize.Value);
+            }
+
+            var list = await query.ToListAsync();
+
+            return new PagedResult<SportCenterResponse>
+            {
+                Items = list.Select(MapToResponse).ToList(),
+                Count = totalCount
+            };
+        }
+
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
         {
             return query
@@ -152,9 +240,38 @@ namespace TerminBA.Services.Service
                  .Include(sc => sc.Role)
                  .Include(sc => sc.AvailableAmenities)
                  .Include(sc => sc.AvailableSports)
-                  .Include(sc => sc.WorkingHours)
-                  .Include(sc => sc.Photos);
+                 .Include(sc => sc.WorkingHours)
+                 .Include(sc => sc.Photos);
         }
+
+        private async Task<bool> FacilityHasFreeSlotAsync(int facilityId, DateOnly pickedDate)
+        {
+            var allSlots = await TimeSlotHelper.GenerateTimeSlots(
+                facilityId,
+                pickedDate,
+                _context
+            );
+
+            var bookedReservations = await _context.Reservations
+                .Where(r => r.FacilityId == facilityId
+                    && r.ReservationDate == pickedDate
+                    && (r.Status == nameof(ActiveReservationState)
+                        || r.Status == nameof(CompletedReservationState)))
+                .Select(r => r.StartTime)
+                .ToListAsync();
+
+            var occupiedStartTimes = new HashSet<TimeSpan>(
+                bookedReservations.Select(ts => ts.ToTimeSpan())
+            );
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            return allSlots.Any(t =>
+                !occupiedStartTimes.Contains(t.Start)
+                && pickedDate >= today
+            );
+        }
+
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
@@ -270,6 +387,18 @@ namespace TerminBA.Services.Service
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<double> GetAverageRatingAsync(int sportCenterId)
+        {
+            var avg = await _context.FacilityReviews
+                .Include(r=>r.Facility)
+                .Where(r => r.Facility!.SportCenterId == sportCenterId)
+                .Select(r => (double?)r.RatingNumber)
+                .AverageAsync() ?? 0.0;
+
+            return Math.Round(avg, 1);
+        }
+
 
         private static byte[] DecodeBase64Photo(string base64Photo)
         {

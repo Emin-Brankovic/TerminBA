@@ -37,5 +37,19 @@ namespace TerminBA.WebAPI.Controllers
         {
             return await _sportCenterService.UpdateCurrentGallery(request);
         }
+
+        [HttpGet("searchAvailable")]
+        public async Task<PagedResult<SportCenterResponse>> SearchAvailable(
+            [FromQuery] SportCenterAvailabilitySearchObject search)
+        {
+            return await _sportCenterService.SearchAvailableAsync(search);
+        }
+
+
+        [HttpGet("averageRating/{id}")]
+        public async Task<double> GetAverageRatingAsync(int id)
+        {
+            return await _sportCenterService.GetAverageRatingAsync(id);
+        }
     }
 }

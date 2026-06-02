@@ -11,5 +11,6 @@ namespace TerminBA.Services.Interfaces
 {
     public interface IFacilityReviewService : IBaseCRUDService<FacilityReviewResponse, FacilityReviewSearchObject, FacilityReviewInsertRequest, FacilityReviewUpdateRequest>
     {
+        public Task<double> GetAverageRatingAsync(int facilityId);
     }
 }

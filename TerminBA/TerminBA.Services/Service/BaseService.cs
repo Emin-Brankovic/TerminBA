@@ -51,7 +51,12 @@ namespace TerminBA.Services.Service
 
         public async Task<T?> GetByIdAsync(int id)
         {
-            var entity = await _context.Set<TEntity>().FindAsync(id);
+            var query = _context.Set<TEntity>().AsQueryable();
+            query = ApplyIncludes(query);
+
+            var entity = await query.FirstOrDefaultAsync(
+                e => EF.Property<int>(e, "Id") == id
+            );
 
             if (entity == null)
                 return null;
