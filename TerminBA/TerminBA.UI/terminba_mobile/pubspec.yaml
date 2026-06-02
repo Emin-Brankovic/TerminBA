@@ -43,6 +43,11 @@ dependencies:
   jwt_decoder: ^2.0.1
   intl: ^0.20.2
   flutter_localization: ^0.4.0
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

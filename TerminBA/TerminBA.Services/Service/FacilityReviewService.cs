@@ -95,5 +95,16 @@ namespace TerminBA.Services.Service
 
             return query;
         }
+
+
+        public async Task<double> GetAverageRatingAsync(int facilityId)
+        {
+            var avg = await _context.FacilityReviews
+                .Where(r => r.FacilityId == facilityId)
+                .Select(r => (double?)r.RatingNumber)
+                .AverageAsync() ?? 0.0;
+
+            return Math.Round(avg, 1);
+        }
     }
 }
