@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:terminba_mobile/features/facility/presentation/search/sport_center_search_state.dart';
+import 'package:terminba_mobile/features/sport_center/sport_center_search_state.dart';
 import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/model/sport_center.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
@@ -114,6 +114,8 @@ class SportCenterSearchNotifier extends ChangeNotifier {
       );
     }
   }
+
+  
 
   void updateSearchQuery(String value) {
     _setState(_state.copyWith(searchQuery: value));

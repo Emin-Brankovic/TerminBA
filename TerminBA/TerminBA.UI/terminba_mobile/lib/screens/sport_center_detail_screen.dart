@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:terminba_mobile/features/facility/presentation/detail/facility_detail_notifier.dart';
-import 'package:terminba_mobile/features/facility/presentation/detail/facility_detail_state.dart';
+import 'package:terminba_mobile/features/facility/facility_detail_notifier.dart';
+import 'package:terminba_mobile/features/facility/facility_detail_state.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
+import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 import 'package:terminba_mobile/widgets/amenities_section.dart';
 import 'package:terminba_mobile/widgets/venue_info_section.dart';
 import 'package:terminba_mobile/model/sport_center.dart';
@@ -182,8 +183,14 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
                   ),
                 ),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reviews coming soon.')),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => FacilityReviewsScreen(
+                        sportCenterId: center.id,
+                        sportCenterName: center.username,
+                        averageRating: state.averageRating,
+                      ),
+                    ),
                   );
                 },
                 child: const Text('Reviews'),

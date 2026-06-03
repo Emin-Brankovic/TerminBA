@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:terminba_mobile/features/facility/presentation/detail/facility_detail_state.dart';
+import 'package:terminba_mobile/features/facility/facility_detail_state.dart';
 import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 

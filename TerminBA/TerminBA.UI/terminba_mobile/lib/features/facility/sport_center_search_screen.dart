@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:terminba_mobile/features/facility/presentation/search/sport_center_search_notifier.dart';
-import 'package:terminba_mobile/features/facility/presentation/search/sport_center_search_state.dart';
+import 'package:terminba_mobile/features/sport_center/sport_center_search_notifier.dart';
+import 'package:terminba_mobile/features/sport_center/sport_center_search_state.dart';
 import 'package:terminba_mobile/widgets/sport_center_card.dart';
 import 'package:terminba_mobile/widgets/sport_filter_chips.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';

@@ -29,8 +29,8 @@ namespace TerminBA.Services.Service
             if (_currentUser["userRole"] == "Sport center")
                 search.SportCenterId = int.Parse(_authService.GetUserId());
 
-            if (_currentUser["userRole"] == "User")
-                search.SportCenterId = int.Parse(_authService.GetUserId());
+            //if (_currentUser["userRole"] == "User")
+            //    search.SportCenterId = int.Parse(_authService.GetUserId());
 
             if (search.SportCenterId.HasValue)
                 query = query.Where(fr => fr.Facility!.SportCenterId == search.SportCenterId.Value);
@@ -94,6 +94,15 @@ namespace TerminBA.Services.Service
                 .Include(fr => fr.Facility);
 
             return query;
+        }
+
+
+        public override Task<FacilityReviewResponse> CreateAsync(FacilityReviewInsertRequest request)
+        {
+            if(request.UserId == null)
+                request.UserId=int.Parse(_authService.GetUserId());
+
+            return base.CreateAsync(request);
         }
 
 

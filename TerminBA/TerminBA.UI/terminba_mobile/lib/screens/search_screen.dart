@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:terminba_mobile/screens/sport_center_search_screen.dart';
+import 'package:terminba_mobile/features/facility/sport_center_search_screen.dart';
 
 class SearchScreen extends StatelessWidget {
 	final ScrollController? scrollController;
