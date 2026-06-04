@@ -5,6 +5,7 @@ import 'package:terminba_mobile/providers/base_provider.dart';
 import 'package:terminba_mobile/providers/city_provider.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
+import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/providers/role_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
@@ -36,6 +37,7 @@ void main() async {
         ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
         ChangeNotifierProvider<SportCenterProvider>(create: (_) => SportCenterProvider()),
         ChangeNotifierProvider<FacilityReviewProvider>(create: (_) => FacilityReviewProvider()),
+        ChangeNotifierProvider<ReservationProvider>(create: (_) => ReservationProvider()),
 
       ],
       child: const MyApp(),

@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;

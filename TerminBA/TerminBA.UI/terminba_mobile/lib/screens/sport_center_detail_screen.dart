@@ -7,6 +7,7 @@ import 'package:terminba_mobile/features/facility/facility_detail_notifier.dart'
 import 'package:terminba_mobile/features/facility/facility_detail_state.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
+import 'package:terminba_mobile/screens/booking/facility_selection_screen.dart';
 import 'package:terminba_mobile/widgets/amenities_section.dart';
 import 'package:terminba_mobile/widgets/venue_info_section.dart';
 import 'package:terminba_mobile/model/sport_center.dart';
@@ -452,11 +453,14 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
           child: ElevatedButton(
             onPressed: isEnabled
                 ? () {
-                    Navigator.of(context).push(
+                    final center = _notifier.state.sportCenter;
+                    Navigator.of(context, rootNavigator: true).push(
                       MaterialPageRoute(
-                        builder: (_) => _CourtSelectionPlaceholder(
-                          facilityId: widget.sportCenterId,
-                          sportName: selectedSport.name ?? 'Sport',
+                        builder: (_) => CourtSelectionScreen(
+                          sportCenterId: widget.sportCenterId,
+                          sportCenterName: center?.username ?? 'Facility',
+                          sportCenterAddress: center?.address ?? '',
+                          sport: selectedSport,
                           selectedDate: widget.selectedDate,
                         ),
                       ),
@@ -476,29 +480,4 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
   }
 }
 
-class _CourtSelectionPlaceholder extends StatelessWidget {
-  const _CourtSelectionPlaceholder({
-    required this.facilityId,
-    required this.sportName,
-    required this.selectedDate,
-  });
 
-  final int facilityId;
-  final String sportName;
-  final DateTime selectedDate;
-
-  @override
-  Widget build(BuildContext context) {
-    final dateLabel =
-        '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}';
-    return Scaffold(
-      appBar: AppBar(title: const Text('Select a Court')),
-      body: Center(
-        child: Text(
-          'Facility $facilityId - $sportName on $dateLabel',
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
