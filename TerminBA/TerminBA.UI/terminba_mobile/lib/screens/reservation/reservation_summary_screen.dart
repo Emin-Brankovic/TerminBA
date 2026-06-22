@@ -3,21 +3,21 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
-import 'package:terminba_mobile/screens/booking/booking_confirmation_screen.dart';
+import 'package:terminba_mobile/screens/reservation/reservation_confirmation_screen.dart';
 import 'package:intl/intl.dart';
 
-/// Screen 4: Booking Summary & Payment.
+/// Screen 4: Reservation Summary & Payment.
 ///
-/// Shows payment method toggle, booking detail rows, bill breakdown,
+/// Shows payment method toggle, reservation detail rows, bill breakdown,
 /// optional notes field, and a sticky CTA that POSTs the reservation.
-class BookingSummaryScreen extends StatefulWidget {
-  const BookingSummaryScreen({super.key});
+class ReservationSummaryScreen extends StatefulWidget {
+  const ReservationSummaryScreen({super.key});
 
   @override
-  State<BookingSummaryScreen> createState() => _BookingSummaryScreenState();
+  State<ReservationSummaryScreen> createState() => _ReservationSummaryScreenState();
 }
 
-class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
+class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
   final TextEditingController _notesController = TextEditingController();
 
   @override
@@ -107,8 +107,8 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
           ],
           const SizedBox(height: 24),
 
-          // ── Booking details ──────────────────────────────────────────────
-          _BookingDetailsSection(state: state),
+          // ── Reservation details ──────────────────────────────────────────────
+          _ReservationDetailsSection(state: state),
           const SizedBox(height: 24),
 
           // ── Bill details ─────────────────────────────────────────────────
@@ -224,7 +224,7 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
         MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider.value(
             value: notifier,
-            child: const BookingConfirmationScreen(),
+            child: const ReservationConfirmationScreen(),
           ),
         ),
       );
@@ -255,7 +255,7 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Booking Failed'),
+        title: const Text('Reservation Failed'),
         content: Text(notifier.state.error ?? 'An error occurred.'),
         actions: [
           TextButton(
@@ -354,8 +354,8 @@ class _PaymentOption extends StatelessWidget {
   }
 }
 
-class _BookingDetailsSection extends StatelessWidget {
-  const _BookingDetailsSection({required this.state});
+class _ReservationDetailsSection extends StatelessWidget {
+  const _ReservationDetailsSection({required this.state});
   final BookingFlowState state;
 
   @override

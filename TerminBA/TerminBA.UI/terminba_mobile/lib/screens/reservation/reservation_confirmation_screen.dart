@@ -5,12 +5,12 @@ import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:intl/intl.dart';
 
-/// Screen 5: Booking Confirmation (Digital Ticket).
+/// Screen 5: Reservation Confirmation (Digital Ticket).
 ///
 /// Terminal screen — back press navigates to Home, not back to summary.
 /// [PopScope] is used (Flutter 3.22+) to intercept back gestures.
-class BookingConfirmationScreen extends StatelessWidget {
-  const BookingConfirmationScreen({super.key});
+class ReservationConfirmationScreen extends StatelessWidget {
+  const ReservationConfirmationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class BookingConfirmationScreen extends StatelessWidget {
         children: [
           // ── Success header ───────────────────────────────────────────────
           Semantics(
-            label: 'Booking confirmed',
+            label: 'Reservation confirmed',
             child: const Icon(
               Icons.check_circle,
               color: Color(0xFF4CAF50),
@@ -188,7 +188,7 @@ class _TicketCard extends StatelessWidget {
               _InfoCell(label: 'SPORT NAME', value: sportName),
               _InfoCell(label: 'COURT NAME', value: courtName),
               _InfoCell(label: 'ADDRESS', value: address),
-              _InfoCell(label: 'BOOKING TIME', value: timeStr),
+              _InfoCell(label: 'RESERVATION TIME', value: timeStr),
               _InfoCell(label: 'DATE', value: dateStr),
               _InfoCell(label: 'AMOUNT', value: grandTotal),
             ]),

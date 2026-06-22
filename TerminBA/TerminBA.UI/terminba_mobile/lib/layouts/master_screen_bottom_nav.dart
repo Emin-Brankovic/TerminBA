@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:terminba_mobile/screens/bookings_screen.dart';
+import 'package:terminba_mobile/screens/reservations_screen.dart';
 import 'package:terminba_mobile/screens/home_screen.dart';
 import 'package:terminba_mobile/screens/profile_menu_screen.dart';
 import 'package:terminba_mobile/screens/search_screen.dart';
@@ -100,7 +100,7 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 						break;
 					case BottomTab.bookings:
 						screen =
-								BookingsScreen(scrollController: _scrollControllers[index]);
+								ReservationsScreen(scrollController: _scrollControllers[index]);
 						break;
 					case BottomTab.profile:
 						screen =

@@ -7,8 +7,8 @@ import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/model/sport.dart';
-import 'package:terminba_mobile/screens/booking/facility_detail_screen.dart';
-import 'package:terminba_mobile/screens/booking/date_time_slot_screen.dart';
+import 'package:terminba_mobile/screens/reservation/facility_detail_screen.dart';
+import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:intl/intl.dart';
 
 class CourtSelectionScreen extends StatefulWidget {

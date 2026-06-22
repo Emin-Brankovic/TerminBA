@@ -7,7 +7,7 @@ import 'package:terminba_mobile/features/facility/facility_detail_notifier.dart'
 import 'package:terminba_mobile/features/facility/facility_detail_state.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
-import 'package:terminba_mobile/screens/booking/facility_selection_screen.dart';
+import 'package:terminba_mobile/screens/reservation/facility_selection_screen.dart';
 import 'package:terminba_mobile/widgets/amenities_section.dart';
 import 'package:terminba_mobile/widgets/venue_info_section.dart';
 import 'package:terminba_mobile/model/sport_center.dart';

@@ -6,7 +6,7 @@ import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_dynamic_price.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
-import 'package:terminba_mobile/screens/booking/booking_summary_screen.dart';
+import 'package:terminba_mobile/screens/reservation/reservation_summary_screen.dart';
 import 'package:intl/intl.dart';
 
 /// Screen 3: Inline calendar + time slot chips.
@@ -521,7 +521,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                           MaterialPageRoute(
                             builder: (_) => ChangeNotifierProvider.value(
                               value: notifier,
-                              child: const BookingSummaryScreen(),
+                              child: const ReservationSummaryScreen(),
                             ),
                           ),
                         );

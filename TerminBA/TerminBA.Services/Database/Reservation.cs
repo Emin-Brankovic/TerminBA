@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -43,6 +43,8 @@ namespace TerminBA.Services.Database
         [ForeignKey(nameof(ChosenSport))]
         public int? ChosenSportId { get; set; }
         public Sport? ChosenSport { get; set; }
+        
+        //public bool TicketDownloaded { get; set; } = false;
 
     }
 }

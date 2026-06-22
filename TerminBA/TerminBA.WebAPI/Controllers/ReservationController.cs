@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -18,6 +20,7 @@ namespace TerminBA.WebAPI.Controllers
             _reservationService = reservationService;
         }
 
+        [Authorize]
         [HttpPut("cancel/{id}")]
         public async Task<ReservationResponse> Cancel(int id)
         {

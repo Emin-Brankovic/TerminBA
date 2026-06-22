@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/facility.dart';
-import 'package:terminba_mobile/screens/booking/date_time_slot_screen.dart';
+import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:intl/intl.dart';
 
 /// Screen 2 (optional): Full-detail view of a court with photo carousel.
