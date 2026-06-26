@@ -1,12 +1,14 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
+import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
+import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:terminba_mobile/widgets/reservation_ticket_card.dart';
+import 'package:terminba_mobile/model/facility.dart';
 
 class ReservationOverviewScreen extends StatefulWidget {
   final int reservationId;
@@ -76,21 +78,63 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
   }
 
   Future<void> _reserveAgain() async {
+    final details = _details;
+    if (details == null) return;
+
+    final baseFacility = details.facility;
+    if (baseFacility == null) return;
+
+    final sport = details.chosenSport;
+    if (sport == null) return;
+
+    setState(() => _isLoading = true);
+
+    Facility? fullFacility;
     try {
-      final provider = Provider.of<ReservationProvider>(context, listen: false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navigating to rebook flow (Not fully implemented yet)')),
-        );
-        // Here we would navigate to the booking flow passing rebookData
-      }
+      fullFacility = await context.read<FacilityProvider>().getById(baseFacility.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to start rebooking: $e')),
+          SnackBar(content: Text('Failed to load facility details: $e')),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
+
+    if (fullFacility == null) return;
+
+    final sportCenter = fullFacility.sportCenter ?? baseFacility.sportCenter;
+    final sportCenterName = sportCenter?.username ?? '';
+    final sportCenterAddress = sportCenter?.address ?? '';
+
+    if (!mounted) return;
+
+    final notifier = BookingFlowNotifier(
+      initialState: BookingFlowState(
+        sportCenterId: fullFacility.sportCenterId,
+        sportCenterName: sportCenterName,
+        sportCenterAddress: sportCenterAddress,
+        sport: sport,
+        initialDate: DateTime.now(),
+        selectedCourt: fullFacility,
+        totalPrice: fullFacility.staticPrice?.toDouble() ?? 0.0,
+        courts: [fullFacility],
+      ),
+      facilityProvider: context.read<FacilityProvider>(),
+      reservationProvider: context.read<ReservationProvider>(),
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider.value(
+          value: notifier,
+          child: const DateTimeSlotScreen(),
+        ),
+      ),
+    ).then((_) => notifier.dispose());
   }
 
   Widget _buildCarousel() {

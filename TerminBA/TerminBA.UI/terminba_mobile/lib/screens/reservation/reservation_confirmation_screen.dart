@@ -113,7 +113,7 @@ class ReservationConfirmationScreen extends StatelessWidget {
   }
 
   void _navigateHome(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MasterScreenBottomNav()),
       (route) => false,
     );

@@ -16,6 +16,7 @@ namespace TerminBA.Models.SearchObjects
         public int? SportCenterId { get; set; }
         public bool SortByChosenTimeSlot { get; set; } = false;
         public string? TimeSlotSortDirection { get; set; } = "asc";
+        public string? FacilityName { get; set; }
     }
 }
 

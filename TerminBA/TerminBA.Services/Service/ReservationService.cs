@@ -92,7 +92,6 @@ namespace TerminBA.Services.Service
                     var now = DateTime.Now;
                     var dateOnly = DateOnly.FromDateTime(now);
                     var timeOnly = TimeOnly.FromDateTime(now);
-                    //query = query.Where(r => r.Status != "Cancelled" && (r.ReservationDate > dateOnly || (r.ReservationDate == dateOnly && r.StartTime > timeOnly)));
                     query = query.Where(r => string.Equals(r.Status, nameof(ActiveReservationState)));
                 }
                 else if (search.Status.ToLower() == "past")
@@ -100,7 +99,6 @@ namespace TerminBA.Services.Service
                     var now = DateTime.Now;
                     var dateOnly = DateOnly.FromDateTime(now);
                     var timeOnly = TimeOnly.FromDateTime(now);
-                    //query = query.Where(r => r.ReservationDate < dateOnly || (r.ReservationDate == dateOnly && r.EndTime <= timeOnly));
                     query = query.Where(r => string.Equals(r.Status, nameof(CompletedReservationState)));
                 }
                 else
@@ -114,6 +112,9 @@ namespace TerminBA.Services.Service
 
             if (search.ReservationDate.HasValue)
                 query = query.Where(r => r.ReservationDate == search.ReservationDate.Value);
+
+            if(!string.IsNullOrEmpty(search.FacilityName))
+                query = query.Where(r => r.Facility.Name.Contains(search.FacilityName));
 
             if (search.SortByChosenTimeSlot)
             {
