@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +37,7 @@ namespace TerminBA.Services.Database
         public DbSet<FacilityDynamicPrice> FacilityDynamicPrices { get; set; }
         public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
         public DbSet<SportCenterPhoto> SportCenterPhotos { get; set; }
+        public DbSet<FavoriteSportCenter> FavoriteSportCenters { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -153,6 +154,22 @@ namespace TerminBA.Services.Database
 
             modelBuilder.Entity<FacilityDynamicPrice>()
                 .HasIndex(fdp => new { fdp.FacilityId, fdp.ValidFrom, fdp.ValidTo });
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasIndex(fsc => new { fsc.UserId, fsc.SportCenterId })
+                .IsUnique();
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasOne(fsc => fsc.User)
+                .WithMany(u => u.FavoriteSportCenters)
+                .HasForeignKey(fsc => fsc.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasOne(fsc => fsc.SportCenter)
+                .WithMany(sc => sc.FavoritedByUsers)
+                .HasForeignKey(fsc => fsc.SportCenterId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

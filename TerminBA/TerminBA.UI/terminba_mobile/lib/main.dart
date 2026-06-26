@@ -10,6 +10,7 @@ import 'package:terminba_mobile/providers/role_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
+import 'package:terminba_mobile/providers/favorite_sport_center_provider.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -38,6 +39,7 @@ void main() async {
         ChangeNotifierProvider<SportCenterProvider>(create: (_) => SportCenterProvider()),
         ChangeNotifierProvider<FacilityReviewProvider>(create: (_) => FacilityReviewProvider()),
         ChangeNotifierProvider<ReservationProvider>(create: (_) => ReservationProvider()),
+        ChangeNotifierProvider<FavoriteSportCenterProvider>(create: (_) => FavoriteSportCenterProvider()),
 
       ],
       child: const MyApp(),

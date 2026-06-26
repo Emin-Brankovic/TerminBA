@@ -213,7 +213,9 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
                   selectedDate: state.selectedDate,
                 ),
               ),
-            );
+            ).then((_) {
+              _notifier.loadFacilities(showLoading: false);
+            });
           },
         );
       },

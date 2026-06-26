@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
+import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
 
 class ProfileMenuScreen extends StatelessWidget {
 	final ScrollController? scrollController;
@@ -91,8 +92,16 @@ class ProfileMenuScreen extends StatelessWidget {
 					_listItem(
 						context,
 						icon: Icons.favorite_border,
-						title: 'Favourite Venues',
+						title: 'Favorites',
 						color: accent,
+						onTap: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(
+									builder: (_) => const FavoriteSportCentersScreen(),
+								),
+							);
+						},
 					),
 					_listItem(
 						context,

@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/facility/facility_detail_notifier.dart';
 import 'package:terminba_mobile/features/facility/facility_detail_state.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
+import 'package:terminba_mobile/providers/auth_provider.dart';
+import 'package:terminba_mobile/providers/favorite_sport_center_provider.dart';
 import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 import 'package:terminba_mobile/screens/reservation/facility_selection_screen.dart';
 import 'package:terminba_mobile/widgets/amenities_section.dart';
@@ -39,6 +41,8 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
     _notifier = SportCenterDetailNotifier(
       sportCenterId: widget.sportCenterId,
       sportCenterProvider: context.read<SportCenterProvider>(),
+      authProvider: context.read<AuthProvider>(),
+      favoriteProvider: context.read<FavoriteSportCenterProvider>(),
     );
 
     _notifier.initialize();

@@ -140,7 +140,9 @@ class FacilityReviewsScreen extends StatefulWidget  {
                   sportCenterId: widget.sportCenterId,
                 ),
               ),
-            );
+            ).then((_) {
+              _notifier.initialize();
+            });
           },
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFFFF5722),

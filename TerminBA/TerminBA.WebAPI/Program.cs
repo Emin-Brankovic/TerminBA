@@ -30,6 +30,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IWorkingHoursService, WorkingHoursService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISportCenterService,SportCenterService>();
+builder.Services.AddScoped<IFavoriteSportCenterService, FavoriteSportCenterService>();
 builder.Services.AddScoped<IFacilityService, FacilityService>();
 builder.Services.AddScoped<IFacilityReviewService, FacilityReviewService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
