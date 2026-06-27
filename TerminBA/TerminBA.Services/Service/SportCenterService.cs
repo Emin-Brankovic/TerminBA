@@ -1,6 +1,7 @@
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,13 +25,15 @@ namespace TerminBA.Services.Service
         private readonly IReportService _reportService;
         private readonly IAuthService<SportCenter> _authService;
         private readonly IPhotoService _photoService;
+        private readonly IGeocodingService _geocodingService;
 
-        public SportCenterService(TerminBaContext context, IMapper mapper, IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService, IPhotoService photoService) : base(context, mapper)
+        public SportCenterService(TerminBaContext context, IMapper mapper, IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService, IPhotoService photoService, IGeocodingService geocodingService) : base(context, mapper)
         {
             _workingHoursService = workingHoursService;
             _reportService = reportService;
             _authService = authService;
             _photoService = photoService;
+            _geocodingService = geocodingService;
         }
 
         public async Task<AuthResponse?> Login(SportCenterLoginRequest request)
@@ -275,15 +278,38 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
-            var sameNameCenter=await _context.SportCenters.AnyAsync(sc=>sc.Username!.ToLower() == request.Username!.ToLower());
+            var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
 
             if (sameNameCenter)
                 throw new UserException($"Sport center with name: {request.Username} already exits.");
+
+            await TryGeocodeAsync(entity, request.Address, request.CityId);
+        }
+
+        private async Task TryGeocodeAsync(SportCenter entity, string address, int cityId)
+        {
+            var cityName = await _context.Cities
+                .Where(c => c.Id == cityId)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync();
+
+            var fullAddress = string.IsNullOrWhiteSpace(cityName)
+                ? address
+                : $"{address}, {cityName}, Bosnia and Herzegovina";
+
+
+            var coords = await _geocodingService.GeocodeAddressAsync(fullAddress);
+
+            if (coords.HasValue)
+            {
+                entity.Latitude = coords.Value.Latitude;
+                entity.Longitude = coords.Value.Longitude;
+            }
         }
 
         protected override async Task BeforeUpdate(SportCenter entity, SportCenterUpdateRequest request)
         {
-            if(entity.Username!.ToLower()!=request.Username!.ToLower())
+            if (entity.Username!.ToLower() != request.Username!.ToLower())
             {
                 var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
 
@@ -295,12 +321,9 @@ namespace TerminBA.Services.Service
             _context.Entry(entity).Collection(sc => sc.AvailableAmenities).Load();
             _context.Entry(entity).Collection(sc => sc.WorkingHours).Load();
 
-
-
             var existingSports = await _context.Sports
                 .Where(s => request.SportIds!.Contains(s.Id))
                 .ToListAsync();
-
 
             var existingAmenities = await _context.Amenity
                 .Where(s => request.AmenityIds!.Contains(s.Id))
@@ -310,13 +333,26 @@ namespace TerminBA.Services.Service
                 .Where(wh => wh.SportCenterId == entity.Id)
                 .ToListAsync();
 
-
             entity.WorkingHours = existingWorkingHours;
             entity.AvailableSports = existingSports;
             entity.AvailableAmenities = existingAmenities;
 
-           // await UpdateGalleryAsync(entity, request.RemovedPhotoIds, request.PhotosBase64);
 
+            bool addressChanged = !string.Equals(entity.Address, request.Address, StringComparison.OrdinalIgnoreCase);
+            bool cityChanged = entity.CityId != request.CityId;
+            bool hasExplicitCoords = request.Latitude.HasValue && request.Longitude.HasValue;
+
+            if (hasExplicitCoords)
+            {
+                entity.Latitude = request.Latitude;
+                entity.Longitude = request.Longitude;
+            }
+            else if (addressChanged || cityChanged)
+            {
+                await TryGeocodeAsync(entity, request.Address, request.CityId);
+            }
+
+           // await UpdateGalleryAsync(entity, request.RemovedPhotoIds, request.PhotosBase64);
         }
 
         private async Task UpdateGalleryAsync(SportCenter entity, List<int>? removedPhotoIds, List<string>? photosBase64)
@@ -411,17 +447,6 @@ namespace TerminBA.Services.Service
 
             return Convert.FromBase64String(trimmed);
         }
-
-        //public override async Task<SportCenterResponse?> UpdateAsync(int id, SportCenterUpdateRequest request)
-        //{
-        //    var existingWorkingHours = await _context.WorkingHours
-        //        .Where(wh => wh.SportCenterId == id)
-        //        .ToListAsync();
-
-        //    _context.WorkingHours.RemoveRange(existingWorkingHours);
-
-        //    return await base.UpdateAsync(id, request);
-        //}
     }
 }
 

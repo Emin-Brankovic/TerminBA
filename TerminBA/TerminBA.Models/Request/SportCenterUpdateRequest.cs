@@ -34,6 +34,9 @@ namespace TerminBA.Models.Request
         [MaxLength(180)]
         public string? Description { get; set; }
 
+        public decimal? Longitude { get; set; }
+        public decimal? Latitude { get; set; }
+
         [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int>? SportIds { get; set; }
 
@@ -44,6 +47,3 @@ namespace TerminBA.Models.Request
         public List<WorkingHoursInsertRequest>? WorkingHours { get; set; }
     }
 }
-
-
-

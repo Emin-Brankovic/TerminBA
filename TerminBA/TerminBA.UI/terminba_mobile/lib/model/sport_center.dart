@@ -26,6 +26,8 @@ class SportCenter {
   DateTime? updatedAt;
   int roleId;
   Role? role;
+  double? longitude ;
+  double? latitude;
   @JsonKey(fromJson: _bytesFromJson, toJson: _bytesToJson)
   Uint8List? credentialsReport;
   List<Sport> availableSports;
@@ -52,6 +54,8 @@ class SportCenter {
     this.workingHours,
     this.photos,
     this.credentialsReport,
+    this.longitude,
+    this.latitude,
   );
 
   factory SportCenter.fromJson(Map<String, dynamic> json) =>

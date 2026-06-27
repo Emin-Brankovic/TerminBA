@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,8 +12,6 @@ namespace TerminBA.Services.Database
 {
     public class SportCenter : AccountBase
     {
-        //public decimal Langitude { get; set; }
-        //public decimal Latitude { get; set; }
 
         [Required]
         public string? Address { get; set; }
@@ -26,6 +25,10 @@ namespace TerminBA.Services.Database
 
         [MaxLength(180)]
         public string? Description { get; set; }
+        [Precision(13, 10)]
+        public decimal? Longitude { get; set; }
+        [Precision(12, 10)]
+        public decimal? Latitude { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

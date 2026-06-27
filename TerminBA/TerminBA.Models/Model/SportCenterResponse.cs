@@ -35,6 +35,9 @@ namespace TerminBA.Models.Model
 
         public byte[]? CredentialsReport { get; set; }
 
+        public decimal? Longitude { get; set; } 
+        public decimal? Latitude { get; set; }
+
         public ICollection<WorkingHoursResponse> WorkingHours { get; set; } = new List<WorkingHoursResponse>();
 
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();

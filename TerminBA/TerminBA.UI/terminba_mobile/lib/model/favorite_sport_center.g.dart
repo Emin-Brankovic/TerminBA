@@ -1,4 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'favorite_sport_center.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 FavoriteSportCenter _$FavoriteSportCenterFromJson(Map<String, dynamic> json) =>
     FavoriteSportCenter(
@@ -11,10 +17,10 @@ FavoriteSportCenter _$FavoriteSportCenterFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$FavoriteSportCenterToJson(
-        FavoriteSportCenter instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'userId': instance.userId,
-      'sportCenterId': instance.sportCenterId,
-      'sportCenter': instance.sportCenter,
-    };
+  FavoriteSportCenter instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'userId': instance.userId,
+  'sportCenterId': instance.sportCenterId,
+  'sportCenter': instance.sportCenter,
+};

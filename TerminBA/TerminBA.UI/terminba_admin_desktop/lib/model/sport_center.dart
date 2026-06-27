@@ -32,6 +32,8 @@ class SportCenter {
   List<Amenity> availableAmenities;
   List<WorkingHours> workingHours;
   List<SportCenterPhotoResponse> photos;
+  double? latitude;
+  double? longitude;
 
   SportCenter(
     this.id,
@@ -51,8 +53,10 @@ class SportCenter {
     this.role,
     this.workingHours,
     this.photos,
-    this.credentialsReport,
-  );
+    this.credentialsReport, {
+    this.latitude,
+    this.longitude,
+  });
 
   factory SportCenter.fromJson(Map<String, dynamic> json) =>
       _$SportCenterFromJson(json);

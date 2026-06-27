@@ -52,6 +52,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
 
+// Geocoding
+builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("TerminBA/1.0 (sport center geocoding)");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 
 var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
 var rabbitUser = Environment.GetEnvironmentVariable("RABBITMQ_USER") ?? "guest";

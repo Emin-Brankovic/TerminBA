@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +17,8 @@ import 'package:terminba_sport_center_desktop/providers/amenity_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/city_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class SportCenterEditScreen extends StatefulWidget {
   const SportCenterEditScreen({super.key, required this.sportCenter});
@@ -36,10 +42,74 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
   final List<Amenity> _amenities = [];
   final List<_WorkingHoursEntry> _workingHoursList = [];
 
+  // Location picker state — pre-filled from existing coordinates.
+  double? _pickedLatitude;
+  double? _pickedLongitude;
+
   bool _initialized = false;
   bool _prefilled = false;
   bool _isLoading = true;
   bool _isSaving = false;
+  late final MapController _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _geocodeAddress(String address) async {
+    if (address.isEmpty) return;
+
+    String fullAddress = address;
+    final cityId = _formKey.currentState?.fields['cityId']?.value as int?;
+    if (cityId != null) {
+      final city = _cities.cast<City?>().firstWhere(
+            (c) => c?.id == cityId,
+            orElse: () => null,
+          );
+      if (city != null && city.name.isNotEmpty) {
+        fullAddress = '$address, ${city.name}, Bosnia and Herzegovina';
+      }
+    }
+
+    try {
+      final uri = Uri.https(
+        'nominatim.openstreetmap.org',
+        '/search',
+        {'q': fullAddress, 'format': 'json', 'limit': '1'},
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {'User-Agent': 'TerminBA-SportCenterManager/1.0'},
+      );
+
+      if (response.statusCode == 200) {
+        final results = jsonDecode(response.body) as List<dynamic>;
+        if (results.isNotEmpty) {
+          final first = results.first as Map<String, dynamic>;
+          final lat = double.parse(first['lat'] as String);
+          final lng = double.parse(first['lon'] as String);
+          if (mounted) {
+            setState(() {
+              _pickedLatitude = lat;
+              _pickedLongitude = lng;
+            });
+            _mapController.move(LatLng(lat, lng), 15.0);
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore silently
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -53,6 +123,10 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     _cityProvider = context.read<CityProvider>();
     _sportProvider = context.read<SportProvider>();
     _amenityProvider = context.read<AmenityProvider>();
+
+    // Pre-populate location from the current sport center record.
+    _pickedLatitude = widget.sportCenter.latitude;
+    _pickedLongitude = widget.sportCenter.longitude;
 
     _applyWorkingHoursDefaults();
     _loadReferenceData();
@@ -151,6 +225,8 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
       (values['sportIds'] as List<dynamic>).cast<int>(),
       (values['amenityIds'] as List<dynamic>).cast<int>(),
       workingHours,
+      latitude: _pickedLatitude,
+      longitude: _pickedLongitude,
     );
 
     setState(() => _isSaving = true);
@@ -187,6 +263,76 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
 
   String _formatDate(DateTime d) {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Builds the inline map that shows a pin at the chosen coordinates
+  /// if the address is not empty.
+  Widget _buildInlineMap() {
+    final addressText =
+        _formKey.currentState?.fields['address']?.value?.toString() ??
+            widget.sportCenter.address;
+    final showPin = addressText.trim().isNotEmpty &&
+        _pickedLatitude != null &&
+        _pickedLongitude != null;
+
+    final center = (_pickedLatitude != null && _pickedLongitude != null)
+        ? LatLng(_pickedLatitude!, _pickedLongitude!)
+        : const LatLng(43.8563, 18.4131);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Map Location',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 250,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 14.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.pinchZoom | InteractiveFlag.scrollWheelZoom | InteractiveFlag.drag,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.terminba.sportcenterdesktop',
+                ),
+                if (showPin)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: LatLng(_pickedLatitude!, _pickedLongitude!),
+                        width: 40,
+                        height: 40,
+                        child: const Icon(
+                          Icons.location_pin,
+                          size: 40,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildWorkingHoursRow(
@@ -471,12 +617,28 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
                             FormBuilderTextField(
                               name: 'address',
                               initialValue: widget.sportCenter.address,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Address*',
-                                border: OutlineInputBorder(),
+                                border: const OutlineInputBorder(),
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.search),
+                                  tooltip: 'Search Address on Map',
+                                  onPressed: () {
+                                    final addressStr = _formKey.currentState?.fields['address']?.value?.toString() ?? '';
+                                    _geocodeAddress(addressStr);
+                                  },
+                                ),
                               ),
                               validator: FormBuilderValidators.required(),
+                              onChanged: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  setState(() {});
+                                }
+                              },
                             ),
+                            const SizedBox(height: 16),
+                            // ── Map Location picker ──────────────────────────
+                            _buildInlineMap(),
                             const SizedBox(height: 16),
                             FormBuilderTextField(
                               name: 'description',

@@ -21,6 +21,8 @@ SportCenterUpdateRequest _$SportCenterUpdateRequestFromJson(
   (json['workingHours'] as List<dynamic>)
       .map((e) => WorkingHoursInsertRequest.fromJson(e as Map<String, dynamic>))
       .toList(),
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$SportCenterUpdateRequestToJson(
@@ -36,4 +38,6 @@ Map<String, dynamic> _$SportCenterUpdateRequestToJson(
   'sportIds': instance.sportIds,
   'amenityIds': instance.amenityIds,
   'workingHours': instance.workingHours,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
 };

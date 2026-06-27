@@ -32,6 +32,7 @@ class SportCenterDetailScreen extends StatefulWidget {
 class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
   late final SportCenterDetailNotifier _notifier;
   late final PageController _photoController;
+  final MapController _mapController = MapController();
   int _currentPhotoIndex = 0;
 
   @override
@@ -383,39 +384,103 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
   Widget _buildMap(SportCenter center) {
     final cityName = center.city?.name ?? 'Sarajevo';
     final mapCenter = _resolveCityCenter(cityName);
+    final centerLocation = (center.latitude != null && center.longitude != null)
+        ? LatLng(center.latitude!, center.longitude!)
+        : null;
 
-    return GestureDetector(
-      onTap: () => _openMaps(center),
-      child: ExcludeSemantics(
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: SizedBox(
-            height: 180,
-            child: FlutterMap(
-              options: MapOptions(
-                initialCenter: mapCenter,
-                initialZoom: 13,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
+    return ExcludeSemantics(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: 220,
+          child: Stack(
+            children: [
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: centerLocation ?? mapCenter,
+                  initialZoom: 14,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.pinchZoom | InteractiveFlag.doubleTapZoom | InteractiveFlag.drag,
+                  ),
                 ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'terminba_mobile',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: centerLocation ?? mapCenter,
+                        width: 40,
+                        height: 40,
+                        child: const Icon(Icons.location_pin, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'terminba_mobile',
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: mapCenter,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(Icons.location_pin, color: Colors.red),
+              // Zoom + locate buttons
+              Positioned(
+                right: 10,
+                bottom: 10,
+                child: Column(
+                  children: [
+                    _mapZoomButton(
+                      icon: Icons.my_location,
+                      tooltip: 'Return to pin',
+                      onPressed: () => _mapController.move(
+                        centerLocation ?? mapCenter,
+                        14,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _mapZoomButton(
+                      icon: Icons.add,
+                      tooltip: 'Zoom in',
+                      onPressed: () => _mapController.move(
+                        _mapController.camera.center,
+                        _mapController.camera.zoom + 1,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    _mapZoomButton(
+                      icon: Icons.remove,
+                      tooltip: 'Zoom out',
+                      onPressed: () => _mapController.move(
+                        _mapController.camera.center,
+                        _mapController.camera.zoom - 1,
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _mapZoomButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.white,
+      elevation: 2,
+      borderRadius: BorderRadius.circular(6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onPressed,
+        child: Tooltip(
+          message: tooltip,
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Icon(icon, size: 18, color: Colors.black87),
           ),
         ),
       ),
@@ -433,12 +498,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
     return centers[city] ?? const LatLng(43.8563, 18.4131);
   }
 
-  Future<void> _openMaps(SportCenter center) async {
-    final address = center.address;
-    final query = address.isEmpty ? 'Sports facility' : address;
-    final uri = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': query});
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
+
 
   Widget _buildCta(SportCenterDetailState state) {
     final selectedSport = state.selectedSport;
