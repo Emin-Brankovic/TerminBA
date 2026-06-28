@@ -5,6 +5,7 @@ import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/providers/payment_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:terminba_mobile/widgets/reservation_ticket_card.dart';
@@ -125,6 +126,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
       ),
       facilityProvider: context.read<FacilityProvider>(),
       reservationProvider: context.read<ReservationProvider>(),
+      paymentProvider: context.read<PaymentProvider>(),
     );
 
     Navigator.of(context).push(

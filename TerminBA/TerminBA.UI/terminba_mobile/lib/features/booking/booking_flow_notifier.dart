@@ -2,22 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
+import 'package:terminba_mobile/model/payment_intent_request.dart';
 import 'package:terminba_mobile/model/reservation_insert_request.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/providers/payment_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
+import 'package:terminba_mobile/model/payment_method.dart';
 
 class BookingFlowNotifier extends ChangeNotifier {
   BookingFlowNotifier({
     required BookingFlowState initialState,
     required FacilityProvider facilityProvider,
     required ReservationProvider reservationProvider,
+    required PaymentProvider paymentProvider,
   })  : _state = initialState,
         _facilityProvider = facilityProvider,
-        _reservationProvider = reservationProvider;
+        _reservationProvider = reservationProvider,
+        _paymentProvider = paymentProvider;
 
   BookingFlowState _state;
   final FacilityProvider _facilityProvider;
   final ReservationProvider _reservationProvider;
+  final PaymentProvider _paymentProvider;
 
   BookingFlowState get state => _state;
 
@@ -73,7 +79,6 @@ class BookingFlowNotifier extends ChangeNotifier {
         date: date,
       );
 
-      // Update the lazily-populated fully-booked-dates cache.
       final dateKey =
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
       final isFullyBooked = slots.isNotEmpty && slots.every((s) => !s.isFree);
@@ -116,12 +121,42 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(notes: notes));
   }
 
-  // ── Booking submission ────────────────────────────────────────────────────
+  Future<String?> createPaymentIntent({required int userId}) async {
+    final court = _state.selectedCourt;
+    if (court == null) {
+      _setState(_state.copyWith(paymentError: 'No court selected.'));
+      return null;
+    }
 
-  /// Submits the booking via `POST /api/Reservation`.
-  ///
-  /// On success: sets [BookingFlowState.bookingConfirmation].
-  /// On failure: sets [BookingFlowState.error].
+    final amountInSmallestUnit = (_state.grandTotal * 100).round();
+
+    _setState(_state.copyWith(
+      isProcessingPayment: true,
+      clearPaymentError: true,
+    ));
+
+    try {
+      final request = PaymentIntentRequest(
+        amount: amountInSmallestUnit,
+        currency: 'bam',
+        facilityId: court.id,
+        userId: userId,
+      );
+
+      final response = await _paymentProvider.createPaymentIntent(request);
+
+      _setState(_state.copyWith(isProcessingPayment: false));
+      return response.clientSecret;
+    } on Exception catch (e) {
+      _setState(_state.copyWith(
+        isProcessingPayment: false,
+        paymentError: _messageFrom(e),
+      ));
+      return null;
+    }
+  }
+
+
   Future<void> submitBooking({required int userId}) async {
     final court = _state.selectedCourt;
     final date = _state.selectedDate;

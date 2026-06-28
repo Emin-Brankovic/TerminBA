@@ -5,6 +5,7 @@ import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/providers/payment_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/screens/reservation/facility_detail_screen.dart';
@@ -47,6 +48,7 @@ class _CourtSelectionScreenState extends State<CourtSelectionScreen> {
       ),
       facilityProvider: context.read<FacilityProvider>(),
       reservationProvider: context.read<ReservationProvider>(),
+      paymentProvider: context.read<PaymentProvider>(),
     );
     _notifier.loadCourts();
   }

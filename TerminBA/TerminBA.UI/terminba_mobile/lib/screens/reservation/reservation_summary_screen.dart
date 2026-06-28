@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' hide PaymentMethod;
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_confirmation_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:terminba_mobile/model/payment_method.dart';
 
-/// Screen 4: Reservation Summary & Payment.
-///
-/// Shows payment method toggle, reservation detail rows, bill breakdown,
-/// optional notes field, and a sticky CTA that POSTs the reservation.
 class ReservationSummaryScreen extends StatefulWidget {
   const ReservationSummaryScreen({super.key});
 
@@ -84,22 +82,33 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Colors.indigo.shade50,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Colors.indigo.shade100),
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Online Payment',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Online payment integration coming soon.',
-                    // TODO: Integrate payment gateway
-                    style: TextStyle(color: Color(0xFF757575), fontSize: 13),
+                  Icon(Icons.credit_card_rounded,
+                      color: Colors.indigo.shade400, size: 28),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Stripe Secure Payment',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'You will be prompted to enter your card details. '
+                          'Test card: 4242 4242 4242 4242 · Any future date · Any CVC.',
+                          style: TextStyle(
+                              color: Color(0xFF757575), fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -164,9 +173,9 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             Semantics(
               label: 'Proceed to pay, $totalLabel',
               button: true,
-              enabled: !state.isSubmitting,
+              enabled: !state.isSubmitting && !state.isProcessingPayment,
               child: ElevatedButton(
-                onPressed: state.isSubmitting
+                onPressed: (state.isSubmitting || state.isProcessingPayment)
                     ? null
                     : () => _submitBooking(context, notifier),
                 style: ElevatedButton.styleFrom(
@@ -178,7 +187,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: state.isSubmitting
+                child: (state.isSubmitting || state.isProcessingPayment)
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -208,18 +217,84 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not identify user. Please log in again.')),
+        const SnackBar(
+            content: Text('Could not identify user. Please log in again.')),
       );
       return;
     }
 
+    final state = notifier.state;
+
+    if (state.paymentMethod == PaymentMethod.online) {
+      await _handleOnlinePayment(context, notifier, userId);
+    } else {
+      await _submitOnSiteBooking(context, notifier, userId);
+    }
+  }
+
+  Future<void> _handleOnlinePayment(
+    BuildContext context,
+    BookingFlowNotifier notifier,
+    int userId,
+  ) async {
+    final clientSecret = await notifier.createPaymentIntent(userId: userId);
+
+    if (!mounted) return;
+
+    if (clientSecret == null) {
+      final err = notifier.state.paymentError ?? 'Failed to start payment.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err),
+          backgroundColor: const Color(0xFFE53935),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'TerminBA',
+          style: ThemeMode.light,
+        ),
+      );
+
+      await Stripe.instance.presentPaymentSheet();
+
+      if (!mounted) return;
+      await _submitOnSiteBooking(context, notifier, userId);
+    } on StripeException catch (e) {
+      if (!mounted) return;
+
+      final code = e.error.code;
+      final isCancelled = code == FailureCode.Canceled;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isCancelled
+                ? 'Payment was cancelled.'
+                : 'Payment failed: ${e.error.localizedMessage ?? 'Unknown error'}',
+          ),
+          backgroundColor: const Color(0xFFE53935),
+        ),
+      );
+    }
+  }
+
+  Future<void> _submitOnSiteBooking(
+    BuildContext context,
+    BookingFlowNotifier notifier,
+    int userId,
+  ) async {
     await notifier.submitBooking(userId: userId);
 
     if (!mounted) return;
 
     final state = notifier.state;
     if (state.bookingConfirmation != null) {
-      // Navigate to confirmation — replace so back goes home
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider.value(
@@ -229,7 +304,6 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         ),
       );
     } else if (state.error != null) {
-      // Check for slot conflict
       final isConflict = state.error!.toLowerCase().contains('conflict') ||
           state.error!.toLowerCase().contains('already') ||
           state.error!.toLowerCase().contains('booked');

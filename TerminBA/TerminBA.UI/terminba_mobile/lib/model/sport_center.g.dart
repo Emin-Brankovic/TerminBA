@@ -58,7 +58,7 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'roleId': instance.roleId,
       'role': instance.role,
-      'langitude': instance.longitude,
+      'longitude': instance.longitude,
       'latitude': instance.latitude,
       'credentialsReport': _bytesToJson(instance.credentialsReport),
       'availableSports': instance.availableSports,

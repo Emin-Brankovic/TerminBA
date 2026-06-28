@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/base_provider.dart';
 import 'package:terminba_mobile/providers/city_provider.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
+import 'package:terminba_mobile/providers/payment_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/providers/role_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
@@ -20,10 +22,17 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-    final authProvider = AuthProvider();
-  await authProvider.checkAuthStatus(); 
+  Stripe.publishableKey = const String.fromEnvironment(
+    'stripePublishableKey',
+    defaultValue:
+        'pk_test_51TmxJ0ILgUoqlN0xJUnF7SlsljIP59jSK4wKLwZnmbn9adB4eWY4PaRdvQuwYVM4FoLId48MkJ8n7vq2q1FgNi4I009cjoY5Je',
+  );
+  await Stripe.instance.applySettings();
 
-    BaseProvider.onUnauthorized = () async {
+  final authProvider = AuthProvider();
+  await authProvider.checkAuthStatus();
+
+  BaseProvider.onUnauthorized = () async {
     await authProvider.checkAuthStatus();
   };
 
@@ -40,7 +49,7 @@ void main() async {
         ChangeNotifierProvider<FacilityReviewProvider>(create: (_) => FacilityReviewProvider()),
         ChangeNotifierProvider<ReservationProvider>(create: (_) => ReservationProvider()),
         ChangeNotifierProvider<FavoriteSportCenterProvider>(create: (_) => FavoriteSportCenterProvider()),
-
+        ChangeNotifierProvider<PaymentProvider>(create: (_) => PaymentProvider()),
       ],
       child: const MyApp(),
     ),);

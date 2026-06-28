@@ -3,13 +3,8 @@ import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
 import 'package:terminba_mobile/model/sport.dart';
+import 'package:terminba_mobile/model/payment_method.dart';
 
-enum PaymentMethod { onSite, online }
-
-/// Accumulates all booking data across the 5-screen booking flow.
-///
-/// Passed via [ChangeNotifierProvider] from [CourtSelectionScreen] onward.
-/// Do NOT use global mutable singletons — each flow creates a fresh notifier.
 class BookingFlowState {
   // ── Facility / sport context ────────────────────────────────────────────
   final int sportCenterId;
@@ -37,6 +32,13 @@ class BookingFlowState {
   final bool isLoadingSlots;
   final bool isSubmitting;
   final String? error;
+
+  // ── Stripe payment ───────────────────────────────────────────────────────
+  /// True while the backend call + Payment Sheet presentation is in progress.
+  final bool isProcessingPayment;
+
+  /// Stripe-specific error or cancellation message.
+  final String? paymentError;
 
   // ── Loaded data ──────────────────────────────────────────────────────────
   final List<Facility> courts;
@@ -69,6 +71,8 @@ class BookingFlowState {
     this.timeSlots = const [],
     this.fullyBookedDates = const {},
     this.bookingConfirmation,
+    this.isProcessingPayment = false,
+    this.paymentError,
   });
 
   factory BookingFlowState.initial({
@@ -112,6 +116,9 @@ class BookingFlowState {
     Set<String>? fullyBookedDates,
     ReservationResponse? bookingConfirmation,
     bool clearBookingConfirmation = false,
+    bool? isProcessingPayment,
+    String? paymentError,
+    bool clearPaymentError = false,
   }) {
     return BookingFlowState(
       sportCenterId: sportCenterId ?? this.sportCenterId,
@@ -135,10 +142,11 @@ class BookingFlowState {
       fullyBookedDates: fullyBookedDates ?? this.fullyBookedDates,
       bookingConfirmation:
           clearBookingConfirmation ? null : bookingConfirmation ?? this.bookingConfirmation,
+      isProcessingPayment: isProcessingPayment ?? this.isProcessingPayment,
+      paymentError: clearPaymentError ? null : paymentError ?? this.paymentError,
     );
   }
 
-  /// Effective price for the slot (static price from court, dynamic price if configured, or 0).
   double get slotPrice {
     final court = selectedCourt;
     if (court == null) return 0.0;
@@ -156,10 +164,8 @@ class BookingFlowState {
     return getDynamicPriceFor(court, date, slot);
   }
 
-  /// The grand total (now just the slot price).
   double get grandTotal => slotPrice;
 
-  /// Helper to calculate the dynamic price for a specific slot on a specific date.
   double getDynamicPriceFor(Facility court, DateTime date, FacilityTimeSlot slot) {
     if (court.dynamicPrices.isEmpty) {
       return court.staticPrice?.toDouble() ?? 0.0;
@@ -176,7 +182,6 @@ class BookingFlowState {
       return 0.0;
     }
 
-    // 1. Get DayOfWeek of date
     DayOfWeek targetDay;
     switch (date.weekday) {
       case DateTime.monday:
@@ -204,7 +209,6 @@ class BookingFlowState {
         targetDay = DayOfWeek.monday;
     }
 
-    // Helper for day range check
     bool isInDayRange(DayOfWeek target, DayOfWeek start, DayOfWeek end) {
       final t = target.index;
       final s = start.index;
@@ -216,7 +220,6 @@ class BookingFlowState {
       }
     }
 
-    // Helper for validity period check
     bool isWithinValidityPeriod(DateTime resDate, DateTime validFrom, DateTime? validTo) {
       final rDate = DateTime(resDate.year, resDate.month, resDate.day);
       final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
@@ -243,7 +246,6 @@ class BookingFlowState {
       }
     }
 
-    // Fallback to static price if no matching dynamic price rule is found
     return court.staticPrice?.toDouble() ?? 0.0;
   }
 }

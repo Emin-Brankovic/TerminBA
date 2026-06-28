@@ -52,6 +52,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
 
+// Stripe payment service (reads StripeSecretKey from env, secret stays server-side)
+builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
+
 // Geocoding
 builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(client =>
 {
