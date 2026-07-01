@@ -575,7 +575,7 @@ class _BillDetailsSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Cancellation Policy: Free cancellation up to ${state.selectedCourt?.sportCenter?.cancellationDeadlineHours ?? 24} hours before the reservation.',
+                  'Cancellation Policy: Free cancellation up to ${state.selectedCourt?.sportCenter?.cancellationDeadlineHours ?? 24} hours before the reservation. (30% refund after deadline)',
                   style: const TextStyle(
                     color: Color(0xFF334A99),
                     fontSize: 12,

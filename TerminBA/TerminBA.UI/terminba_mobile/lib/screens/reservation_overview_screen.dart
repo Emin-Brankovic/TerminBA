@@ -240,6 +240,33 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 24),
+                      if (_details!.facility?.sportCenter != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4FF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFD0D7F5)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.info_outline, color: Color(0xFF5C7AE6), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Cancellation Policy: Free cancellation up to ${_details!.facility!.sportCenter!.cancellationDeadlineHours} hours before the reservation. (30% refund after deadline)',
+                                  style: const TextStyle(
+                                    color: Color(0xFF334A99),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (_details!.facility?.sportCenter != null)
+                        const SizedBox(height: 24),
                       ReservationTicketCard(details: _details!),
                       const SizedBox(height: 32),
                       if (_details!.isUpcoming)

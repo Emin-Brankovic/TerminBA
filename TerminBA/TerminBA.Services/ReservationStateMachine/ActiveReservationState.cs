@@ -67,23 +67,29 @@ namespace TerminBA.Services.ReservationStateMachine
                 if (entity == null)
                     throw new UserException("Reservation was not found");
 
+                decimal? actualRefundAmount = null;
+
                 if (string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase))
                 {
                     var payment = await _context.Payments
                         .OrderByDescending(p => p.CreatedAt)
                         .FirstOrDefaultAsync(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid);
 
-                    if (payment != null && (!entity.CancellationDeadline.HasValue || entity.CancellationDeadline >= DateTime.Now))
+                    if (payment != null)
                     {
+                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.Now;
+                        decimal refundAmount = missedDeadline ? Math.Round(payment.Amount * 0.3m, 2) : payment.Amount;
+
                         var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
-                        var refundId = await stripeService.CreateRefundAsync(payment.StripePaymentIntentId, payment.Amount);
+                        var refundId = await stripeService.CreateRefundAsync(payment.StripePaymentIntentId, refundAmount);
                         
                         payment.StripeRefundId = refundId;
-                        payment.RefundAmount = payment.Amount;
+                        payment.RefundAmount = refundAmount;
                         payment.RefundRequestedAt = DateTime.Now;
                         payment.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
 
                         entity.Status = nameof(CanceledWithRefundReservationState);
+                        actualRefundAmount = refundAmount;
                     }
                     else
                     {
@@ -103,7 +109,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 {
                     ReservationState = entity.Status,
                     RefundIssued = entity.Status == nameof(CanceledWithRefundReservationState),
-                    RefundAmount = entity.PaymentMethod == "Stripe" && entity.Status == nameof(CanceledWithRefundReservationState) ? entity.Price : null,
+                    RefundAmount = actualRefundAmount,
                     RefundStatus = entity.Status == nameof(CanceledWithRefundReservationState) ? "RefundPending" : null
                 };
             }

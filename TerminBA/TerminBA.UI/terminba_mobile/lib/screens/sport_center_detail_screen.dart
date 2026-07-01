@@ -239,7 +239,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Cancellation Policy: Free cancellation up to ${center.cancellationDeadlineHours} hours before the reservation.',
+                    'Cancellation Policy: Free cancellation up to ${center.cancellationDeadlineHours} hours before the reservation. (30% refund after deadline)',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: const Color(0xFF334A99),
                     ),
