@@ -38,6 +38,8 @@ namespace TerminBA.Models.Model
         public decimal? Longitude { get; set; } 
         public decimal? Latitude { get; set; }
 
+        public int CancellationDeadlineHours { get; set; }
+
         public ICollection<WorkingHoursResponse> WorkingHours { get; set; } = new List<WorkingHoursResponse>();
 
         public ICollection<SportResponse> AvailableSports { get; set; } = new List<SportResponse>();

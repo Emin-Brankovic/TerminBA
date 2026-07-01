@@ -23,6 +23,7 @@ SportCenterUpdateRequest _$SportCenterUpdateRequestFromJson(
       .toList(),
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
+  cancellationDeadlineHours: (json['cancellationDeadlineHours'] as num?)?.toInt() ?? 24,
 );
 
 Map<String, dynamic> _$SportCenterUpdateRequestToJson(
@@ -40,4 +41,5 @@ Map<String, dynamic> _$SportCenterUpdateRequestToJson(
   'workingHours': instance.workingHours,
   'latitude': instance.latitude,
   'longitude': instance.longitude,
+  'cancellationDeadlineHours': instance.cancellationDeadlineHours,
 };

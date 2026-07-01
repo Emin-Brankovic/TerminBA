@@ -37,6 +37,8 @@ namespace TerminBA.Models.Request
         public decimal? Longitude { get; set; }
         public decimal? Latitude { get; set; }
 
+        public int CancellationDeadlineHours { get; set; }
+
         [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int>? SportIds { get; set; }
 

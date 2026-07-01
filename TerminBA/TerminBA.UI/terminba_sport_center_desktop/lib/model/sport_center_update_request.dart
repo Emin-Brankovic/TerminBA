@@ -17,8 +17,9 @@ class SportCenterUpdateRequest {
   List<WorkingHoursInsertRequest> workingHours;
   double? latitude;
   double? longitude;
+  int cancellationDeadlineHours;
 
-	SportCenterUpdateRequest(this.username,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.sportIds,this.amenityIds,this.workingHours,{this.latitude,this.longitude});
+	SportCenterUpdateRequest(this.username,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.sportIds,this.amenityIds,this.workingHours,{this.latitude,this.longitude, required this.cancellationDeadlineHours});
 
 	factory SportCenterUpdateRequest.fromJson(Map<String, dynamic> json) => _$SportCenterUpdateRequestFromJson(json);
 

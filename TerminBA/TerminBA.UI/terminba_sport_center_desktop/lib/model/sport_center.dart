@@ -34,6 +34,8 @@ class SportCenter {
   List<SportCenterPhotoResponse> photos;
   double? latitude;
   double? longitude;
+  @JsonKey(defaultValue: 24)
+  int cancellationDeadlineHours;
 
   SportCenter(
     this.id,
@@ -56,6 +58,7 @@ class SportCenter {
     this.credentialsReport, {
     this.latitude,
     this.longitude,
+    this.cancellationDeadlineHours = 24,
   });
 
   factory SportCenter.fromJson(Map<String, dynamic> json) =>

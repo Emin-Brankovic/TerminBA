@@ -227,6 +227,7 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
       workingHours,
       latitude: _pickedLatitude,
       longitude: _pickedLongitude,
+      cancellationDeadlineHours: int.parse(values['cancellationDeadlineHours'] as String),
     );
 
     setState(() => _isSaving = true);
@@ -658,6 +659,22 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
                               name: 'isEquipmentProvided',
                               initialValue: widget.sportCenter.isEquipmentProvided,
                               title: const Text('Equipment Provided'),
+                            ),
+                            const SizedBox(height: 16),
+                            FormBuilderTextField(
+                              name: 'cancellationDeadlineHours',
+                              initialValue: widget.sportCenter.cancellationDeadlineHours.toString(),
+                              decoration: const InputDecoration(
+                                labelText: 'Cancellation Deadline (Hours)*',
+                                border: OutlineInputBorder(),
+                                hintText: 'e.g., 24',
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(),
+                                FormBuilderValidators.integer(),
+                                FormBuilderValidators.min(0),
+                              ]),
                             ),
                             const SizedBox(height: 16),
                             FormBuilderCheckboxGroup<int>(

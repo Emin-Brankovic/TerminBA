@@ -288,6 +288,23 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 						description,
 						style: Theme.of(context).textTheme.bodyMedium,
 					),
+					const SizedBox(height: 16),
+					Row(
+						crossAxisAlignment: CrossAxisAlignment.start,
+						children: [
+							const Icon(Icons.policy_outlined, size: 20, color: Colors.blueGrey),
+							const SizedBox(width: 8),
+							Expanded(
+								child: Text(
+									'Cancellation Policy: Free cancellation up to ${sportCenter.cancellationDeadlineHours} hours before the reservation.',
+									style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+										color: Colors.blueGrey.shade700,
+										fontWeight: FontWeight.w500,
+									),
+								),
+							),
+						],
+					),
 				],
 			),
 		);
