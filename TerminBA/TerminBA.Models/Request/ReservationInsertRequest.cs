@@ -27,6 +27,8 @@ namespace TerminBA.Models.Request
         public decimal Price { get; set; }
 
         public int? ChosenSportId { get; set; }
+
+        public string? PaymentMethod { get; set; }
     }
 }
 

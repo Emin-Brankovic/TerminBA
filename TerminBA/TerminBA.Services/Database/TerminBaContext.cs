@@ -38,6 +38,7 @@ namespace TerminBA.Services.Database
         public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
         public DbSet<SportCenterPhoto> SportCenterPhotos { get; set; }
         public DbSet<FavoriteSportCenter> FavoriteSportCenters { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -170,6 +171,10 @@ namespace TerminBA.Services.Database
                 .WithMany(sc => sc.FavoritedByUsers)
                 .HasForeignKey(fsc => fsc.SportCenterId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SportCenter>()
+                .Property(x => x.CancellationDeadlineHours)
+                .HasDefaultValue(24);
         }
     }
 }

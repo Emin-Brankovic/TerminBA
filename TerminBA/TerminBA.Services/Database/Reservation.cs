@@ -46,5 +46,12 @@ namespace TerminBA.Services.Database
         
         //public bool TicketDownloaded { get; set; } = false;
 
+        [MaxLength(50)]
+        public string? PaymentMethod { get; set; }
+
+        public DateTime? CancellationDeadline { get; set; }
+        public DateTime? CanceledAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
+
     }
 }

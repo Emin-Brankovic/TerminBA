@@ -10,6 +10,7 @@ class ReservationInsertRequest {
   final String endTime;         // "HH:MM:SS"
   final double price;
   final int? chosenSportId;
+  final String? paymentMethod;
 
   const ReservationInsertRequest({
     this.userId,
@@ -19,6 +20,7 @@ class ReservationInsertRequest {
     required this.endTime,
     required this.price,
     this.chosenSportId,
+    this.paymentMethod,
   });
 
   Map<String, dynamic> toJson() => {
@@ -29,5 +31,6 @@ class ReservationInsertRequest {
         'endTime': endTime,
         'price': price,
         if (chosenSportId != null) 'chosenSportId': chosenSportId,
+        if (paymentMethod != null) 'paymentMethod': paymentMethod,
       };
 }

@@ -35,7 +35,7 @@ namespace TerminBA.Services.ReservationStateMachine
             throw new UserException("Method not allowed");
         }
 
-        public virtual Task<ReservationResponse> CancelAsync(int id)
+        public virtual Task<CancellationResponse> CancelAsync(int id)
         {
             throw new UserException("Method not allowed");
         }
@@ -49,6 +49,8 @@ namespace TerminBA.Services.ReservationStateMachine
         {
             switch (currentReservationStateName)
             {
+                case nameof(PendingReservationState):
+                    return _serviceProvider.GetService<PendingReservationState>()!;
                 case nameof(ActiveReservationState):
                 case "Confirmed":
                     return _serviceProvider.GetService<ActiveReservationState>()!;
@@ -56,6 +58,10 @@ namespace TerminBA.Services.ReservationStateMachine
                     return _serviceProvider.GetService<CompletedReservationState>()!;
                 case nameof(CanceledReservationState):
                     return _serviceProvider.GetService<CanceledReservationState>()!;
+                case nameof(CanceledWithRefundReservationState):
+                    return _serviceProvider.GetService<CanceledWithRefundReservationState>()!;
+                case nameof(CanceledWithoutRefundReservationState):
+                    return _serviceProvider.GetService<CanceledWithoutRefundReservationState>()!;
                 default:
                     throw new UserException($"State {currentReservationStateName} is not defined");
             }

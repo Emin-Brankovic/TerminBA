@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/model/cancellation_response.dart';
 import 'package:terminba_mobile/providers/base_provider.dart';
 
 class ReservationProvider extends BaseProvider<ReservationResponse> {
@@ -11,7 +12,7 @@ class ReservationProvider extends BaseProvider<ReservationResponse> {
     return ReservationResponse.fromJson(data as Map<String, dynamic>);
   }
 
-    Future<void> cancelReservationPost(int id) async {
+    Future<CancellationResponse> cancelReservationPost(int id) async {
     var url = '$baseUrl$endpoint/cancel/$id';
     var uri = Uri.parse(url);
     var headers = await createHeaders();
@@ -20,6 +21,8 @@ class ReservationProvider extends BaseProvider<ReservationResponse> {
     if (!isValidResponse(response)) {
       throw Exception('Failed to cancel reservation');
     }
+    
+    return CancellationResponse.fromJson(jsonDecode(response.body));
   }
 
 }

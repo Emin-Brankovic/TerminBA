@@ -24,6 +24,11 @@ namespace TerminBA.Services.ReservationStateMachine
             entity = _mapper.Map(request, entity);
             entity.Status = nameof(ActiveReservationState);
 
+            var facility = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == request.FacilityId);
+            var hours = facility?.SportCenter?.CancellationDeadlineHours ?? 24;
+            var reservationStart = request.ReservationDate.ToDateTime(request.StartTime);
+            entity.CancellationDeadline = reservationStart.AddHours(-hours);
+
             await ValidateReservationInsertAsync(request);
             //await SendEmailAsync(request);
 
@@ -51,19 +56,62 @@ namespace TerminBA.Services.ReservationStateMachine
             return _mapper.Map<ReservationResponse>(entity);
         }
 
-        public override async Task<ReservationResponse> CancelAsync(int id)
+        public override async Task<CancellationResponse> CancelAsync(int id)
         {
-            var entity = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == id);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var entity = await _context.Reservations
+                    .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (entity == null)
-                throw new UserException("Reservation was not found");
+                if (entity == null)
+                    throw new UserException("Reservation was not found");
 
-            entity.Status = nameof(CanceledReservationState);
+                if (string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase))
+                {
+                    var payment = await _context.Payments
+                        .OrderByDescending(p => p.CreatedAt)
+                        .FirstOrDefaultAsync(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid);
 
-            await _context.SaveChangesAsync();
+                    if (payment != null && (!entity.CancellationDeadline.HasValue || entity.CancellationDeadline >= DateTime.Now))
+                    {
+                        var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
+                        var refundId = await stripeService.CreateRefundAsync(payment.StripePaymentIntentId, payment.Amount);
+                        
+                        payment.StripeRefundId = refundId;
+                        payment.RefundAmount = payment.Amount;
+                        payment.RefundRequestedAt = DateTime.Now;
+                        payment.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
 
-            return _mapper.Map<ReservationResponse>(entity);
+                        entity.Status = nameof(CanceledWithRefundReservationState);
+                    }
+                    else
+                    {
+                        entity.Status = nameof(CanceledWithoutRefundReservationState);
+                    }
+                }
+                else
+                {
+                    entity.Status = nameof(CanceledWithoutRefundReservationState);
+                }
+
+                entity.CanceledAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new CancellationResponse
+                {
+                    ReservationState = entity.Status,
+                    RefundIssued = entity.Status == nameof(CanceledWithRefundReservationState),
+                    RefundAmount = entity.PaymentMethod == "Stripe" && entity.Status == nameof(CanceledWithRefundReservationState) ? entity.Price : null,
+                    RefundStatus = entity.Status == nameof(CanceledWithRefundReservationState) ? "RefundPending" : null
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)

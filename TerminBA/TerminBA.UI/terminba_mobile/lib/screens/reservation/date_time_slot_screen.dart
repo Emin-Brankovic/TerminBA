@@ -7,6 +7,7 @@ import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_dynamic_price.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_summary_screen.dart';
+import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 
 /// Screen 3: Inline calendar + time slot chips.
@@ -516,15 +517,30 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
               enabled: canProceed,
               child: ElevatedButton(
                 onPressed: canProceed
-                    ? () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ChangeNotifierProvider.value(
-                              value: notifier,
-                              child: const ReservationSummaryScreen(),
+                    ? () async {
+                        final auth = context.read<AuthProvider>();
+                        final userId = await auth.getCurrentUserId();
+                        if (userId == null) return;
+                        
+                        final success = await notifier.createPendingReservation(userId: userId!);
+                        
+                        if (success && context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ChangeNotifierProvider.value(
+                                value: notifier,
+                                child: const ReservationSummaryScreen(),
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        } else if (context.mounted && notifier.state.error != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(notifier.state.error!),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     : null,
                 style: ElevatedButton.styleFrom(

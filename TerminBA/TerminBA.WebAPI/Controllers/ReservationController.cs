@@ -22,7 +22,7 @@ namespace TerminBA.WebAPI.Controllers
 
         [Authorize]
         [HttpPut("cancel/{id}")]
-        public async Task<ReservationResponse> Cancel(int id)
+        public async Task<CancellationResponse> Cancel(int id)
         {
             return await _reservationService.CancelAsync(id);
         }

@@ -34,16 +34,31 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             ? DateFormat('d MMM').format(state.selectedDate!)
             : '';
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('${state.sportCenterName} $courtName ($dateLabel)'),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+        return PopScope(
+          canPop: false,
+          onPopInvoked: (didPop) async {
+            if (didPop) return;
+            final shouldPop = await _showCancelDialog(context, notifier);
+            if (shouldPop && context.mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text('${state.sportCenterName} $courtName ($dateLabel)'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () async {
+                  final shouldPop = await _showCancelDialog(context, notifier);
+                  if (shouldPop && context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
             ),
+            body: _buildBody(context, state, notifier),
+            bottomNavigationBar: _buildCta(context, state, notifier),
           ),
-          body: _buildBody(context, state, notifier),
-          bottomNavigationBar: _buildCta(context, state, notifier),
         );
       },
     );
@@ -63,10 +78,8 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           if (state.error != null)
             _ErrorBanner(
               message: state.error!,
-              onRetry: () async {
-                final authProvider = context.read<AuthProvider>();
-                final userId = await authProvider.getCurrentUserId();
-                if (userId != null) await notifier.submitBooking(userId: userId);
+              onRetry: () {
+                // For now, clear the error or let the user click the bottom button again
               },
             ),
 
@@ -237,11 +250,23 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     BookingFlowNotifier notifier,
     int userId,
   ) async {
-    final clientSecret = await notifier.createPaymentIntent(userId: userId);
+    final state = notifier.state;
+    if (state.bookingConfirmation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reservation not found. Please try again.'),
+          backgroundColor: Color(0xFFE53935),
+        ),
+      );
+      return;
+    }
+
+    final reservationId = state.bookingConfirmation!.id;
+    final intentResponse = await notifier.createPaymentIntent(userId: userId, reservationId: reservationId);
 
     if (!mounted) return;
 
-    if (clientSecret == null) {
+    if (intentResponse == null || intentResponse.clientSecret.isEmpty) {
       final err = notifier.state.paymentError ?? 'Failed to start payment.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -255,7 +280,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     try {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
+          paymentIntentClientSecret: intentResponse.clientSecret,
           merchantDisplayName: 'TerminBA',
           style: ThemeMode.light,
         ),
@@ -264,7 +289,20 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
       await Stripe.instance.presentPaymentSheet();
 
       if (!mounted) return;
-      await _submitOnSiteBooking(context, notifier, userId);
+      
+      // Confirm with backend directly instead of relying solely on webhook
+      await notifier.confirmPaymentIntent(intentResponse.paymentIntentId);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider.value(
+            value: notifier,
+            child: const ReservationConfirmationScreen(),
+          ),
+        ),
+      );
     } on StripeException catch (e) {
       if (!mounted) return;
 
@@ -289,12 +327,12 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     BookingFlowNotifier notifier,
     int userId,
   ) async {
-    await notifier.submitBooking(userId: userId);
+    await notifier.confirmCashBooking();
 
     if (!mounted) return;
 
     final state = notifier.state;
-    if (state.bookingConfirmation != null) {
+    if (state.error == null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider.value(
@@ -303,21 +341,8 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           ),
         ),
       );
-    } else if (state.error != null) {
-      final isConflict = state.error!.toLowerCase().contains('conflict') ||
-          state.error!.toLowerCase().contains('already') ||
-          state.error!.toLowerCase().contains('booked');
-
-      if (isConflict) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Slot no longer available, please select another.'),
-            backgroundColor: Color(0xFFE53935),
-          ),
-        );
-      } else {
-        _showNetworkErrorDialog(context, notifier, userId);
-      }
+    } else {
+      _showNetworkErrorDialog(context, notifier, userId);
     }
   }
 
@@ -334,21 +359,43 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await notifier.submitBooking(userId: userId);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4CAF50),
-            ),
-            child: const Text('Retry'),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
+  }
+
+  Future<bool> _showCancelDialog(BuildContext context, BookingFlowNotifier notifier) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancel Reservation?'),
+          content: const Text('If you go back, your pending reservation will be canceled and the time slot will be freed up for others.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Keep Booking'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      await notifier.cancelPendingReservation();
+      return true;
+    }
+    return false;
   }
 }
 
@@ -512,6 +559,31 @@ class _BillDetailsSection extends StatelessWidget {
           label: 'Total',
           value: '${grandTotal.toStringAsFixed(0)} KM',
           isBold: true,
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F4FF),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFD0D7F5)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.info_outline, color: Color(0xFF5C7AE6), size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Cancellation Policy: Free cancellation up to ${state.selectedCourt?.sportCenter?.cancellationDeadlineHours ?? 24} hours before the reservation.',
+                  style: const TextStyle(
+                    color: Color(0xFF334A99),
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

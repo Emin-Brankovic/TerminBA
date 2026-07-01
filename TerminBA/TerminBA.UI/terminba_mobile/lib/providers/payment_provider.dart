@@ -30,4 +30,19 @@ class PaymentProvider extends BaseProvider<PaymentIntentResponse> {
       throw Exception('Failed to create payment intent.');
     }
   }
+
+  Future<bool> confirmPaymentIntent(String paymentIntentId) async {
+    final url = '${baseUrl}payments/confirm/$paymentIntentId';
+    final uri = Uri.parse(url);
+    final headers = await createHeaders();
+
+    final response = await http.post(uri, headers: headers);
+
+    if (isValidResponse(response)) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['status'] == 'succeeded';
+    } else {
+      return false;
+    }
+  }
 }

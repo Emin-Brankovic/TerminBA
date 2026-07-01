@@ -28,7 +28,11 @@ namespace TerminBA.Services.Service
 
         public override async Task<ReservationResponse> CreateAsync(ReservationInsertRequest request)
         {
-            var baseState = _baseReservationState.GetReservationState(nameof(ActiveReservationState));
+            string initialState = string.Equals(request.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase)
+                ? nameof(PendingReservationState)
+                : nameof(ActiveReservationState);
+
+            var baseState = _baseReservationState.GetReservationState(initialState);
 
             return await baseState.CreateAsync(request);
         }
@@ -57,7 +61,7 @@ namespace TerminBA.Services.Service
             return await baseState.DeleteAsync(id);
         }
 
-        public async Task<ReservationResponse> CancelAsync(int id)
+        public async Task<CancellationResponse> CancelAsync(int id)
         {
             var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id)
                 ?? throw new UserException("Reservation was not found");

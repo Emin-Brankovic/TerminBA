@@ -3,6 +3,7 @@ import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
 import 'package:terminba_mobile/model/payment_intent_request.dart';
+import 'package:terminba_mobile/model/payment_intent_response.dart';
 import 'package:terminba_mobile/model/reservation_insert_request.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/payment_provider.dart';
@@ -121,7 +122,7 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(notes: notes));
   }
 
-  Future<String?> createPaymentIntent({required int userId}) async {
+  Future<PaymentIntentResponse?> createPaymentIntent({required int userId, required int reservationId}) async {
     final court = _state.selectedCourt;
     if (court == null) {
       _setState(_state.copyWith(paymentError: 'No court selected.'));
@@ -141,12 +142,13 @@ class BookingFlowNotifier extends ChangeNotifier {
         currency: 'bam',
         facilityId: court.id,
         userId: userId,
+        reservationId: reservationId,
       );
 
       final response = await _paymentProvider.createPaymentIntent(request);
 
       _setState(_state.copyWith(isProcessingPayment: false));
-      return response.clientSecret;
+      return response;
     } on Exception catch (e) {
       _setState(_state.copyWith(
         isProcessingPayment: false,
@@ -156,15 +158,23 @@ class BookingFlowNotifier extends ChangeNotifier {
     }
   }
 
+  Future<bool> confirmPaymentIntent(String paymentIntentId) async {
+    try {
+      return await _paymentProvider.confirmPaymentIntent(paymentIntentId);
+    } catch (e) {
+      return false;
+    }
+  }
 
-  Future<void> submitBooking({required int userId}) async {
+
+  Future<bool> createPendingReservation({required int userId}) async {
     final court = _state.selectedCourt;
     final date = _state.selectedDate;
     final slot = _state.selectedTimeSlot;
 
     if (court == null || date == null || slot == null) {
       _setState(_state.copyWith(error: 'Incomplete booking details.'));
-      return;
+      return false;
     }
 
     _setState(_state.copyWith(isSubmitting: true, clearError: true));
@@ -173,7 +183,6 @@ class BookingFlowNotifier extends ChangeNotifier {
       final dateString =
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-      // Ensure times are in HH:MM:SS format
       final startTime = _ensureSeconds(slot.startTime);
       final endTime = _ensureSeconds(slot.endTime);
 
@@ -185,6 +194,7 @@ class BookingFlowNotifier extends ChangeNotifier {
         endTime: endTime,
         price: _state.grandTotal,
         chosenSportId: _state.sport?.id,
+        paymentMethod: 'Stripe', // Force Stripe to ensure it starts as PendingReservationState
       );
 
       final confirmation = await _reservationProvider.insert(request);
@@ -192,11 +202,52 @@ class BookingFlowNotifier extends ChangeNotifier {
         isSubmitting: false,
         bookingConfirmation: confirmation,
       ));
+      return true;
     } on Exception catch (e) {
       _setState(_state.copyWith(
         isSubmitting: false,
         error: _messageFrom(e),
       ));
+      return false;
+    }
+  }
+
+  Future<void> confirmCashBooking() async {
+    final reservationId = _state.bookingConfirmation?.id;
+    if (reservationId == null) return;
+
+    _setState(_state.copyWith(isSubmitting: true, clearError: true));
+
+    try {
+      // Send a dummy update request just to change the status to ActiveReservationState
+      final updateData = {
+        'status': 'ActiveReservationState',
+        'price': _state.grandTotal,
+        'reservationDate': _state.bookingConfirmation!.reservationDate,
+        'startTime': _state.bookingConfirmation!.startTime,
+        'endTime': _state.bookingConfirmation!.endTime,
+      };
+
+      await _reservationProvider.update(reservationId, updateData);
+      _setState(_state.copyWith(isSubmitting: false));
+    } on Exception catch (e) {
+      _setState(_state.copyWith(
+        isSubmitting: false,
+        error: _messageFrom(e),
+      ));
+    }
+  }
+
+  Future<void> cancelPendingReservation() async {
+    final reservationId = _state.bookingConfirmation?.id;
+    if (reservationId == null) return;
+
+    try {
+      await _reservationProvider.delete(reservationId);
+      // Clear confirmation so it's not used again
+      _setState(_state.copyWith(bookingConfirmation: null));
+    } catch (e) {
+      // Ignored for now, the background job could clean it up if it fails
     }
   }
 

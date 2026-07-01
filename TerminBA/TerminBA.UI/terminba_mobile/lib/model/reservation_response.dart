@@ -35,7 +35,7 @@ class ReservationResponse {
     this.chosenSport,
   });
 
-  bool get isCancelled => status == 'Cancelled';
+  bool get isCancelled => status == 'Cancelled' || status == 'CanceledReservationState' || status == 'CanceledWithRefundReservationState' || status == 'CanceledWithoutRefundReservationState';
 
   bool get isUpcoming {
     if (isCancelled) return false;

@@ -111,8 +111,20 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     if (confirm == true) {
       try {
         final provider = context.read<ReservationProvider>();
-        await provider.cancelReservationPost(id);
+        final response = await provider.cancelReservationPost(id);
         _pagingController.refresh();
+        
+        if (mounted) {
+          String message = 'Reservation canceled.';
+          if (response.refundIssued) {
+            message += ' A refund of ${response.refundAmount} BAM has been issued.';
+          } else {
+            message += ' No refund was issued.';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

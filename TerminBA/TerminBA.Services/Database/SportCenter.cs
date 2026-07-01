@@ -33,6 +33,7 @@ namespace TerminBA.Services.Database
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
+        public int CancellationDeadlineHours { get; set; } = 24;
 
         public ICollection<WorkingHours> WorkingHours { get; set; } = new List<WorkingHours>();
 

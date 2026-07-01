@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TerminBA.Models.Model;
+using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 
 namespace TerminBA.WebAPI.Controllers
@@ -10,11 +12,14 @@ namespace TerminBA.WebAPI.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IStripePaymentService _stripePaymentService;
+        private readonly TerminBaContext _context;
 
         public PaymentController(
-            IStripePaymentService stripePaymentService)
+            IStripePaymentService stripePaymentService,
+            TerminBaContext context)
         {
             _stripePaymentService = stripePaymentService;
+            _context = context;
         }
 
         [Authorize]
@@ -31,6 +36,21 @@ namespace TerminBA.WebAPI.Controllers
             {
                 var result = await _stripePaymentService.CreatePaymentIntentAsync(request);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("confirm/{paymentIntentId}")]
+        public async Task<IActionResult> ConfirmPaymentIntent(string paymentIntentId)
+        {
+            try
+            {
+                var status = await _stripePaymentService.ConfirmPaymentAsync(paymentIntentId);
+                return Ok(new { status = status });
             }
             catch (Exception ex)
             {

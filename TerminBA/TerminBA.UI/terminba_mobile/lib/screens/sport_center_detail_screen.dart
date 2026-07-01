@@ -226,6 +226,29 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
             ],
           ),
           const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F4FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFD0D7F5)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: Color(0xFF5C7AE6), size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Cancellation Policy: Free cancellation up to ${center.cancellationDeadlineHours} hours before the reservation.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF334A99),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
           VenueInfoSection(sportCenter: center),
           const SizedBox(height: 18),
           AmenitiesSection(amenities: center.availableAmenities),
