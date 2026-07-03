@@ -10,6 +10,10 @@ import 'package:terminba_mobile/providers/reservation_provider.dart';
 import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:terminba_mobile/widgets/reservation_ticket_card.dart';
 import 'package:terminba_mobile/model/facility.dart';
+import 'package:terminba_mobile/model/facility_review.dart';
+import 'package:terminba_mobile/providers/facility_review_provider.dart';
+import 'package:terminba_mobile/screens/write_facility_review_screen.dart';
+import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 
 class ReservationOverviewScreen extends StatefulWidget {
   final int reservationId;
@@ -23,6 +27,7 @@ class ReservationOverviewScreen extends StatefulWidget {
 class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
   bool _isLoading = true;
   ReservationResponse? _details;
+  FacilityReview? _review;
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -43,9 +48,22 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
     try {
       final provider = Provider.of<ReservationProvider>(context, listen: false);
       final details = await provider.getById(widget.reservationId);
+      
+      FacilityReview? review;
+      try {
+        final reviewProvider = Provider.of<FacilityReviewProvider>(context, listen: false);
+        final reviewResult = await reviewProvider.get(filter: {'reservationId': widget.reservationId});
+        if (reviewResult.items != null && reviewResult.items!.isNotEmpty) {
+          review = reviewResult.items!.first;
+        }
+      } catch (e) {
+        // ignore review fetch errors
+      }
+
       if (mounted) {
         setState(() {
           _details = details;
+          _review = review;
           _isLoading = false;
         });
       }
@@ -137,6 +155,25 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
         ),
       ),
     ).then((_) => notifier.dispose());
+  }
+
+  void _navigateToWriteReview(Facility facility, {FacilityReview? existingReview}) {
+    final sportCenter = facility.sportCenter;
+    final sportCenterId = facility.sportCenterId;
+    final sportCenterName = sportCenter?.username ?? 'Sport Center';
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WriteFacilityReviewScreen(
+          sportCenterId: sportCenterId,
+          facility: facility,
+          reservationId: widget.reservationId,
+          existingReview: existingReview,
+        ),
+      ),
+    ).then((_) {
+      _fetchDetails(); // Refresh after writing review
+    });
   }
 
   Widget _buildCarousel() {
@@ -282,7 +319,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                             style: const TextStyle(fontSize: 18, color: Colors.white),
                           ),
                         )
-                      else if (!_details!.isCancelled)
+                      else if (!_details!.isCancelled) ...[
                         ElevatedButton(
                           onPressed: _reserveAgain,
                           style: ElevatedButton.styleFrom(
@@ -295,6 +332,52 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                             style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        if (_review != null)
+                          OutlinedButton.icon(
+                            onPressed: _details!.facility != null
+                                ? () => _navigateToWriteReview(_details!.facility!, existingReview: _review)
+                                : null,
+                            icon: const Icon(Icons.star, color: Color(0xFF4CAF50)),
+                            label: const Text(
+                              'View your Review',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF4CAF50),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          )
+                        else
+                          OutlinedButton.icon(
+                            onPressed: _details!.facility != null
+                                ? () => _navigateToWriteReview(_details!.facility!)
+                                : null,
+                            icon: const Icon(Icons.star_outline, color: Color(0xFF4CAF50)),
+                            label: const Text(
+                              'Leave a Review',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF4CAF50),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                      ],
                       const SizedBox(height: 20),
                     ],
                   ),

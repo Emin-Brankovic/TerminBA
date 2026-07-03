@@ -21,6 +21,8 @@ namespace TerminBA.Models.Request
         public int? UserId { get; set; }
 
         public int? FacilityId { get; set; }
+
+        public int? ReservationId { get; set; }
     }
 }
 

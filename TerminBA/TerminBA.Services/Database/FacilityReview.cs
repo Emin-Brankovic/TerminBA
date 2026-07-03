@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -33,5 +33,9 @@ namespace TerminBA.Services.Database
         public Facility? Facility { get; set; }
      
        // public ICollection<FacilityReview> FacilityReviews { get; set; } = new List<FacilityReview>();
+
+        [ForeignKey(nameof(Reservation))]
+        public int? ReservationId { get; set; }
+        public Reservation? Reservation { get; set; }
     }
 }

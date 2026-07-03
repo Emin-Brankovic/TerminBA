@@ -9,11 +9,12 @@ part of 'facility_review_insert_request.dart';
 FacilityReviewInsertRequest _$FacilityReviewInsertRequestFromJson(
   Map<String, dynamic> json,
 ) => FacilityReviewInsertRequest(
-  (json['ratingNumber'] as num).toInt(),
-  _dateOnlyFromJson(json['ratingDate'] as String),
-  json['comment'] as String,
-  (json['userId'] as num?)?.toInt(),
-  (json['facilityId'] as num?)?.toInt(),
+  ratingNumber: (json['ratingNumber'] as num).toInt(),
+  ratingDate: _dateOnlyFromJson(json['ratingDate'] as String),
+  comment: json['comment'] as String?,
+  userId: (json['userId'] as num?)?.toInt(),
+  facilityId: (json['facilityId'] as num?)?.toInt(),
+  reservationId: (json['reservationId'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$FacilityReviewInsertRequestToJson(
@@ -24,4 +25,5 @@ Map<String, dynamic> _$FacilityReviewInsertRequestToJson(
   'comment': instance.comment,
   'userId': instance.userId,
   'facilityId': instance.facilityId,
+  'reservationId': instance.reservationId,
 };

@@ -1,38 +1,47 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_review_insert_request.dart';
+import 'package:terminba_mobile/model/facility_review.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
-import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 
 class WriteFacilityReviewScreen extends StatefulWidget {
   const WriteFacilityReviewScreen({
     super.key,
     required this.sportCenterId,
-    this.preselectedFacility, // optional — pass when navigating from detail screen
+    required this.facility,
+    this.reservationId,
+    this.existingReview,
   });
 
   final int sportCenterId;
-  final Facility? preselectedFacility;
+  final Facility facility;
+  final int? reservationId;
+  final FacilityReview? existingReview;
 
   @override
-  State<WriteFacilityReviewScreen> createState() => _WriteFacilityReviewScreenState();
+  State<WriteFacilityReviewScreen> createState() =>
+      _WriteFacilityReviewScreenState();
 }
 
-class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
+class _WriteFacilityReviewScreenState
+    extends State<WriteFacilityReviewScreen> {
   final _commentController = TextEditingController();
   int _selectedRating = 0;
-  Facility? _selectedFacility;
-  List<Facility> _facilities = [];
-  bool _isLoadingFacilities = false;
   bool _isSubmitting = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _selectedFacility = widget.preselectedFacility;
-    _loadFacilities();
+    if (widget.existingReview != null) {
+      _selectedRating = widget.existingReview!.ratingNumber;
+      if (widget.existingReview!.comment != null) {
+        _commentController.text = widget.existingReview!.comment!;
+      }
+    }
   }
 
   @override
@@ -41,38 +50,7 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
     super.dispose();
   }
 
-  Future<void> _loadFacilities() async {
-    setState(() => _isLoadingFacilities = true);
-    try {
-      final provider = context.read<FacilityProvider>();
-      final result = await provider.get(filter: {
-        'sportCenterId': widget.sportCenterId,
-      });
-      setState(() {
-        _facilities = result.items?.cast<Facility>() ?? [];
-        _isLoadingFacilities = false;
-        if (_selectedFacility != null) {
-          final match = _facilities.cast<Facility?>().firstWhere(
-            (f) => f?.id == _selectedFacility!.id,
-            orElse: () => null,
-          );
-          if (match != null) {
-            _selectedFacility = match;
-          } else {
-            _facilities.insert(0, _selectedFacility!);
-          }
-        }
-      });
-    } catch (_) {
-      setState(() => _isLoadingFacilities = false);
-    }
-  }
-
   Future<void> _submit() async {
-    if (_selectedFacility == null) {
-      setState(() => _error = 'Please select a facility.');
-      return;
-    }
     if (_selectedRating == 0) {
       setState(() => _error = 'Please select a rating.');
       return;
@@ -85,23 +63,39 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
 
     try {
       final request = FacilityReviewInsertRequest(
-        _selectedRating,
-        DateTime.now(),
-        _commentController.text.trim(),
-        null, // userId — set by the server from the JWT token
-        _selectedFacility!.id,
+        ratingNumber: _selectedRating,
+        ratingDate: DateTime.now(),
+        comment: _commentController.text.trim().isEmpty
+            ? null
+            : _commentController.text.trim(),
+        userId: null, // set by the server from the JWT token
+        facilityId: widget.facility.id,
+        reservationId: widget.reservationId,
       );
       await context.read<FacilityReviewProvider>().insert(request);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Review submitted!')),
+          const SnackBar(
+            content: Text('Review submitted! Thank you.'),
+            backgroundColor: Color(0xFF4CAF50),
+          ),
         );
-        Navigator.pop(context);
+        // Navigate to the reviews list for this sport center
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => FacilityReviewsScreen(
+              sportCenterId: widget.sportCenterId,
+              sportCenterName:
+                  widget.facility.sportCenter?.username ?? 'Sport Center',
+              averageRating: 0.0, // will be recalculated from the list
+            ),
+          ),
+        );
       }
     } on Exception catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = e.toString().replaceFirst('Exception: ', '');
         _isSubmitting = false;
       });
     }
@@ -114,7 +108,7 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
-        title: const Text('Reviews'),
+        title: const Text('Write a Review'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -122,49 +116,79 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Facility Selector ──────────────────────────────
-            _buildFacilitySelector(theme),
-            const SizedBox(height: 24),
+            // ── Facility summary card ─────────────────────────────
+            _FacilitySummaryCard(facility: widget.facility),
+            const SizedBox(height: 28),
 
-            // ── Rating ────────────────────────────────────────
+            // ── Rating ───────────────────────────────────────────
             Text(
-              'Rating',
+              'Your Rating',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
             _buildStarSelector(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
 
-            // ── Comment ───────────────────────────────────────
+            // ── Comment ──────────────────────────────────────────
             Text(
-              'Write your review',
+              widget.existingReview != null ? 'Your Review' : 'Write your review',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _commentController,
-              maxLines: 6,
-              maxLength: 180,
-              decoration: InputDecoration(
-                hintText: 'Share your experience...',
-                alignLabelWithHint: true,
-                border: OutlineInputBorder(
+            if (widget.existingReview != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                child: Text(
+                  widget.existingReview!.comment?.isNotEmpty == true
+                      ? widget.existingReview!.comment!
+                      : 'No comment provided.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: widget.existingReview!.comment?.isNotEmpty == true
+                        ? Colors.black87
+                        : Colors.grey,
+                    fontStyle: widget.existingReview!.comment?.isNotEmpty == true
+                        ? FontStyle.normal
+                        : FontStyle.italic,
+                  ),
+                ),
+              )
+            else
+              TextField(
+                controller: _commentController,
+                maxLines: 6,
+                maxLength: 180,
+                decoration: InputDecoration(
+                  hintText: 'Share your experience... (optional)',
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 8),
 
-            // ── Error ─────────────────────────────────────────
+            // ── Error ────────────────────────────────────────────
             if (_error != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
@@ -183,100 +207,45 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
               const SizedBox(height: 12),
             ],
 
-            // ── Submit ────────────────────────────────────────
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isSubmitting ? null : _submit,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            // ── Submit ───────────────────────────────────────────
+            if (widget.existingReview == null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed:
+                      (_isSubmitting || _selectedRating == 0) ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Submit Review',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Submit Review',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
               ),
-            ),
+            ],
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFacilitySelector(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      child: _isLoadingFacilities
-          ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 10),
-                  Text('Loading facilities...'),
-                ],
-              ),
-            )
-          : DropdownButtonHideUnderline(
-              child: DropdownButton<Facility>(
-                isExpanded: true,
-                hint: const Text('Select a facility'),
-                value: _selectedFacility,
-                icon: const Icon(Icons.keyboard_arrow_down),
-                borderRadius: BorderRadius.circular(12),
-                items: _facilities.map((facility) {
-                  return DropdownMenuItem<Facility>(
-                    value: facility,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.stadium_outlined,
-                          size: 18,
-                          color: Color(0xFF4CAF50),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            facility.name ?? 'Facility',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() {
-                  _selectedFacility = value;
-                  _error = null;
-                }),
-              ),
-            ),
     );
   }
 
@@ -285,19 +254,182 @@ class _WriteFacilityReviewScreenState extends State<WriteFacilityReviewScreen> {
       children: List.generate(5, (index) {
         final starValue = index + 1;
         return GestureDetector(
-          onTap: () => setState(() => _selectedRating = starValue),
-          child: Padding(
-            padding: const EdgeInsets.only(right: 6),
+          onTap: () {
+            if (widget.existingReview == null) {
+              setState(() => _selectedRating = starValue);
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.only(right: 8),
             child: Icon(
               _selectedRating >= starValue ? Icons.star : Icons.star_border,
               color: _selectedRating >= starValue
                   ? const Color(0xFFFFC107)
                   : Colors.grey.shade400,
-              size: 36,
+              size: 40,
             ),
           ),
         );
       }),
+    );
+  }
+}
+
+// ─── Facility Summary Card ────────────────────────────────────────────────────
+
+class _FacilitySummaryCard extends StatelessWidget {
+  const _FacilitySummaryCard({required this.facility});
+
+  final Facility facility;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final photoUrl = facility.photos.isNotEmpty
+        ? facility.photos.first.url
+        : null;
+
+    final durationMinutes = facility.duration.inMinutes;
+    final durationLabel = durationMinutes >= 60
+        ? '${durationMinutes ~/ 60}h ${durationMinutes % 60 == 0 ? '' : '${durationMinutes % 60}min'}'.trim()
+        : '${durationMinutes}min';
+
+    final price = facility.staticPrice != null
+        ? '${facility.staticPrice!.toStringAsFixed(0)} KM'
+        : 'Dynamic';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Info column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  facility.name ?? 'Facility',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _InfoRow(
+                  icon: Icons.grass,
+                  label: 'Surface',
+                  value: facility.turfType?.name ?? '—',
+                ),
+                _InfoRow(
+                  icon: facility.isIndoor ? Icons.house : Icons.wb_sunny_outlined,
+                  label: 'Type',
+                  value: facility.isIndoor ? 'Indoor' : 'Outdoor',
+                ),
+                _InfoRow(
+                  icon: Icons.schedule,
+                  label: 'Duration',
+                  value: durationLabel,
+                ),
+                _InfoRow(
+                  icon: Icons.people_outline,
+                  label: 'Max players',
+                  value: '${facility.maxCapacity}',
+                ),
+                _InfoRow(
+                  icon: Icons.attach_money,
+                  label: 'Price',
+                  value: price,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Thumbnail image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: photoUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: photoUrl,
+                    width: 90,
+                    height: 90,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 90,
+                      height: 90,
+                      color: Colors.grey.shade100,
+                    ),
+                    errorWidget: (_, __, ___) => _PlaceholderThumb(),
+                  )
+                : _PlaceholderThumb(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: Colors.grey.shade500),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlaceholderThumb extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 90,
+      height: 90,
+      color: Colors.grey.shade100,
+      child: const Icon(Icons.stadium_outlined, color: Colors.grey, size: 36),
     );
   }
 }

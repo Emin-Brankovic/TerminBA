@@ -80,6 +80,11 @@ namespace TerminBA.Services.Database
                         .HasIndex(fr => new { fr.UserId, fr.FacilityId });
 
             modelBuilder.Entity<FacilityReview>()
+                        .HasIndex(fr => fr.ReservationId)
+                        .IsUnique()
+                        .HasFilter("[ReservationId] IS NOT NULL");
+
+            modelBuilder.Entity<FacilityReview>()
                 .HasOne(fr => fr.User)
                 .WithMany(u => u.FacilityReviewsGiven)
                 .OnDelete(DeleteBehavior.SetNull);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
@@ -62,6 +63,9 @@ namespace TerminBA.Services.Service
             if (search.FacilityId.HasValue)
                 query = query.Where(fr => fr.FacilityId == search.FacilityId.Value);
 
+            if (search.ReservationId.HasValue)
+                query = query.Where(fr => fr.ReservationId == search.ReservationId.Value);
+
 
             if (search.MinRating.HasValue)
                 query = query.Where(fr => fr.RatingNumber >= search.MinRating.Value);
@@ -97,12 +101,37 @@ namespace TerminBA.Services.Service
         }
 
 
-        public override Task<FacilityReviewResponse> CreateAsync(FacilityReviewInsertRequest request)
+        public override async Task<FacilityReviewResponse> CreateAsync(FacilityReviewInsertRequest request)
         {
-            if(request.UserId == null)
-                request.UserId=int.Parse(_authService.GetUserId());
+            if (request.UserId == null)
+                request.UserId = int.Parse(_authService.GetUserId());
 
-            return base.CreateAsync(request);
+            if (request.ReservationId.HasValue)
+            {
+                var reservation = await _context.Reservations
+                    .Include(r => r.Facility)
+                    .FirstOrDefaultAsync(r => r.Id == request.ReservationId.Value);
+
+                if (reservation == null)
+                    throw new UserException("Reservation not found.");
+
+                if (reservation.UserId != request.UserId)
+                    throw new UserException("You can only review your own reservations.");
+
+                var endDateTime = reservation.ReservationDate.ToDateTime(reservation.EndTime);
+                if (DateTime.UtcNow < endDateTime)
+                    throw new UserException("You can only leave a review after the appointment has ended.");
+
+                var alreadyReviewed = await _context.FacilityReviews
+                    .AnyAsync(fr => fr.ReservationId == request.ReservationId.Value);
+                if (alreadyReviewed)
+                    throw new UserException("You have already submitted a review for this reservation.");
+
+                if (!request.FacilityId.HasValue)
+                    request.FacilityId = reservation.FacilityId;
+            }
+
+            return await base.CreateAsync(request);
         }
 
 

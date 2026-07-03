@@ -8,16 +8,25 @@ class FacilityReviewInsertRequest {
 	int ratingNumber;
   @JsonKey(fromJson: _dateOnlyFromJson, toJson: _dateOnlyToJson)
 	DateTime ratingDate;
-	String comment;
+	String? comment;
 	int? userId;
 	int? facilityId;
+	int? reservationId;
 
-	FacilityReviewInsertRequest(this.ratingNumber,this.ratingDate,this.comment,this.userId,this.facilityId,);
+	FacilityReviewInsertRequest({
+		required this.ratingNumber,
+		required this.ratingDate,
+		this.comment,
+		this.userId,
+		this.facilityId,
+		this.reservationId,
+	});
 
 	factory FacilityReviewInsertRequest.fromJson(Map<String, dynamic> json) => _$FacilityReviewInsertRequestFromJson(json);
 
 	Map<String, dynamic> toJson() => _$FacilityReviewInsertRequestToJson(this);
 }
+
 final DateFormat _isoDateOnlyFormatter = DateFormat('yyyy-MM-dd');
 
 DateTime _dateOnlyFromJson(String value) =>

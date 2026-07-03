@@ -5,7 +5,6 @@ import 'package:terminba_mobile/features/reviews/reviews_notifier.dart';
 import 'package:terminba_mobile/features/reviews/reviews_state.dart';
 import 'package:terminba_mobile/model/facility_review.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
-import 'package:terminba_mobile/screens/write_facility_review_screen.dart';
 
 class FacilityReviewsScreen extends StatefulWidget  {
   const FacilityReviewsScreen({
@@ -107,52 +106,23 @@ class FacilityReviewsScreen extends StatefulWidget  {
   }
 
   Widget _buildSummaryHeader(ThemeData theme, ReviewsState state) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${widget.averageRating.toStringAsFixed(1)}/5.0',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            _StarRow(rating: widget.averageRating),
-            const SizedBox(height: 4),
-            Text(
-              '${state.reviews.length} ratings',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        FilledButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => WriteFacilityReviewScreen(
-                  sportCenterId: widget.sportCenterId,
-                ),
-              ),
-            ).then((_) {
-              _notifier.initialize();
-            });
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFFF5722),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        Text(
+          '${widget.averageRating.toStringAsFixed(1)}/5.0',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          child: const Text('Write a review'),
+        ),
+        const SizedBox(height: 6),
+        _StarRow(rating: widget.averageRating),
+        const SizedBox(height: 4),
+        Text(
+          '${state.reviews.length} ratings',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.grey,
+          ),
         ),
       ],
     );
