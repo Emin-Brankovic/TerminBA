@@ -3,11 +3,13 @@ import 'package:terminba_mobile/screens/reservations_screen.dart';
 import 'package:terminba_mobile/screens/home_screen.dart';
 import 'package:terminba_mobile/screens/profile_menu_screen.dart';
 import 'package:terminba_mobile/screens/search_screen.dart';
+import 'package:terminba_mobile/screens/player_search_feed_screen.dart';
 
 enum BottomTab {
 	home,
 	search,
 	bookings,
+	playerSearch,
 	profile,
 }
 
@@ -102,6 +104,9 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 						screen =
 								ReservationsScreen(scrollController: _scrollControllers[index]);
 						break;
+					case BottomTab.playerSearch:
+						screen = PlayerSearchFeedScreen(scrollController: _scrollControllers[index]);
+						break;
 					case BottomTab.profile:
 						screen =
 								ProfileMenuScreen(scrollController: _scrollControllers[index]);
@@ -179,6 +184,22 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 								),
 							),
 							label: 'Bookings',
+						),
+						NavigationDestination(
+							icon: Semantics(
+								label: 'Find Players',
+								selected: false,
+								child: Icon(Icons.people_outline),
+							),
+							selectedIcon: Semantics(
+								label: 'Find Players',
+								selected: true,
+								child: Icon(
+									Icons.people_outline,
+									color: selectedColor,
+								),
+							),
+							label: 'Find Players',
 						),
 						NavigationDestination(
 							icon: Semantics(

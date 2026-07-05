@@ -13,6 +13,14 @@ namespace TerminBA.Models.SearchObjects
         public DateOnly? ReservationDate { get; set; }
         public int? CityId { get; set; }
         public int? TurfTypeId { get; set; }
+        /// <summary>
+        /// Filter by post state, e.g. "PlayerSearchPostState" for the public feed.
+        /// </summary>
+        public string? PostState { get; set; }
+        /// <summary>
+        /// Filter to only posts where the reservation was created by this user.
+        /// </summary>
+        public int? UserId { get; set; }
     }
 }
 

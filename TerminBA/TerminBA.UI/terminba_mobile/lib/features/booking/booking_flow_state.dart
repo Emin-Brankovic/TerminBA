@@ -51,6 +51,12 @@ class BookingFlowState {
   // ── Result after booking ─────────────────────────────────────────────────
   final ReservationResponse? bookingConfirmation;
 
+  // ── Post creation ────────────────────────────────────────────────────────
+  final bool wantsToCreatePost;
+  final String? postSkillLevel;
+  final String? postText;
+  final int postPlayersWanted;
+
   const BookingFlowState({
     required this.sportCenterId,
     required this.sportCenterName,
@@ -73,6 +79,10 @@ class BookingFlowState {
     this.bookingConfirmation,
     this.isProcessingPayment = false,
     this.paymentError,
+    this.wantsToCreatePost = false,
+    this.postSkillLevel,
+    this.postText,
+    this.postPlayersWanted = 1,
   });
 
   factory BookingFlowState.initial({
@@ -119,6 +129,10 @@ class BookingFlowState {
     bool? isProcessingPayment,
     String? paymentError,
     bool clearPaymentError = false,
+    bool? wantsToCreatePost,
+    String? postSkillLevel,
+    String? postText,
+    int? postPlayersWanted,
   }) {
     return BookingFlowState(
       sportCenterId: sportCenterId ?? this.sportCenterId,
@@ -144,6 +158,10 @@ class BookingFlowState {
           clearBookingConfirmation ? null : bookingConfirmation ?? this.bookingConfirmation,
       isProcessingPayment: isProcessingPayment ?? this.isProcessingPayment,
       paymentError: clearPaymentError ? null : paymentError ?? this.paymentError,
+      wantsToCreatePost: wantsToCreatePost ?? this.wantsToCreatePost,
+      postSkillLevel: postSkillLevel ?? this.postSkillLevel,
+      postText: postText ?? this.postText,
+      postPlayersWanted: postPlayersWanted ?? this.postPlayersWanted,
     );
   }
 

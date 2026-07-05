@@ -21,10 +21,14 @@ namespace TerminBA.Services.Service
     public class PostService : BaseCRUDService<PostResponse, Post, PostSearchObject, PostInsertRequest, PostUpdateRequest>, IPostService
     {
         protected readonly BasePostState _basePostState;
+        private readonly IAuthService<AccountBase> _authService;
+        private readonly Dictionary<string, string> _currentUser;
 
-        public PostService(TerminBaContext context, IMapper mapper, BasePostState basePostState) : base(context, mapper)
+        public PostService(TerminBaContext context, IMapper mapper, BasePostState basePostState, IAuthService<AccountBase> authService) : base(context, mapper)
         {
             this._basePostState = basePostState;
+            this._authService = authService;
+            _currentUser = _authService.GetCurrentUser();
         }
 
         public async override Task<PagedResult<PostResponse>> GetAsync(PostSearchObject search)
@@ -78,9 +82,9 @@ namespace TerminBA.Services.Service
             if (!string.IsNullOrEmpty(search.SkillLevel))
                 query = query.Where(p => p.SkillLevel!.ToLower().Contains(search.SkillLevel.ToLower()));
 
-            if(search.SportId.HasValue)
-                query=query
-                    .Where(p=>p.Reservation!.ChosenSportId==search.SportId);
+            if (search.SportId.HasValue)
+                query = query
+                    .Where(p => p.Reservation!.ChosenSportId == search.SportId);
 
             if (search.ReservationDate.HasValue)
                 query = query
@@ -88,11 +92,24 @@ namespace TerminBA.Services.Service
 
             if (search.CityId.HasValue)
                 query = query
-                    .Where(p => p.Reservation!.Facility!.SportCenter!.CityId==search.CityId);
+                    .Where(p => p.Reservation!.Facility!.SportCenter!.CityId == search.CityId);
 
             if (search.TurfTypeId.HasValue)
                 query = query
                     .Where(p => p.Reservation!.Facility!.TurfTypeId == search.TurfTypeId);
+
+            if (!string.IsNullOrEmpty(search.PostState))
+                query = query.Where(p => p.PostState == search.PostState);
+
+            if (search.UserId.HasValue)
+            {
+                query = query.Where(p => p.Reservation!.UserId == search.UserId.Value);
+            }
+            else if (_currentUser["userRole"] == "User")
+            {
+                int currentUserId = int.Parse(_authService.GetUserId());
+                query = query.Where(p => p.Reservation!.UserId != currentUserId);
+            }
 
             return query;
         }

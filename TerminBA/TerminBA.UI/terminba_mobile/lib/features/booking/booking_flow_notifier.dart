@@ -122,6 +122,20 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(notes: notes));
   }
 
+  void setPostDetails({
+    required bool wantsToCreate,
+    String? skillLevel,
+    String? text,
+    int playersWanted = 1,
+  }) {
+    _setState(_state.copyWith(
+      wantsToCreatePost: wantsToCreate,
+      postSkillLevel: skillLevel,
+      postText: text,
+      postPlayersWanted: playersWanted,
+    ));
+  }
+
   Future<PaymentIntentResponse?> createPaymentIntent({required int userId, required int reservationId}) async {
     final court = _state.selectedCourt;
     if (court == null) {

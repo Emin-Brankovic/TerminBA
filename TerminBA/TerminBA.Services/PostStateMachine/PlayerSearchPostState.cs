@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -126,6 +126,16 @@ namespace TerminBA.Services.PostStateMachine
 
             if (post?.Reservation?.UserId == request.RequesterId)
                 throw new UserException("You cannot send a request to your own post.");
+
+            // Prevent duplicate active/pending requests
+            var duplicate = await _context.PlayRequests
+                .AnyAsync(pr =>
+                    pr.PostId == request.PostId &&
+                    pr.RequesterId == request.RequesterId &&
+                    pr.isAccepted == null); // null = pending
+
+            if (duplicate)
+                throw new UserException("You already have a pending request for this post.");
         }
     }
 }

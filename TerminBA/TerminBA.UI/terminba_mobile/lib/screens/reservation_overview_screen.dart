@@ -14,6 +14,7 @@ import 'package:terminba_mobile/model/facility_review.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
 import 'package:terminba_mobile/screens/write_facility_review_screen.dart';
 import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
+import 'package:terminba_mobile/screens/create_player_search_post_screen.dart';
 
 class ReservationOverviewScreen extends StatefulWidget {
   final int reservationId;
@@ -307,17 +308,50 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                       ReservationTicketCard(details: _details!),
                       const SizedBox(height: 32),
                       if (_details!.isUpcoming)
-                        ElevatedButton(
-                          onPressed: _details!.ticketDownloaded ? null : _downloadTicket,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: Text(
-                            _details!.ticketDownloaded ? 'Ticket Already Downloaded' : 'Download Ticket',
-                            style: const TextStyle(fontSize: 18, color: Colors.white),
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ElevatedButton(
+                              onPressed: _details!.ticketDownloaded ? null : _downloadTicket,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: Text(
+                                _details!.ticketDownloaded ? 'Ticket Already Downloaded' : 'Download Ticket',
+                                style: const TextStyle(fontSize: 18, color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => CreatePlayerSearchPostScreen(
+                                      reservation: _details!,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.people_outline, color: Color(0xFF00C875)),
+                              label: const Text(
+                                'Find Players',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF00C875),
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF00C875), width: 1.5),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
                         )
                       else if (!_details!.isCancelled) ...[
                         ElevatedButton(

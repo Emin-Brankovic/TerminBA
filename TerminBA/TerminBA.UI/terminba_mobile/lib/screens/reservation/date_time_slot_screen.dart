@@ -7,6 +7,7 @@ import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_dynamic_price.dart';
 import 'package:terminba_mobile/model/facility_time_slot.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_summary_screen.dart';
+import 'package:terminba_mobile/screens/reservation/reservation_create_post_step_screen.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 
@@ -529,7 +530,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                             MaterialPageRoute(
                               builder: (_) => ChangeNotifierProvider.value(
                                 value: notifier,
-                                child: const ReservationSummaryScreen(),
+                                child: const ReservationCreatePostStepScreen(),
                               ),
                             ),
                           );

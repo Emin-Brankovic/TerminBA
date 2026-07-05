@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
+import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
+import 'package:terminba_mobile/screens/my_posts_screen.dart';
 
 class ProfileMenuScreen extends StatelessWidget {
 	final ScrollController? scrollController;
@@ -105,9 +107,31 @@ class ProfileMenuScreen extends StatelessWidget {
 					),
 					_listItem(
 						context,
+						icon: Icons.article_outlined,
+						title: 'My Posts',
+						color: accent,
+						onTap: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(
+									builder: (_) => const MyPostsScreen(),
+								),
+							);
+						},
+					),
+					_listItem(
+						context,
 						icon: Icons.receipt_long_outlined,
 						title: 'Requests',
 						color: accent,
+						onTap: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(
+									builder: (_) => const PlayerSearchRequestsScreen(),
+								),
+							);
+						},
 					),
 					// _listItem(
 					// 	context,

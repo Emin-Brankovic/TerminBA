@@ -7,6 +7,8 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_confirmation_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:terminba_mobile/model/payment_method.dart';
+import 'package:terminba_mobile/model/post_insert_request.dart';
+import 'package:terminba_mobile/providers/post_provider.dart';
 
 class ReservationSummaryScreen extends StatefulWidget {
   const ReservationSummaryScreen({super.key});
@@ -34,31 +36,12 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             ? DateFormat('d MMM').format(state.selectedDate!)
             : '';
 
-        return PopScope(
-          canPop: false,
-          onPopInvoked: (didPop) async {
-            if (didPop) return;
-            final shouldPop = await _showCancelDialog(context, notifier);
-            if (shouldPop && context.mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('${state.sportCenterName} $courtName ($dateLabel)'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () async {
-                  final shouldPop = await _showCancelDialog(context, notifier);
-                  if (shouldPop && context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ),
-            body: _buildBody(context, state, notifier),
-            bottomNavigationBar: _buildCta(context, state, notifier),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('${state.sportCenterName} $courtName ($dateLabel)'),
           ),
+          body: _buildBody(context, state, notifier),
+          bottomNavigationBar: _buildCta(context, state, notifier),
         );
       },
     );
@@ -295,6 +278,18 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
       if (!mounted) return;
 
+      if (notifier.state.wantsToCreatePost) {
+        final req = PostInsertRequest(
+          skillLevel: notifier.state.postSkillLevel!,
+          text: notifier.state.postText,
+          reservationId: notifier.state.bookingConfirmation!.id,
+          numberOfPlayersWanted: notifier.state.postPlayersWanted,
+        );
+        try {
+          await context.read<PostProvider>().insert(req.toJson());
+        } catch (_) {}
+      }
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider.value(
@@ -333,6 +328,18 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
     final state = notifier.state;
     if (state.error == null) {
+      if (state.wantsToCreatePost) {
+        final req = PostInsertRequest(
+          skillLevel: state.postSkillLevel!,
+          text: state.postText,
+          reservationId: state.bookingConfirmation!.id,
+          numberOfPlayersWanted: state.postPlayersWanted,
+        );
+        try {
+          await context.read<PostProvider>().insert(req.toJson());
+        } catch (_) {}
+      }
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider.value(
@@ -366,37 +373,6 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     );
   }
 
-  Future<bool> _showCancelDialog(BuildContext context, BookingFlowNotifier notifier) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Cancel Reservation?'),
-          content: const Text('If you go back, your pending reservation will be canceled and the time slot will be freed up for others.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Keep Booking'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    if (result == true) {
-      await notifier.cancelPendingReservation();
-      return true;
-    }
-    return false;
-  }
 }
 
 // ─── Sub-widgets ──────────────────────────────────────────────────────────────
