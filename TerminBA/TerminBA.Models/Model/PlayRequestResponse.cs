@@ -22,6 +22,9 @@ namespace TerminBA.Models.Model
 
         public DateTime? DateOfRequest { get; set; }
         public DateTime? DateOfResponse { get; set; }
+
+        public bool IsSeenByOwner { get; set; }
+        public bool IsSeenByRequester { get; set; }
     }
 }
 

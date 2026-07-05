@@ -151,8 +151,8 @@ class FilterChipBar extends StatelessWidget {
           // -- Date chip --
           _FilterGroupChip(
             label: selectedDate != null
-                ? '📅 ${_formatDate(selectedDate!)}'
-                : '📅 Pick date',
+                ? '${_formatDate(selectedDate!)}'
+                : 'Pick date',
             selected: selectedDate != null,
             onTap: () async {
               final picked = await showDatePicker(

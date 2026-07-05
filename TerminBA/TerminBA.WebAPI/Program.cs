@@ -54,6 +54,8 @@ builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
+builder.Services.AddSignalR();
+builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 
 // Stripe payment service (reads StripeSecretKey from env, secret stays server-side)
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
@@ -446,5 +448,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TerminBA.WebAPI.Hubs.NotificationsHub>("/notificationsHub");
 
 app.Run();

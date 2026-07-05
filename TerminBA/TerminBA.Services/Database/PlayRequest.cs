@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -31,6 +31,9 @@ namespace TerminBA.Services.Database
         [Required]
         public DateTime? DateOfRequest { get; set; } = DateTime.Now;
         public DateTime? DateOfResponse { get; set; }
+
+        public bool IsSeenByOwner { get; set; } = false;
+        public bool IsSeenByRequester { get; set; } = false;
 
     }
 }

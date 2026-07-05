@@ -82,6 +82,14 @@ class ReceivedRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (request.isSeenByOwner == false)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: _StatusChip(
+                      label: 'New',
+                      color: Colors.blue.shade600,
+                    ),
+                  ),
                 if (alreadyResponded)
                   _StatusChip(
                     label: request.isAccepted == true ? 'Accepted' : 'Denied',
@@ -220,6 +228,14 @@ class SentRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (request.isSeenByRequester == false && request.isAccepted != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: _StatusChip(
+                      label: 'New',
+                      color: Colors.blue.shade600,
+                    ),
+                  ),
                 _StatusChip(
                   label: request.statusLabel,
                   color: _statusColor(request.isAccepted),

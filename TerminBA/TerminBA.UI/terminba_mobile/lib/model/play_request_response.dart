@@ -15,6 +15,8 @@ class PlayRequestResponse {
   final String? requestText;
   final String? dateOfRequest;
   final String? dateOfResponse;
+  final bool? isSeenByOwner;
+  final bool? isSeenByRequester;
 
   const PlayRequestResponse({
     required this.id,
@@ -26,7 +28,10 @@ class PlayRequestResponse {
     this.requestText,
     this.dateOfRequest,
     this.dateOfResponse,
+    this.isSeenByOwner,
+    this.isSeenByRequester,
   });
+
 
   /// Returns a human-readable status string.
   String get statusLabel {

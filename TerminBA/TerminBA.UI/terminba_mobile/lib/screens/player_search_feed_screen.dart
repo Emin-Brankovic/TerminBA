@@ -29,6 +29,7 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
   DateTime? _selectedDate;
 
   List<Sport> _sports = [];
+  Map<int, String> _postRequestStatus = {};
 
   late PagingController<int, PostResponse> _pagingController;
 
@@ -38,6 +39,36 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
     _pagingController = PagingController(firstPageKey: 1);
     _pagingController.addPageRequestListener(_fetchPage);
     _loadSports();
+    _fetchSentRequests();
+  }
+
+  Future<void> _fetchSentRequests() async {
+    final currentUserId = await context.read<AuthProvider>().getCurrentUserId();
+    if (currentUserId == null) return;
+    try {
+      final result = await context.read<PlayRequestProvider>().get(
+        filter: {
+          'RequesterId': currentUserId,
+          'PageSize': 1000,
+        },
+      );
+      final items = result.items ?? [];
+      if (mounted) {
+        setState(() {
+          _postRequestStatus.clear();
+          for (var req in items) {
+            final pid = req.postId;
+            if (_postRequestStatus[pid] == 'Joined') continue; // keep highest status
+
+            if (req.isAccepted == true) {
+              _postRequestStatus[pid] = 'Joined';
+            } else if (req.isAccepted == null) {
+              _postRequestStatus[pid] = 'Pending';
+            }
+          }
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -185,11 +216,11 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
             .insert(req.toJson());
 
         if (mounted) {
+          setState(() {
+            _postRequestStatus[post.id] = 'Pending';
+          });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Request sent!'),
-              backgroundColor: Color(0xFF00C875),
-            ),
+            const SnackBar(content: Text('Request sent!')),
           );
         }
       } catch (e) {
@@ -265,19 +296,19 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
                       .displayLarge
                       ?.copyWith(fontSize: 28),
                 ),
-                IconButton(
-                  tooltip: 'My Requests',
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const PlayerSearchRequestsScreen(),
-                      ),
-                    );
-                  },
-                ),
+                // IconButton(
+                //   tooltip: 'My Requests',
+                //   icon: const Icon(Icons.notifications_outlined),
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (_) =>
+                //             const PlayerSearchRequestsScreen(),
+                //       ),
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),
@@ -326,6 +357,7 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
                       return PlayerSearchPostCard(
                         post: post,
                         isOwner: isOwner,
+                        requestStatus: _postRequestStatus[post.id],
                         onSendRequest: () => _onSendRequest(post),
                         onClosePost: () => _onClosePost(post),
                       );

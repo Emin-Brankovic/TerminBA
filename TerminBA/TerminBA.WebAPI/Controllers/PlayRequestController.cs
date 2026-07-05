@@ -36,6 +36,33 @@ namespace TerminBA.WebAPI.Controllers
             return playRequest;
         }
 
+        [HttpGet("received/unseen-count")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<int> GetUnseenRequestsCount()
+        {
+            return await _playRequestService.GetUnseenRequestsCountAsync();
 
+        }
+
+        [HttpPost("{id}/mark-seen")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<PlayRequestResponse> MarkRequestAsSeen(int id)
+        {
+           return await _playRequestService.MarkRequestAsSeenAsync(id);
+        }
+
+        [HttpGet("sent/unseen-count")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<int> GetUnseenResponsesCount()
+        {
+           return await _playRequestService.GetUnseenResponsesCountAsync();
+        }
+
+        [HttpPost("{id}/mark-response-seen")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<PlayRequestResponse> MarkResponseAsSeen(int id)
+        {
+            return await _playRequestService.MarkResponseAsSeenAsync(id);
+        }
     }
 }

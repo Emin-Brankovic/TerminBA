@@ -14,6 +14,7 @@ import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
 import 'package:terminba_mobile/providers/favorite_sport_center_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
@@ -38,8 +39,8 @@ void main() async {
     await authProvider.checkAuthStatus();
   };
 
-
-   runApp(MultiProvider(
+  runApp(
+    MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(create: (_) => authProvider),
         ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
@@ -54,10 +55,16 @@ void main() async {
         ChangeNotifierProvider<PaymentProvider>(create: (_) => PaymentProvider()),
         ChangeNotifierProvider<PostProvider>(create: (_) => PostProvider()),
         ChangeNotifierProvider<PlayRequestProvider>(create: (_) => PlayRequestProvider()),
+        ChangeNotifierProxyProvider<PlayRequestProvider, NotificationProvider>(
+          create: (context) => NotificationProvider(Provider.of<PlayRequestProvider>(context, listen: false)),
+          update: (context, playRequestProvider, previous) => NotificationProvider(playRequestProvider),
+        ),
       ],
       child: const MyApp(),
-    ),);
+    ),
+  );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

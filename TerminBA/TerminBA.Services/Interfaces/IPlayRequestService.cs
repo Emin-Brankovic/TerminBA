@@ -13,5 +13,9 @@ namespace TerminBA.Services.Interfaces
     {
         Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, bool response);
         public Task<PlayRequestResponse> CancelAsync(int playRequestId);
+        Task<int> GetUnseenRequestsCountAsync();
+        Task<PlayRequestResponse> MarkRequestAsSeenAsync(int requestId);
+        Task<int> GetUnseenResponsesCountAsync();
+        Task<PlayRequestResponse> MarkResponseAsSeenAsync(int requestId);
     }
 }

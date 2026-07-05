@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/play_request_response.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
+import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/widgets/request_card.dart';
+
 
 class PlayerSearchRequestsScreen extends StatefulWidget {
   const PlayerSearchRequestsScreen({super.key});
@@ -70,6 +72,17 @@ class _PlayerSearchRequestsScreenState
       );
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
+      
+      // Mark as seen
+      if (mounted) {
+        final notificationProvider = context.read<NotificationProvider>();
+        for (final item in items) {
+          if (item.isSeenByOwner != true) {
+            notificationProvider.markAsSeen(item.id);
+          }
+        }
+      }
+
       final fetched = (pageKey - 1) * _pageSize + items.length;
       if (fetched >= total) {
         _receivedController.appendLastPage(items);
@@ -77,6 +90,7 @@ class _PlayerSearchRequestsScreenState
         _receivedController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+
       _receivedController.error = e;
     }
   }
@@ -96,6 +110,17 @@ class _PlayerSearchRequestsScreenState
       );
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
+
+      // Mark responses as seen
+      if (mounted) {
+        final notificationProvider = context.read<NotificationProvider>();
+        for (final item in items) {
+          if (item.isSeenByRequester == false && item.isAccepted != null) {
+            notificationProvider.markResponseAsSeen(item.id);
+          }
+        }
+      }
+
       final fetched = (pageKey - 1) * _pageSize + items.length;
       if (fetched >= total) {
         _sentController.appendLastPage(items);
@@ -113,10 +138,8 @@ class _PlayerSearchRequestsScreenState
       _receivedController.refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(accept ? 'Request accepted.' : 'Request denied.'),
-            backgroundColor:
-                accept ? const Color(0xFF00C875) : Colors.red.shade600,
+          const SnackBar(
+            content: Text('Response sent.'),
           ),
         );
       }

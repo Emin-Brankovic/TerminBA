@@ -21,18 +21,22 @@ PlayRequestResponse _$PlayRequestResponseFromJson(Map<String, dynamic> json) =>
       requestText: json['requestText'] as String?,
       dateOfRequest: json['dateOfRequest'] as String?,
       dateOfResponse: json['dateOfResponse'] as String?,
+      isSeenByOwner: json['isSeenByOwner'] as bool?,
+      isSeenByRequester: json['isSeenByRequester'] as bool?,
     );
 
 Map<String, dynamic> _$PlayRequestResponseToJson(
-        PlayRequestResponse instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'postId': instance.postId,
-      'post': instance.post?.toJson(),
-      'requesterId': instance.requesterId,
-      'requester': instance.requester?.toJson(),
-      'isAccepted': instance.isAccepted,
-      'requestText': instance.requestText,
-      'dateOfRequest': instance.dateOfRequest,
-      'dateOfResponse': instance.dateOfResponse,
-    };
+  PlayRequestResponse instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'postId': instance.postId,
+  'post': instance.post?.toJson(),
+  'requesterId': instance.requesterId,
+  'requester': instance.requester?.toJson(),
+  'isAccepted': instance.isAccepted,
+  'requestText': instance.requestText,
+  'dateOfRequest': instance.dateOfRequest,
+  'dateOfResponse': instance.dateOfResponse,
+  'isSeenByOwner': instance.isSeenByOwner,
+  'isSeenByRequester': instance.isSeenByRequester,
+};

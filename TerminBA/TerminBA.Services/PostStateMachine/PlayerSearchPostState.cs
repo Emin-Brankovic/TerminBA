@@ -15,9 +15,18 @@ namespace TerminBA.Services.PostStateMachine
 {
     public class PlayerSearchPostState : BasePostState
     {
-        public PlayerSearchPostState(IServiceProvider serviceProvider, TerminBaContext context, IMapper mapper) : base(serviceProvider, context, mapper)
+        private readonly INotificationsHubService _notificationsHubService;
+
+        public PlayerSearchPostState(
+            IServiceProvider serviceProvider, 
+            TerminBaContext context, 
+            IMapper mapper,
+            INotificationsHubService notificationsHubService) 
+            : base(serviceProvider, context, mapper)
         {
+            _notificationsHubService = notificationsHubService;
         }
+
 
         public  async override Task<PlayRequestResponse> SendPlayRequestAsync(PlayRequestInsertRequest request)
         {
@@ -29,6 +38,28 @@ namespace TerminBA.Services.PostStateMachine
             await _context.PlayRequests.AddAsync(entity);
 
             await _context.SaveChangesAsync();
+
+            var post = await _context.Posts
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.Id == request.PostId);
+
+            var requester = await _context.Users.FindAsync(request.RequesterId);
+
+            if (post?.Reservation?.UserId != null)
+            {
+                var payload = new
+                {
+                    type = "join_request_received",
+                    requestId = entity.Id,
+                    postId = entity.PostId,
+                    fromUserId = request.RequesterId,
+                    fromUserDisplayName = requester != null ? $"{requester.FirstName} {requester.LastName}" : "A user",
+                    createdAt = entity.DateOfRequest?.ToString("o"),
+                    messagePreview = entity.RequestText ?? ""
+                };
+                var userId = post.Reservation.UserId ?? 0;
+                await _notificationsHubService.SendJoinRequestNotificationAsync(userId, payload);
+            }
 
             return _mapper.Map<PlayRequestResponse>(entity);
         }
@@ -60,6 +91,22 @@ namespace TerminBA.Services.PostStateMachine
             playRequest.DateOfResponse = DateTime.Now;
 
             await _context.SaveChangesAsync();
+
+            var postOwner = playRequest.Post?.Reservation?.User ?? await _context.Users.FindAsync(playRequest.Post?.Reservation?.UserId);
+            var ownerName = postOwner != null ? $"{postOwner.FirstName} {postOwner.LastName}" : "A user";
+
+            var payload = new
+            {
+                type = "join_request_responded",
+                requestId = playRequest.Id,
+                postId = playRequest.PostId,
+                isAccepted = response,
+                fromUserId = postOwner?.Id,
+                fromUserDisplayName = ownerName,
+                respondedAt = playRequest.DateOfResponse?.ToString("o")
+            };
+            
+            await _notificationsHubService.SendJoinRequestRespondedNotificationAsync(playRequest.RequesterId, payload);
 
             return _mapper.Map<PlayRequestResponse>(playRequest);
         }

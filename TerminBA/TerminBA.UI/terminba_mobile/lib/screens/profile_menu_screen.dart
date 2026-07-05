@@ -5,6 +5,7 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
+import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/my_posts_screen.dart';
 
 class ProfileMenuScreen extends StatelessWidget {
@@ -47,30 +48,6 @@ class ProfileMenuScreen extends StatelessWidget {
 				controller: scrollController,
 				padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
 				children: [
-					// Row(
-					// 	children: [
-					// 		CircleAvatar(
-					// 			radius: 20,
-					// 			backgroundColor: Colors.blue.shade100,
-					// 			child: Icon(Icons.person, color: Colors.blue.shade600),
-					// 		),
-					// 		const SizedBox(width: 12),
-					// 		Column(
-					// 			crossAxisAlignment: CrossAxisAlignment.start,
-					// 			children: [
-					// 				Text(
-					// 					'John Doe',
-					// 					style: theme.textTheme.titleMedium?.copyWith(
-					// 						fontWeight: FontWeight.w700,
-					// 					),
-					// 				),
-					// 				const SizedBox(height: 2),
-					// 				Text('john@gmail.com', style: muted),
-					// 			],
-					// 		),
-					// 	],
-					// ),
-					//const SizedBox(height: 18),
 					_listItem(
 						context,
 						icon: Icons.person_outline,
@@ -124,6 +101,18 @@ class ProfileMenuScreen extends StatelessWidget {
 						icon: Icons.receipt_long_outlined,
 						title: 'Requests',
 						color: accent,
+						trailing: context.watch<NotificationProvider>().unseenCount > 0
+							? Container(
+								padding: const EdgeInsets.all(6),
+								decoration: const BoxDecoration(
+									color: Colors.red,
+									shape: BoxShape.circle,
+								),
+								child: Text(
+									'${context.watch<NotificationProvider>().unseenCount}',
+									style: const TextStyle(color: Colors.white, fontSize: 12),
+								),
+							) : null,
 						onTap: () {
 							Navigator.push(
 								context,
@@ -133,6 +122,7 @@ class ProfileMenuScreen extends StatelessWidget {
 							);
 						},
 					),
+
 					// _listItem(
 					// 	context,
 					// 	icon: Icons.lock_outline,
@@ -160,12 +150,15 @@ class ProfileMenuScreen extends StatelessWidget {
 		required String title,
 		required Color color,
 		VoidCallback? onTap,
+		Widget? trailing,
 	}) {
 		return ListTile(
 			contentPadding: EdgeInsets.zero,
 			leading: Icon(icon, color: color),
 			title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+			trailing: trailing,
 			onTap: onTap,
 		);
 	}
 }
+
