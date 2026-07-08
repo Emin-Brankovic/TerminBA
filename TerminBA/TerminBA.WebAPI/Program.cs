@@ -14,6 +14,7 @@ using TerminBA.Services.Interfaces;
 using TerminBA.Services.PostStateMachine;
 using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Service;
+using TerminBA.Services.Services;
 using TerminBA.WebAPI.Filters;
 
 
@@ -35,6 +36,7 @@ builder.Services.AddScoped<IFacilityService, FacilityService>();
 builder.Services.AddScoped<IFacilityReviewService, FacilityReviewService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
 builder.Services.AddScoped<IPlayRequestService, PlayRequestService>();
+builder.Services.AddScoped<ICancelationNotificationService, CancelationNotificationService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddScoped<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
 builder.Services.AddScoped<BasePostState>();

@@ -34,8 +34,6 @@ class ReviewsNotifier extends ChangeNotifier {
 
       final reviews = results.items as List<FacilityReview>;
 
-      print('Fetched ${reviews.length} reviews for sport center $sportCenterId');
-
       _setState(_state.copyWith(
         reviews: reviews,
         isLoading: false,

@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,29 +9,43 @@ using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
+using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.PostStateMachine
 {
     public class PlayerFoundPostState : BasePostState
     {
-        public PlayerFoundPostState(IServiceProvider serviceProvider, TerminBaContext context, IMapper mapper) : base(serviceProvider, context, mapper)
+        private readonly INotificationsHubService _notificationsHubService;
+
+        public PlayerFoundPostState(
+            IServiceProvider serviceProvider, 
+            TerminBaContext context, 
+            IMapper mapper,
+            INotificationsHubService notificationsHubService) 
+            : base(serviceProvider, context, mapper)
         {
+            _notificationsHubService = notificationsHubService;
         }
 
         public async override Task<PlayRequestResponse> CancelAsync(int playRequestId)
         {
             var request = await _context.PlayRequests
                 .Include(pr => pr.Post)
+                .ThenInclude(p => p.Reservation)
+                .ThenInclude(r => r.Facility)
+                .Include(pr => pr.Requester)
                 .FirstOrDefaultAsync(pr => pr.Id == playRequestId);
 
             if (request == null)
                 throw new UserException("Request not found");
 
-            request.isAccepted = false;
+            bool wasAccepted = request.isAccepted == true;
+
+            _context.PlayRequests.Remove(request);
 
             var post = request.Post;
 
-            if (post!.NumberOfPlayersFound > 0)
+            if (wasAccepted && post!.NumberOfPlayersFound > 0)
                 post!.NumberOfPlayersFound--;
 
             if (post.NumberOfPlayersFound < post.NumberOfPlayersWanted)
@@ -39,9 +53,36 @@ namespace TerminBA.Services.PostStateMachine
                 post.PostState = nameof(PlayerSearchPostState);
             }
 
+            if (wasAccepted && post?.Reservation?.UserId != null)
+            {
+                var notification = new CancelationNotification
+                {
+                    PostOwnerId = post.Reservation.UserId.Value,
+                    ReservationId = post.Reservation.Id,
+                    RequesterName = request.Requester != null ? $"{request.Requester.FirstName} {request.Requester.LastName}" : "A user",
+                    FacilityName = post.Reservation.Facility?.Name ?? "Unknown facility",
+                    DateCancelled = DateTime.Now,
+                    IsSeen = false
+                };
+                _context.CancelationNotifications.Add(notification);
+            }
+
             await _context.SaveChangesAsync();
 
-            // TODO: Send notifications here
+            if (wasAccepted && post?.Reservation?.UserId != null)
+            {
+                var payload = new
+                {
+                    type = "join_request_cancelled",
+                    requestId = request.Id,
+                    postId = request.PostId,
+                    fromUserId = request.RequesterId,
+                    fromUserDisplayName = request.Requester != null ? $"{request.Requester.FirstName} {request.Requester.LastName}" : "A user",
+                    cancelledAt = DateTime.Now.ToString("o")
+                };
+
+                await _notificationsHubService.SendJoinRequestCancelledNotificationAsync(post.Reservation.UserId.Value, payload);
+            }
 
             return _mapper.Map<PlayRequestResponse>(request);
         }

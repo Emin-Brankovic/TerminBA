@@ -67,6 +67,8 @@ namespace TerminBA.Services.Service
             if(search.DateOfRequest.HasValue)
                 query=query.Where(pr=>pr.DateOfRequest!.Value.Date== search.DateOfRequest.Value.Date);
 
+            query = query.OrderByDescending(pr => pr.DateOfRequest);
+
             return query;
         }
 
@@ -86,6 +88,11 @@ namespace TerminBA.Services.Service
         {
             query = query
                 .Include(pr => pr.Post)
+                    .ThenInclude(p => p.Reservation)
+                        .ThenInclude(r => r.User)
+                .Include(pr => pr.Post)
+                    .ThenInclude(p => p.Reservation)
+                        .ThenInclude(r => r.Facility)
                 .Include(pr => pr.Requester);
 
             return query;

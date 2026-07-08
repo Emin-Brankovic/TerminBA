@@ -24,6 +24,21 @@ class ReceivedRequestCard extends StatelessWidget {
     }
   }
 
+  String _formatDateOnly(String? d) {
+    if (d == null || d.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(d);
+      return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
+    } catch (_) {
+      return d;
+    }
+  }
+
+  String _formatTime(String? t) {
+    if (t == null) return '';
+    return t.substring(0, 5);
+  }
+
   @override
   Widget build(BuildContext context) {
     final requester = request.requester;
@@ -36,6 +51,13 @@ class ReceivedRequestCard extends StatelessWidget {
         : '?';
 
     final bool alreadyResponded = request.isAccepted != null;
+    final bool isPostClosed = request.post?.isClosed == true;
+    final bool canRespond = !alreadyResponded && !isPostClosed;
+
+    final post = request.post;
+    final facility = post?.reservation?.facility;
+    final sport = post?.reservation?.chosenSport;
+    final city = facility?.sportCenter?.city?.name ?? '';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -82,21 +104,34 @@ class ReceivedRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (request.isSeenByOwner == false)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: _StatusChip(
-                      label: 'New',
-                      color: Colors.blue.shade600,
-                    ),
-                  ),
-                if (alreadyResponded)
-                  _StatusChip(
-                    label: request.isAccepted == true ? 'Accepted' : 'Denied',
-                    color: request.isAccepted == true
-                        ? const Color(0xFF00C875)
-                        : Colors.red,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (request.isSeenByOwner == false)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: _StatusChip(
+                          label: 'New',
+                          color: Colors.blue.shade600,
+                        ),
+                      ),
+                    if (alreadyResponded)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: isPostClosed ? 4.0 : 0.0),
+                        child: _StatusChip(
+                          label: request.isAccepted == true ? 'Accepted' : 'Denied',
+                          color: request.isAccepted == true
+                              ? const Color(0xFF00C875)
+                              : Colors.red,
+                        ),
+                      ),
+                    if (isPostClosed)
+                      _StatusChip(
+                        label: 'Finished',
+                        color: Colors.grey.shade600,
+                      ),
+                  ],
+                ),
               ],
             ),
 
@@ -122,7 +157,45 @@ class ReceivedRequestCard extends StatelessWidget {
               ),
             ],
 
-            if (!alreadyResponded) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    '${facility?.sportCenter?.username != null && facility!.sportCenter!.username!.isNotEmpty ? '${facility.sportCenter!.username} - ' : ''}${facility?.name ?? ''}'
+                    '${city.isNotEmpty ? ', $city' : ''}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  '${_formatDateOnly(post?.reservation?.reservationDate)}'
+                  '  ${_formatTime(post?.reservation?.startTime)} – ${_formatTime(post?.reservation?.endTime)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              children: [
+                if (sport != null)
+                  _SmallBadge(label: sport.name!.toUpperCase()),
+                if (post?.skillLevel != null)
+                  _SmallBadge(label: post!.skillLevel!.toUpperCase()),
+              ],
+            ),
+
+            if (canRespond) ...[
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -184,6 +257,11 @@ class SentRequestCard extends StatelessWidget {
     }
   }
 
+  String _formatTime(String? t) {
+    if (t == null) return '';
+    return t.substring(0, 5);
+  }
+
   @override
   Widget build(BuildContext context) {
     final post = request.post;
@@ -211,7 +289,7 @@ class SentRequestCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        facility?.name ?? 'Unknown facility',
+                        '${facility?.sportCenter?.username != null && facility!.sportCenter!.username!.isNotEmpty ? '${facility.sportCenter!.username} - ' : ''}${facility?.name ?? 'Unknown facility'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -228,21 +306,46 @@ class SentRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (request.isSeenByRequester == false && request.isAccepted != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: _StatusChip(
-                      label: 'New',
-                      color: Colors.blue.shade600,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (request.isSeenByRequester == false && request.isAccepted != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: _StatusChip(
+                          label: 'New',
+                          color: Colors.blue.shade600,
+                        ),
+                      ),
+                    _StatusChip(
+                      label: request.statusLabel,
+                      color: _statusColor(request.isAccepted),
                     ),
-                  ),
-                _StatusChip(
-                  label: request.statusLabel,
-                  color: _statusColor(request.isAccepted),
+                    if (request.post?.isClosed == true)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: _StatusChip(
+                          label: 'Finished',
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
 
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  '${_formatDate(post?.reservation?.reservationDate)}'
+                  '  ${_formatTime(post?.reservation?.startTime)} – ${_formatTime(post?.reservation?.endTime)}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -260,7 +363,7 @@ class SentRequestCard extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
 
-            if (request.isAccepted == null) ...[
+            if (request.isAccepted != false && request.post?.isClosed != true) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,

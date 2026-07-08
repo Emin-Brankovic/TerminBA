@@ -39,6 +39,7 @@ namespace TerminBA.Services.Database
         public DbSet<SportCenterPhoto> SportCenterPhotos { get; set; }
         public DbSet<FavoriteSportCenter> FavoriteSportCenters { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<CancelationNotification> CancelationNotifications { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

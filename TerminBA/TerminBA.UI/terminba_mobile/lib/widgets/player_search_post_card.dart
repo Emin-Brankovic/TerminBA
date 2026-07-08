@@ -149,7 +149,7 @@ class PlayerSearchPostCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    '${facility?.name ?? ''}'
+                    '${facility?.sportCenter?.username != null && facility!.sportCenter!.username!.isNotEmpty ? '${facility.sportCenter!.username} - ' : ''}${facility?.name ?? ''}'
                     '${city.isNotEmpty ? ', $city' : ''}',
                     style:
                         const TextStyle(fontSize: 12, color: Colors.grey),
@@ -187,41 +187,59 @@ class PlayerSearchPostCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: isOwner
-                  ? Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: onEditPost,
-                            icon: const Icon(Icons.edit, size: 16),
-                            label: const Text('Edit Post'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.blue.shade600,
-                              side: BorderSide(color: Colors.blue.shade300),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                  ? (post.isClosed
+                      ? Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'Closed',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: onClosePost,
-                            icon: const Icon(Icons.close, size: 16),
-                            label: const Text('Close Post'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red.shade600,
-                              side: BorderSide(color: Colors.red.shade300),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: onEditPost,
+                                icon: const Icon(Icons.edit, size: 16),
+                                label: const Text('Edit Post'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.blue.shade600,
+                                  side: BorderSide(color: Colors.blue.shade300),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
-                          ),
-                        ),
-                      ],
-                    )
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: onClosePost,
+                                icon: const Icon(Icons.close, size: 16),
+                                label: const Text('Close Post'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red.shade600,
+                                  side: BorderSide(color: Colors.red.shade300),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ))
                   : (requestStatus == 'Joined'
                       ? Container(
                           width: double.infinity,

@@ -58,7 +58,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     var jsonRequest = jsonEncode(request);
     var response = await http.post(uri, headers: headers, body: jsonRequest);
-    print(response.body);
 
     if (isValidResponse(response)) {
       if (response.body.isEmpty) return null;

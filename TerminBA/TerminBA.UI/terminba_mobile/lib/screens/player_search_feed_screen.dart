@@ -8,7 +8,9 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
+import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
+import 'package:terminba_mobile/screens/cancelation_notifications_screen.dart';
 import 'package:terminba_mobile/widgets/filter_chip_bar.dart';
 import 'package:terminba_mobile/widgets/player_search_post_card.dart';
 
@@ -296,19 +298,24 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
                       .displayLarge
                       ?.copyWith(fontSize: 28),
                 ),
-                // IconButton(
-                //   tooltip: 'My Requests',
-                //   icon: const Icon(Icons.notifications_outlined),
-                //   onPressed: () {
-                //     Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (_) =>
-                //             const PlayerSearchRequestsScreen(),
-                //       ),
-                //     );
-                //   },
-                // ),
+                IconButton(
+                  tooltip: 'Cancelation Notifications',
+                  icon: context.watch<NotificationProvider>().unseenCancelationCount > 0
+                      ? Badge(
+                          label: Text('${context.watch<NotificationProvider>().unseenCancelationCount}'),
+                          child: const Icon(Icons.notifications_outlined),
+                        )
+                      : const Icon(Icons.notifications_outlined),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const CancelationNotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),

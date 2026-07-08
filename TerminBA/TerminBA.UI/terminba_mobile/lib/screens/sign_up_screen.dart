@@ -99,7 +99,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 		});
 
 		try {
-      print(request.toJson());
 			await _userProvider.insert(request.toJson());
 
 			if (!mounted) return;

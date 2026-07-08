@@ -39,6 +39,7 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 
 	late StreamSubscription _notificationSubscription;
 	late StreamSubscription _respondedSubscription;
+	late StreamSubscription _cancelledSubscription;
 
 	@override
 	void initState() {
@@ -88,6 +89,24 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 					),
 				);
 			});
+
+			_cancelledSubscription = NotificationService().onJoinRequestCancelled.listen((payload) {
+				notificationProvider.incrementUnseenCancelationCount(); // Treated as an incoming cancelation notification for the owner
+				ScaffoldMessenger.of(context).showSnackBar(
+					SnackBar(
+						content: Text("${payload['fromUserDisplayName'] ?? 'A user'} cancelled their accepted request"),
+						backgroundColor: Colors.orange.shade600,
+						action: SnackBarAction(
+							label: 'View',
+							textColor: Colors.white,
+							onPressed: () {
+								_onTabTapped(BottomTab.profile.index);
+							},
+						),
+						duration: const Duration(seconds: 4),
+					),
+				);
+			});
 		});
 	}
 
@@ -98,6 +117,7 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 		}
 		_notificationSubscription.cancel();
 		_respondedSubscription.cancel();
+		_cancelledSubscription.cancel();
 		NotificationService().stop();
 		super.dispose();
 	}
@@ -242,15 +262,26 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 							icon: Semantics(
 								label: 'Find Players',
 								selected: false,
-								child: Icon(Icons.people_outline),
+								child: context.watch<NotificationProvider>().unseenCancelationCount > 0
+									? Badge(
+											child: Icon(Icons.people_outline),
+									  )
+									: Icon(Icons.people_outline),
 							),
 							selectedIcon: Semantics(
 								label: 'Find Players',
 								selected: true,
-								child: Icon(
-									Icons.people_outline,
-									color: selectedColor,
-								),
+								child: context.watch<NotificationProvider>().unseenCancelationCount > 0
+									? Badge(
+											child: Icon(
+												Icons.people_outline,
+												color: selectedColor,
+											),
+									  )
+									: Icon(
+										Icons.people_outline,
+										color: selectedColor,
+									),
 							),
 							label: 'Find Players',
 						),
