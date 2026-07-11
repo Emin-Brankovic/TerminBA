@@ -1,14 +1,14 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TerminBA.Models.Model;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
-using TerminBA.Services.Service;
 
-namespace TerminBA.Services.Services
+namespace TerminBA.Services.Service
 {
     public class CancelationNotificationService : BaseCRUDService<CancelationNotificationResponse, CancelationNotification, CancelationNotificationSearchObject, object, object>, ICancelationNotificationService
     {
@@ -63,6 +63,29 @@ namespace TerminBA.Services.Services
                     .CountAsync();
             }
             return 0;
+        }
+
+        public async Task MarkAsSeenMultipleAsync(List<int> ids)
+        {
+            var notifications = await _context.CancelationNotifications
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsSeen = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteMultipleAsync(List<int> ids)
+        {
+            var notifications = await _context.CancelationNotifications
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
+
+            _context.CancelationNotifications.RemoveRange(notifications);
+            await _context.SaveChangesAsync();
         }
     }
 }

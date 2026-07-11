@@ -16,6 +16,8 @@ class CancelationNotificationsScreen extends StatefulWidget {
 
 class _CancelationNotificationsScreenState extends State<CancelationNotificationsScreen> {
   static const _pageSize = 10;
+  bool _isSelectionMode = false;
+  final Set<int> _selectedIds = {};
 
   final PagingController<int, CancelationNotificationResponse> _pagingController =
       PagingController(firstPageKey: 1);
@@ -66,6 +68,98 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     }
   }
 
+  void _toggleSelection(int id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedIds.clear();
+      _isSelectionMode = false;
+    });
+  }
+
+  Future<bool> _showConfirmationDialog(String title, String content) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
+
+  Future<void> _markSelectedAsRead() async {
+    if (_selectedIds.isEmpty) return;
+
+    try {
+      await context.read<CancelationNotificationProvider>().markAsSeenMultiple(_selectedIds.toList());
+      if (mounted) {
+         await context.read<NotificationProvider>().fetchUnseenCount();
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Notifications marked as read')),
+         );
+      }
+      _clearSelection();
+      _pagingController.refresh();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to mark as seen: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    if (_selectedIds.isEmpty) return;
+
+    final confirm = await _showConfirmationDialog(
+      'Delete Notifications',
+      'Are you sure you want to delete selected notifications?',
+    );
+    if (!confirm) return;
+
+    try {
+      await context.read<CancelationNotificationProvider>().deleteMultiple(_selectedIds.toList());
+      if (mounted) {
+         await context.read<NotificationProvider>().fetchUnseenCount();
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Notifications deleted successfully')),
+         );
+      }
+      _clearSelection();
+      _pagingController.refresh();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete notifications: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _pagingController.dispose();
@@ -85,7 +179,27 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cancelation Notifications'),
+        title: _isSelectionMode
+            ? Text('${_selectedIds.length} Selected')
+            : const Text('Notifications'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSelection,
+              )
+            : null,
+        actions: _isSelectionMode
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.mark_email_read),
+                  onPressed: _markSelectedAsRead,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _deleteSelected,
+                ),
+              ]
+            : null,
       ),
       body: RefreshIndicator(
         onRefresh: () async => _pagingController.refresh(),
@@ -112,19 +226,32 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
 
   Widget _buildNotificationCard(CancelationNotificationResponse notification) {
     final isUnseen = !notification.isSeen;
+    final isSelected = _selectedIds.contains(notification.id);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: isUnseen ? Colors.orange.shade50 : Colors.white,
+      color: isSelected ? Colors.green.shade50 : (isUnseen ? Colors.orange.shade50 : Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isUnseen ? Colors.orange.shade200 : Colors.grey.shade200,
-          width: isUnseen ? 1.5 : 1.0,
+          color: isSelected ? Colors.green : (isUnseen ? Colors.orange.shade200 : Colors.grey.shade200),
+          width: isSelected || isUnseen ? 1.5 : 1.0,
         ),
       ),
       child: InkWell(
-        onTap: () => _markAsSeen(notification),
+        onLongPress: () {
+          setState(() {
+            _isSelectionMode = true;
+            _toggleSelection(notification.id);
+          });
+        },
+        onTap: () {
+          if (_isSelectionMode) {
+            _toggleSelection(notification.id);
+          } else {
+            _markAsSeen(notification);
+          }
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -148,7 +275,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
                       ),
                     ),
                   ),
-                  if (isUnseen)
+                  if (isUnseen && !_isSelectionMode)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -163,6 +290,11 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ),
+                  if (_isSelectionMode)
+                    Icon(
+                      isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: isSelected ? Colors.green : Colors.grey,
                     ),
                 ],
               ),

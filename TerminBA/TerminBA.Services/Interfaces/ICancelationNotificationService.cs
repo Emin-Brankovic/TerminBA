@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TerminBA.Models.Model;
 using TerminBA.Models.SearchObjects;
@@ -8,5 +9,7 @@ namespace TerminBA.Services.Interfaces
     {
         Task MarkAsSeenAsync(int id);
         Task<int> GetUnseenCountAsync();
+        Task MarkAsSeenMultipleAsync(List<int> ids);
+        Task DeleteMultipleAsync(List<int> ids);
     }
 }

@@ -33,4 +33,26 @@ class CancelationNotificationProvider extends BaseProvider<CancelationNotificati
     }
     return 0;
   }
+
+  Future<void> markAsSeenMultiple(List<int> ids) async {
+    var url = "$baseUrl$endpoint/mark-as-seen-multiple";
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    var response = await http.put(uri, headers: headers, body: jsonEncode(ids));
+    if (!isValidResponse(response)) {
+      throw Exception("Failed to mark notifications as seen");
+    }
+  }
+
+  Future<void> deleteMultiple(List<int> ids) async {
+    var url = "$baseUrl$endpoint/delete-multiple";
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    var response = await http.post(uri, headers: headers, body: jsonEncode(ids));
+    if (!isValidResponse(response)) {
+      throw Exception("Failed to delete notifications");
+    }
+  }
 }

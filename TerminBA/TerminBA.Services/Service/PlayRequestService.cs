@@ -67,6 +67,16 @@ namespace TerminBA.Services.Service
             if(search.DateOfRequest.HasValue)
                 query=query.Where(pr=>pr.DateOfRequest!.Value.Date== search.DateOfRequest.Value.Date);
 
+            if (!string.IsNullOrEmpty(search.Status))
+            {
+                if (search.Status.ToLower() == "pending")
+                    query = query.Where(pr => pr.isAccepted == null);
+                else if (search.Status.ToLower() == "accepted")
+                    query = query.Where(pr => pr.isAccepted == true);
+                else if (search.Status.ToLower() == "denied")
+                    query = query.Where(pr => pr.isAccepted == false);
+            }
+
             query = query.OrderByDescending(pr => pr.DateOfRequest);
 
             return query;

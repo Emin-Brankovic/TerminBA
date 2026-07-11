@@ -6,6 +6,8 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/widgets/request_card.dart';
+import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/model/post_response.dart';
 
 
 class PlayerSearchRequestsScreen extends StatefulWidget {
@@ -26,6 +28,10 @@ class _PlayerSearchRequestsScreenState
   late PagingController<int, PlayRequestResponse> _sentController;
 
   int? _currentUserId;
+  DateTime? _selectedDate;
+  String? _selectedStatus;
+  int? _selectedPostId;
+  List<PostResponse> _userPosts = [];
 
   @override
   void initState() {
@@ -52,8 +58,29 @@ class _PlayerSearchRequestsScreenState
     final id = await context.read<AuthProvider>().getCurrentUserId();
     if (mounted) {
       setState(() => _currentUserId = id);
+      if (id != null) {
+        _fetchUserPosts(id);
+      }
       _receivedController.refresh();
       _sentController.refresh();
+    }
+  }
+
+  Future<void> _fetchUserPosts(int userId) async {
+    try {
+      final result = await context.read<PostProvider>().get(
+        filter: {'UserId': userId},
+      );
+      if (mounted) {
+        setState(() {
+          final items = result.items ?? [];
+          _userPosts = items
+              .where((p) => p.reservation?.status == 'ActiveReservationState')
+              .toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching posts: $e');
     }
   }
 
@@ -68,6 +95,9 @@ class _PlayerSearchRequestsScreenState
           'RecipientUserId': _currentUserId,
           'Page': pageKey,
           'PageSize': _pageSize,
+          if (_selectedDate != null) 'DateOfRequest': _selectedDate!.toIso8601String(),
+          if (_selectedStatus != null) 'Status': _selectedStatus,
+          if (_selectedPostId != null) 'PostId': _selectedPostId,
         },
       );
       final items = result.items ?? [];
@@ -106,6 +136,8 @@ class _PlayerSearchRequestsScreenState
           'RequesterId': _currentUserId,
           'Page': pageKey,
           'PageSize': _pageSize,
+          if (_selectedDate != null) 'DateOfRequest': _selectedDate!.toIso8601String(),
+          if (_selectedStatus != null) 'Status': _selectedStatus,
         },
       );
       final items = result.items ?? [];
@@ -191,6 +223,141 @@ class _PlayerSearchRequestsScreenState
     }
   }
 
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                top: 20,
+                left: 20,
+                right: 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Filter Requests',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  // Date Picker
+                  ListTile(
+                    title: const Text('Date of Request'),
+                    subtitle: Text(
+                      _selectedDate == null
+                          ? 'Any date'
+                          : '${_selectedDate!.day}.${_selectedDate!.month}.${_selectedDate!.year}',
+                    ),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setSheetState(() => _selectedDate = picked);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  // Status Dropdown
+                  DropdownButtonFormField<String?>(
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      border: OutlineInputBorder(),
+                    ),
+                    value: _selectedStatus,
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('All')),
+                      DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                      DropdownMenuItem(value: 'accepted', child: Text('Accepted')),
+                      DropdownMenuItem(value: 'denied', child: Text('Denied')),
+                    ],
+                    onChanged: (val) {
+                      setSheetState(() => _selectedStatus = val);
+                    },
+                  ),
+                  if (_tabController.index == 0) ...[
+                    const SizedBox(height: 10),
+                    // Post Dropdown
+                    DropdownButtonFormField<int?>(
+                      decoration: const InputDecoration(
+                        labelText: 'Reservation (Post)',
+                        border: OutlineInputBorder(),
+                      ),
+                      isExpanded: true,
+                      value: _selectedPostId,
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('All')),
+                        ..._userPosts.map((p) {
+                          final res = p.reservation;
+                          final facilityName = res?.facility?.name ?? 'Unknown';
+                          final date = res?.reservationDate ?? '';
+                          final time = res?.startTime ?? '';
+                          return DropdownMenuItem(
+                            value: p.id,
+                            child: Text('$facilityName - $date $time', overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (val) {
+                        setSheetState(() => _selectedPostId = val);
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              _selectedDate = null;
+                              _selectedStatus = null;
+                              _selectedPostId = null;
+                            });
+                          },
+                          child: const Text('Clear'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _receivedController.refresh();
+                            _sentController.refresh();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00C875),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Apply'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -204,6 +371,12 @@ class _PlayerSearchRequestsScreenState
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.black87),
+            onPressed: _showFilterSheet,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFF00C875),
