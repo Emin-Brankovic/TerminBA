@@ -4,17 +4,22 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/model/user_review.dart';
 import 'package:terminba_mobile/providers/facility_provider.dart';
 import 'package:terminba_mobile/providers/payment_provider.dart';
 import 'package:terminba_mobile/providers/reservation_provider.dart';
+import 'package:terminba_mobile/providers/user_review_provider.dart';
 import 'package:terminba_mobile/screens/reservation/date_time_slot_screen.dart';
 import 'package:terminba_mobile/widgets/reservation_ticket_card.dart';
 import 'package:terminba_mobile/model/facility.dart';
 import 'package:terminba_mobile/model/facility_review.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
 import 'package:terminba_mobile/screens/write_facility_review_screen.dart';
+import 'package:terminba_mobile/screens/write_user_review_screen.dart';
 import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 import 'package:terminba_mobile/screens/create_player_search_post_screen.dart';
+import 'package:terminba_mobile/model/play_request_response.dart';
+import 'package:terminba_mobile/providers/play_request_provider.dart';
 
 class ReservationOverviewScreen extends StatefulWidget {
   final int reservationId;
@@ -27,8 +32,11 @@ class ReservationOverviewScreen extends StatefulWidget {
 
 class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
   bool _isLoading = true;
+  bool _isLoadingPlayers = false;
   ReservationResponse? _details;
   FacilityReview? _review;
+  List<UserReview>? _userReviews;
+  List<PlayRequestResponse>? _acceptedPlayers;
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -61,12 +69,51 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
         // ignore review fetch errors
       }
 
+      List<UserReview>? userReviews;
+      try {
+        final userReviewProvider = Provider.of<UserReviewProvider>(context, listen: false);
+        final userReviewResult = await userReviewProvider.get(filter: {
+          'reservationId': widget.reservationId,
+          'isReviewer': 'true',
+        });
+        if (userReviewResult.items != null) {
+          userReviews = userReviewResult.items;
+        }
+      } catch (e) {
+        // ignore user review fetch errors
+      }
+
       if (mounted) {
         setState(() {
           _details = details;
           _review = review;
+          _userReviews = userReviews;
           _isLoading = false;
         });
+      }
+
+      if (details!.isUpcoming == false) {
+        setState(() => _isLoadingPlayers = true);
+        try {
+          final playRequestProvider = Provider.of<PlayRequestProvider>(context, listen: false);
+          final prResult = await playRequestProvider.get(filter: {
+            'ReservationId': widget.reservationId,
+            'Status': 'accepted',
+          });
+          if (mounted) {
+            setState(() {
+              _acceptedPlayers = prResult.items;
+              _isLoadingPlayers = false;
+            });
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() {
+              _acceptedPlayers = [];
+              _isLoadingPlayers = false;
+            });
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -278,7 +325,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const SizedBox(height: 24),
-                      if (_details!.facility?.sportCenter != null)
+                      if (_details!.facility?.sportCenter != null && _details!.isUpcoming)
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -303,7 +350,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                             ],
                           ),
                         ),
-                      if (_details!.facility?.sportCenter != null)
+                      if (_details!.facility?.sportCenter != null && _details!.isUpcoming)
                         const SizedBox(height: 24),
                       ReservationTicketCard(details: _details!),
                       const SizedBox(height: 32),
@@ -354,6 +401,82 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                           ],
                         )
                       else if (!_details!.isCancelled) ...[
+                        if (_isLoadingPlayers)
+                          const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
+                        else if (_acceptedPlayers != null && _acceptedPlayers!.isNotEmpty) ...[
+                          Theme(
+                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                            child: ExpansionTile(
+                              tilePadding: EdgeInsets.zero,
+                              title: const Text(
+                                'Accepted Players',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Player',
+                                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[600], fontSize: 13),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: Text(
+                                          'Review',
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[600], fontSize: 13),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Divider(height: 1, thickness: 1),
+                                ..._acceptedPlayers!.map((req) {
+                                  final requester = req.requester;
+                                  final name = requester != null ? '${requester.firstName} ${requester.lastName}' : 'Unknown';
+                                  final initials = requester != null ? '${requester.firstName.isNotEmpty ? requester.firstName[0] : ''}${requester.lastName.isNotEmpty ? requester.lastName[0] : ''}'.toUpperCase() : '?';
+                                  final existingUserReview = _userReviews?.where((r) => r.reviewedId == requester?.id).firstOrNull;
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                    leading: CircleAvatar(
+                                      radius: 20,
+                                      backgroundColor: const Color(0xFF00C875).withOpacity(0.15),
+                                      child: Text(
+                                        initials,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00C875), fontSize: 14),
+                                      ),
+                                    ),
+                                    title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                    trailing: IconButton(
+                                      icon: Icon(
+                                        existingUserReview != null ? Icons.star : Icons.star_outline,
+                                        color: const Color(0xFF4CAF50),
+                                      ),
+                                      tooltip: existingUserReview != null ? 'View Review' : 'Write Review',
+                                      onPressed: () {
+                                        if (requester != null) {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => WriteUserReviewScreen(
+                                                reviewedUser: requester,
+                                                reservationId: widget.reservationId,
+                                                sportName: _details?.chosenSport?.name ?? 'Sport',
+                                                existingReview: existingUserReview,
+                                              ),
+                                            ),
+                                          ).then((_) => _fetchDetails());
+                                        }
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         ElevatedButton(
                           onPressed: _reserveAgain,
                           style: ElevatedButton.styleFrom(

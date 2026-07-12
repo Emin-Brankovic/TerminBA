@@ -10,10 +10,12 @@ namespace TerminBA.Models.SearchObjects
     {
         public int? ReviewerId { get; set; }
         public int? ReviewedId { get; set; }
+        public int? ReservationId { get; set; }
         public int? MinRating { get; set; }
         public int? MaxRating { get; set; }
         public DateTime? RatingDateFrom { get; set; }
         public DateTime? RatingDateTo { get; set; }
+        public bool? IsReviewer { get; set; }
     }
 }
 

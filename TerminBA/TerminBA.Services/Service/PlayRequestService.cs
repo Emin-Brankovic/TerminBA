@@ -55,6 +55,9 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<PlayRequest> ApplyFilter(IQueryable<PlayRequest> query, PlayRequestSearchObject search)
         {
+            if (search.ReservationId.HasValue)
+                query = query.Where(pr => pr.Post!.ReservationId == search.ReservationId.Value);
+
             if (search.PostId.HasValue)
                 query = query.Where(pr => pr.PostId == search.PostId.Value);
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -29,5 +29,9 @@ namespace TerminBA.Services.Database
         [ForeignKey(nameof(User))]
         public int? ReviewedId { get; set; }
         public User? Reviewed { get; set; }
+
+        [ForeignKey(nameof(Reservation))]
+        public int? ReservationId { get; set; }
+        public Reservation? Reservation { get; set; }
     }
 }
