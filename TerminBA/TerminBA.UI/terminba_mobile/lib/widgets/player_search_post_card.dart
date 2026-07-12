@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/model/post_response.dart';
+import 'package:terminba_mobile/screens/public_profile_screen.dart';
 
 class PlayerSearchPostCard extends StatelessWidget {
   final PostResponse post;
@@ -77,16 +78,30 @@ class PlayerSearchPostCard extends StatelessWidget {
             // Header row: avatar + name + badges
             Row(
               children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: _sportColor.withOpacity(0.15),
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _sportColor,
-                      fontSize: 15,
+                GestureDetector(
+                  onTap: () {
+                    if (user != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PublicProfileScreen(
+                            userId: user.id,
+                            user: user,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: _sportColor.withOpacity(0.15),
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: _sportColor,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),

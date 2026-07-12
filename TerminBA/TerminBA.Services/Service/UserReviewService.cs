@@ -27,8 +27,13 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<UserReview> ApplyFilter(IQueryable<UserReview> query, UserReviewSearchObject search)
         {
-            if (_currentUser != null && _currentUser.ContainsKey("userRole") && _currentUser["userRole"] == "User" && search.IsReviewer == true)
-                search.ReviewerId = int.Parse(_authService.GetUserId());
+            if (_currentUser != null && _currentUser.ContainsKey("userRole") && _currentUser["userRole"] == "User")
+            {
+                if (search.IsReviewer == true)
+                    search.ReviewerId = int.Parse(_authService.GetUserId());
+                if (search.IsReviewed == true)
+                    search.ReviewedId = int.Parse(_authService.GetUserId());
+            }
 
             if (search.ReviewerId.HasValue)
                 query = query.Where(ur => ur.ReviewerId == search.ReviewerId.Value);
@@ -89,6 +94,27 @@ namespace TerminBA.Services.Service
             }
 
             await base.BeforeInsert(entity, request);
+        }
+        public override IQueryable<UserReview> ApplyIncludes(IQueryable<UserReview> query)
+        {
+            return query
+                .Include(ur => ur.Reviewer)
+                .Include(ur => ur.Reviewed)
+                .Include(ur => ur.Reservation)
+                    .ThenInclude(r => r.ChosenSport)
+                .Include(ur => ur.Reservation)
+                    .ThenInclude(r => r.Posts);
+        }
+
+        protected override UserReviewResponse MapToResponse(UserReview entity)
+        {
+            var response = base.MapToResponse(entity);
+            if (entity.Reservation != null)
+            {
+                response.SportName = entity.Reservation.ChosenSport?.Name;
+                response.SkillLevel = entity.Reservation.Posts?.FirstOrDefault()?.SkillLevel;
+            }
+            return response;
         }
     }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/model/play_request_response.dart';
+import 'package:terminba_mobile/screens/public_profile_screen.dart';
 
 /// Card for Received requests — shows requester info + Accept/Deny buttons.
 class ReceivedRequestCard extends StatelessWidget {
@@ -70,15 +71,30 @@ class ReceivedRequestCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: const Color(0xFF00C875).withOpacity(0.15),
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF00C875),
-                      fontSize: 15,
+                GestureDetector(
+                  onTap: () {
+                    if (requester != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PublicProfileScreen(
+                            userId: requester.id,
+                            user: requester,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFF00C875).withOpacity(0.15),
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF00C875),
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),

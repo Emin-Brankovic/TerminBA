@@ -12,6 +12,7 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PostStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -106,6 +107,26 @@ namespace TerminBA.Services.Service
             user.Username!.ToLower() == username.ToLower()
             || user.Email!.ToLower()==email.ToLower());
 
+        }
+
+        public async Task<int> GetPlayedMatches(int id)
+        {
+            var count = await _context.PlayRequests
+                .Where(pr => pr.RequesterId == id && pr.Post.PostState == nameof(ClosedPostState) && pr.isAccepted == true)
+                .CountAsync();
+            return count;
+        }
+
+        public async Task<UserResponse> GetProfile()
+        {
+            var userId = int.Parse(_authService.GetUserId());
+            return await base.GetByIdAsync(userId);
+        }
+
+        public async Task<int> GetMyPlayedMatches()
+        {
+            var userId = int.Parse(_authService.GetUserId());
+            return await GetPlayedMatches(userId);
         }
 
     }

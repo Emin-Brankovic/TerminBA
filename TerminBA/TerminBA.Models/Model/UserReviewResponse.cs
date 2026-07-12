@@ -24,6 +24,9 @@ namespace TerminBA.Models.Model
         public UserResponse? Reviewed { get; set; }
 
         public int? ReservationId { get; set; }
+
+        public string? SportName { get; set; }
+        public string? SkillLevel { get; set; }
     }
 }
 

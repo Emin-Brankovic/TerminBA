@@ -7,6 +7,7 @@ import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/my_posts_screen.dart';
+import 'package:terminba_mobile/screens/public_profile_screen.dart';
 
 class ProfileMenuScreen extends StatelessWidget {
 	final ScrollController? scrollController;
@@ -67,6 +68,14 @@ class ProfileMenuScreen extends StatelessWidget {
 						icon: Icons.star_outline,
 						title: 'Reviews',
 						color: accent,
+						onTap: () {
+							Navigator.push(
+								context,
+								MaterialPageRoute(
+									builder: (_) => const PublicProfileScreen(),
+								),
+							);
+						},
 					),
 					_listItem(
 						context,

@@ -12,5 +12,8 @@ namespace TerminBA.Services.Interfaces
     public interface IUserService : IBaseCRUDService<UserResponse, UserSearchObject, UserInsertRequest, UserUpdateRequest>
     {
         public Task<AuthResponse?> Login(UserLoginRequest request);
+        public Task<int> GetPlayedMatches(int id);
+        public Task<UserResponse> GetProfile();
+        public Task<int> GetMyPlayedMatches();
     }
 }

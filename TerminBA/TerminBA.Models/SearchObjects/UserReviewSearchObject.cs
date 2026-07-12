@@ -16,6 +16,7 @@ namespace TerminBA.Models.SearchObjects
         public DateTime? RatingDateFrom { get; set; }
         public DateTime? RatingDateTo { get; set; }
         public bool? IsReviewer { get; set; }
+        public bool? IsReviewed { get; set; }
     }
 }
 

@@ -25,6 +25,24 @@ namespace TerminBA.WebAPI.Controllers
         {
            return(await _userService.Login(request));
         }
+
+        [HttpGet("profile")]
+        public async Task<UserResponse> GetProfile()
+        {
+            return await _userService.GetProfile();
+        }
+
+        [HttpGet("playedMatches")]
+        public async Task<int> GetMyPlayedMatches()
+        {
+            return await _userService.GetMyPlayedMatches();
+        }
+
+        [HttpGet("{id}/playedMatches")]
+        public async Task<int> GetPlayedMatches(int id)
+        {
+            return await _userService.GetPlayedMatches(id);
+        }
     }
 }
 

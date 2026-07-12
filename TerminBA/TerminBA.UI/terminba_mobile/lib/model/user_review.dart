@@ -16,6 +16,8 @@ class UserReview {
   int? reviewedId;
   User? reviewed;
   int? reservationId;
+  String? sportName;
+  String? skillLevel;
 
   UserReview({
     required this.id,
@@ -27,6 +29,8 @@ class UserReview {
     this.reviewedId,
     this.reviewed,
     this.reservationId,
+    this.sportName,
+    this.skillLevel,
   });
 
   factory UserReview.fromJson(Map<String, dynamic> json) => _$UserReviewFromJson(json);
