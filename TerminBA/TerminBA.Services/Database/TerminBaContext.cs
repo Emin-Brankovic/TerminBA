@@ -40,6 +40,7 @@ namespace TerminBA.Services.Database
         public DbSet<FavoriteSportCenter> FavoriteSportCenters { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<CancelationNotification> CancelationNotifications { get; set; }
+        public DbSet<RecommendationEvent> RecommendationEvents { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -181,6 +182,24 @@ namespace TerminBA.Services.Database
             modelBuilder.Entity<SportCenter>()
                 .Property(x => x.CancellationDeadlineHours)
                 .HasDefaultValue(24);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasIndex(re => re.UserId);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasIndex(re => re.ShownAt);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasOne(re => re.User)
+                .WithMany()
+                .HasForeignKey(re => re.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasOne(re => re.Facility)
+                .WithMany()
+                .HasForeignKey(re => re.FacilityId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

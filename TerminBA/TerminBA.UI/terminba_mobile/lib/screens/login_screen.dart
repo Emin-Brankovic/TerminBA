@@ -191,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
 												strokeWidth: 2,
 											),
 										)
-										: const Text('Login gasiranje'),
+										: const Text('Login'),
 								),
 							),
 							const SizedBox(height: 20),

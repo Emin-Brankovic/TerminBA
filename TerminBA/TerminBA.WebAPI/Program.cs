@@ -2,6 +2,7 @@ using DotNetEnv;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -12,6 +13,7 @@ using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PostStateMachine;
+using TerminBA.Services.Recommender;
 using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Service;
 using TerminBA.WebAPI.Filters;
@@ -67,6 +69,13 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(cli
     client.DefaultRequestHeaders.UserAgent.ParseAdd("TerminBA/1.0 (sport center geocoding)");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+
+// ML.NET Recommendation — PredictionEnginePool is thread-safe and hot-reloads model.zip on save
+builder.Services.AddPredictionEnginePool<RecommendationInput, RecommendationPrediction>()
+    .FromFile(modelName: "RecommenderModel", filePath: "MLModels/model.zip", watchForChanges: true);
+
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
 
 
 var rabbitHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";

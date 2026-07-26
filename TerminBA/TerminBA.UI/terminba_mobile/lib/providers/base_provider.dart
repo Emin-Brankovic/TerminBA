@@ -236,6 +236,19 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return headers;
   }
 
+  /// Static variant so non-subclassing providers (e.g. RecommendationProvider)
+  /// can attach the JWT without duplicating storage logic.
+  static Future<Map<String, String>> createStaticHeaders() async {
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
+    final String? token = await _storage.read(key: _tokenKey);
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
   String getQueryString(
     Map params, {
     String prefix = '&',

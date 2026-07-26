@@ -268,9 +268,36 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 review.comment!,
                 style: const TextStyle(fontSize: 14, height: 1.4),
               ),
+            ],
+            if (review.sportName != null || review.skillLevel != null) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: [
+                  if (review.sportName != null)
+                    _buildSmallBadge(review.sportName!, const Color(0xFF00C875)),
+                  if (review.skillLevel != null)
+                    _buildSmallBadge(review.skillLevel!, Colors.blueGrey),
+                ],
+              ),
             ]
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSmallBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
       ),
     );
   }

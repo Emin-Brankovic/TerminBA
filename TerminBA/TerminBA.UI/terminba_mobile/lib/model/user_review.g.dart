@@ -20,6 +20,8 @@ UserReview _$UserReviewFromJson(Map<String, dynamic> json) => UserReview(
       ? null
       : User.fromJson(json['reviewed'] as Map<String, dynamic>),
   reservationId: (json['reservationId'] as num?)?.toInt(),
+  sportName: json['sportName'] as String?,
+  skillLevel: json['skillLevel'] as String?,
 );
 
 Map<String, dynamic> _$UserReviewToJson(UserReview instance) =>
@@ -33,4 +35,6 @@ Map<String, dynamic> _$UserReviewToJson(UserReview instance) =>
       'reviewedId': instance.reviewedId,
       'reviewed': instance.reviewed,
       'reservationId': instance.reservationId,
+      'sportName': instance.sportName,
+      'skillLevel': instance.skillLevel,
     };
