@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -113,6 +113,52 @@ namespace TerminBA.Services.Service
 
 
             return currentUser;
+        }
+
+        public async Task ChangePassword(ChangePasswordRequest request)
+        {
+            if (request.CurrentPassword != request.ConfirmCurrentPassword)
+                throw new UserException("Current passwords do not match.");
+            
+            if (request.NewPassword != request.ConfirmNewPassword)
+                throw new UserException("New passwords do not match.");
+
+            if (request.NewPassword == request.CurrentPassword)
+                throw new UserException("New password cannot be the same as the current password.");
+
+            // Policy: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+            var hasNumber = new System.Text.RegularExpressions.Regex(@"[0-9]+");
+            var hasUpperChar = new System.Text.RegularExpressions.Regex(@"[A-Z]+");
+            var hasLowerChar = new System.Text.RegularExpressions.Regex(@"[a-z]+");
+            var hasMinimum8Chars = new System.Text.RegularExpressions.Regex(@".{8,}");
+            var hasSpecialChar = new System.Text.RegularExpressions.Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+
+            if (!hasMinimum8Chars.IsMatch(request.NewPassword) ||
+                !hasNumber.IsMatch(request.NewPassword) ||
+                !hasUpperChar.IsMatch(request.NewPassword) ||
+                !hasLowerChar.IsMatch(request.NewPassword) ||
+                !hasSpecialChar.IsMatch(request.NewPassword))
+            {
+                throw new UserException("Password does not meet the security policy.");
+            }
+
+            var userIdString = GetUserId();
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+                throw new UserException("User is not authenticated.");
+
+            var entity = await _context.Set<TEntity>().FirstOrDefaultAsync(x => x.Id == userId);
+            if (entity == null)
+                throw new UserException("User not found.");
+
+            var currentHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.CurrentPassword);
+            if (currentHash != entity.PasswordHash)
+                throw new UserException("Current password is incorrect.");
+
+            entity.PasswordSalt = HashingHelper.GenerateSalt();
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.NewPassword);
+
+            _context.Set<TEntity>().Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

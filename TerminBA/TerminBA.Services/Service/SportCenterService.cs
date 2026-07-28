@@ -43,6 +43,11 @@ namespace TerminBA.Services.Service
             return response;
         }
 
+        public async Task ChangePassword(ChangePasswordRequest request)
+        {
+            await _authService.ChangePassword(request);
+        }
+
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
         {
             if (!string.IsNullOrEmpty(search.Name))

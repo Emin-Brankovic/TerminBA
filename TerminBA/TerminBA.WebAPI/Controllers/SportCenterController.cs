@@ -26,6 +26,13 @@ namespace TerminBA.WebAPI.Controllers
             return (await _sportCenterService.Login(request));
         }
 
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            await _sportCenterService.ChangePassword(request);
+            return Ok();
+        }
+
         [HttpGet("getCurrent")]
         public async Task<SportCenterResponse> GetCurrentSportCenter()
         {

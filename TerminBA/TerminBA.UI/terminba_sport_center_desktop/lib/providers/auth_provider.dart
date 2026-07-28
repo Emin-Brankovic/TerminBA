@@ -118,7 +118,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> logout() async {
+    Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
     _isLoggedIn = false;
     _currentUsername = null;
@@ -126,5 +126,55 @@ class AuthProvider extends ChangeNotifier {
     navigatorKey.currentState?.pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginPage()),
     );
+  }
+
+  Future<void> changePassword(
+    String currentPassword,
+    String confirmCurrentPassword,
+    String newPassword,
+    String confirmNewPassword,
+  ) async {
+    final token = await getToken();
+    if (token == null) throw Exception("Not authenticated");
+
+    var url = '$_baseUrl/SportCenter/change-password';
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'currentPassword': currentPassword,
+          'confirmCurrentPassword': confirmCurrentPassword,
+          'newPassword': newPassword,
+          'confirmNewPassword': confirmNewPassword,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        String errorMessage = 'Password change failed';
+        try {
+          final responseBody = json.decode(response.body);
+          if (responseBody is Map && responseBody.containsKey('message')) {
+            errorMessage = responseBody['message'];
+          } else if (responseBody is String) {
+            errorMessage = responseBody;
+          }
+        } catch (_) {
+          // If response body is not JSON or empty
+          if (response.body.isNotEmpty) {
+             errorMessage = response.body;
+          }
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Password change failed: ${e.toString()}');
+    }
   }
 }

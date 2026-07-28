@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +14,6 @@ namespace TerminBA.Services.Interfaces
         public Task<AuthResponse?> Login(BaseLoginRequest request);
         public string GetUserId();
         public Dictionary<string, string> GetCurrentUser();
+        public Task ChangePassword(ChangePasswordRequest request);
     }
 }

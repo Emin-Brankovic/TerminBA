@@ -6,6 +6,7 @@ import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/sport_center_edit_screen.dart';
 import 'package:terminba_sport_center_desktop/screens/sport_center_gallery_screen.dart';
+import 'package:terminba_sport_center_desktop/screens/sport_center_change_password_screen.dart';
 
 class SportCenterProfileScreen extends StatefulWidget {
 	const SportCenterProfileScreen({super.key});
@@ -200,6 +201,17 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 					},
 					icon: const Icon(Icons.photo_library_outlined),
 					label: const Text('Manage Gallery'),
+				),
+				OutlinedButton.icon(
+					onPressed: () {
+						Navigator.of(context).push(
+							MaterialPageRoute(
+								builder: (context) => const SportCenterChangePasswordScreen(),
+							),
+						);
+					},
+					icon: const Icon(Icons.lock_outline),
+					label: const Text('Change Password'),
 				),
 			],
 		);
