@@ -42,12 +42,6 @@ namespace TerminBA.Models.Request
 
         [Required]
         public int CityId { get; set; }
-
-        [Required]
-        public int RoleId { get; set; }
     }
 }
-
-
-
 

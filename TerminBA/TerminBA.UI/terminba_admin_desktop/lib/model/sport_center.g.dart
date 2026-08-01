@@ -10,7 +10,7 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['id'] as num).toInt(),
   json['username'] as String,
   json['phoneNumber'] as String,
-    json['contactEmail'] as String?,
+  json['contactEmail'] as String?,
   (json['cityId'] as num).toInt(),
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
@@ -35,10 +35,9 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['workingHours'] as List<dynamic>)
       .map((e) => WorkingHours.fromJson(e as Map<String, dynamic>))
       .toList(),
-  (json['photos'] as List<dynamic>?)
-          ?.map((e) => SportCenterPhotoResponse.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      [],
+  (json['photos'] as List<dynamic>)
+      .map((e) => SportCenterPhotoResponse.fromJson(e as Map<String, dynamic>))
+      .toList(),
   _bytesFromJson(json['credentialsReport']),
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
@@ -49,7 +48,7 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'id': instance.id,
       'username': instance.username,
       'phoneNumber': instance.phoneNumber,
-    'contactEmail': instance.contactEmail,
+      'contactEmail': instance.contactEmail,
       'cityId': instance.cityId,
       'city': instance.city,
       'address': instance.address,

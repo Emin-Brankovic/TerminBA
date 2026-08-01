@@ -16,7 +16,6 @@ SportCenterInsertRequest _$SportCenterInsertRequestFromJson(
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
   json['description'] as String,
-  (json['roleId'] as num).toInt(),
   (json['sportIds'] as List<dynamic>).map((e) => (e as num).toInt()).toList(),
   (json['amenityIds'] as List<dynamic>).map((e) => (e as num).toInt()).toList(),
   (json['workingHours'] as List<dynamic>)
@@ -34,7 +33,6 @@ Map<String, dynamic> _$SportCenterInsertRequestToJson(
   'address': instance.address,
   'isEquipmentProvided': instance.isEquipmentProvided,
   'description': instance.description,
-  'roleId': instance.roleId,
   'sportIds': instance.sportIds,
   'amenityIds': instance.amenityIds,
   'workingHours': instance.workingHours,

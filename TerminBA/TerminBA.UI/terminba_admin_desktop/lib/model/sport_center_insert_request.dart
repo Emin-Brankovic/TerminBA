@@ -12,12 +12,22 @@ class SportCenterInsertRequest {
 	String address;
 	bool isEquipmentProvided;
 	String description;
-	int roleId;
 	List<int> sportIds;
 	List<int> amenityIds;
   List<WorkingHoursInsertRequest> workingHours;
 
-	SportCenterInsertRequest(this.username,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.roleId,this.sportIds,this.amenityIds,this.workingHours);
+  SportCenterInsertRequest(
+    this.username,
+    this.phoneNumber,
+    this.contactEmail,
+    this.cityId,
+    this.address,
+    this.isEquipmentProvided,
+    this.description,
+    this.sportIds,
+    this.amenityIds,
+    this.workingHours,
+  );
 
 	factory SportCenterInsertRequest.fromJson(Map<String, dynamic> json) => _$SportCenterInsertRequestFromJson(json);
 

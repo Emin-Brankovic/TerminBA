@@ -91,7 +91,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 			password: values['password'],
 			birthDate: values['birthDate'],
 			cityId: values['cityId'],
-			roleId: 1,
 		);
 
 		setState(() {

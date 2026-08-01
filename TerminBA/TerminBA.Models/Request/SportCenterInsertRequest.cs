@@ -35,9 +35,6 @@ namespace TerminBA.Models.Request
         public string? Description { get; set; }
 
         [Required]
-        public int RoleId { get; set; }
-
-        [Required]
         [MinLength(1, ErrorMessage = "At least one sport must be selected.")]
         public List<int>? SportIds { get; set; }
 

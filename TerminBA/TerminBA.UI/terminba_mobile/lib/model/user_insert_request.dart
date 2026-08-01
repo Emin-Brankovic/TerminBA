@@ -13,7 +13,6 @@ class UserInsertRequest {
   @JsonKey(fromJson: _dateOnlyFromJson, toJson: _dateOnlyToJson)
   DateTime birthDate;
   int cityId;
-  int roleId;
 
 
   UserInsertRequest({
@@ -26,7 +25,6 @@ class UserInsertRequest {
     required this.password,
     required this.birthDate,
     required this.cityId,
-    required this.roleId,
   });
 
   factory UserInsertRequest.fromJson(Map<String, dynamic> json) => _$UserInsertRequestFromJson(json);

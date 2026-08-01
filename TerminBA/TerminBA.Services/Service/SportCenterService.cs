@@ -90,6 +90,7 @@ namespace TerminBA.Services.Service
 
             entity.PasswordSalt = HashingHelper.GenerateSalt();
             entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword); // temporary solution
+            entity.RoleId = 2;
 
             await BeforeInsert(entity,request);
 

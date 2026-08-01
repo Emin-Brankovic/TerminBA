@@ -142,7 +142,6 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
           values['address'] as String,
           values['isEquipmentProvided'] as bool,
           values['description'] as String,
-          2, // default roleId for sport center
           (values['sportIds'] as List<dynamic>).cast<int>(),
           (values['amenityIds'] as List<dynamic>).cast<int>(),
           workingHours,

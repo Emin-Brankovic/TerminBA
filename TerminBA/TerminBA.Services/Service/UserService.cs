@@ -63,6 +63,7 @@ namespace TerminBA.Services.Service
 
             entity.PasswordSalt = HashingHelper.GenerateSalt();
             entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password!);
+            entity.RoleId = 1; // 1 is regular User role
         }
 
         protected async override Task BeforeUpdate(User entity, UserUpdateRequest request)
