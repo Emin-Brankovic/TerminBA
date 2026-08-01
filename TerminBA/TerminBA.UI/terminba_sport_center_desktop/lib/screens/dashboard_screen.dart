@@ -274,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final int cancelled = _upcomingReservations.where((e) => e.status == 'Cancelled').length;
 
     return _sectionCard(
-      title: 'Today Operations',
+      title: 'Today Reservations',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

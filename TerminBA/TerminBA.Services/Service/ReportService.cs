@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using System;
 using System.Collections.Generic;
@@ -568,22 +568,22 @@ namespace TerminBA.Services.Service
             var averageRating = await reviewsQuery
                 .AverageAsync(fr => (double?)fr.RatingNumber) ?? 0d;
 
-            var weeklyReservationsQuery = reservationsQuery
-                .Where(r => r.ReservationDate >= weekStart && r.ReservationDate <= weekEnd);
+            var monthlyReservationsQuery = reservationsQuery
+                .Where(r => r.ReservationDate >= monthStart && r.ReservationDate <= monthEnd);
 
-            var reservationsBySport = await weeklyReservationsQuery
+            var reservationsBySport = await monthlyReservationsQuery
                 .Where(r => r.ChosenSport != null && r.ChosenSport.Name != null && r.ChosenSport.Name != "")
                 .GroupBy(r => r.ChosenSport!.Name!)
                 .Select(g => new { Sport = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Sport, x => x.Count);
 
-            var reservationsByFacility = await weeklyReservationsQuery
+            var reservationsByFacility = await monthlyReservationsQuery
                 .Where(r => r.Facility != null && r.Facility.Name != null && r.Facility.Name != "")
                 .GroupBy(r => r.Facility!.Name!)
                 .Select(g => new { Facility = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Facility, x => x.Count);
 
-            var reservationDates = await weeklyReservationsQuery
+            var reservationDates = await monthlyReservationsQuery
                 .Select(r => r.ReservationDate)
                 .ToListAsync();
 
@@ -592,9 +592,8 @@ namespace TerminBA.Services.Service
                 .ToDictionary(g => GetAbbreviatedDayName(g.Key), g => g.Count());
 
             var upcomingReservations = await reservationsQuery
-                .Where(r => r.ReservationDate > today || (r.ReservationDate == today && r.StartTime >= nowTime))
-                .OrderBy(r => r.ReservationDate)
-                .ThenBy(r => r.StartTime)
+                .Where(r => r.ReservationDate == today)
+                .OrderBy(r => r.StartTime)
                 .Select(r => new
                 {
                     r.StartTime,
@@ -604,7 +603,6 @@ namespace TerminBA.Services.Service
                     LastName = r.User != null ? r.User.LastName : null,
                     r.Status
                 })
-                .Take(4)
                 .ToListAsync();
 
             var upcomingReservationResponses = upcomingReservations
