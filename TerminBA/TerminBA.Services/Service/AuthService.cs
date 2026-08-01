@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace TerminBA.Services.Service
 {
-    //later on implement refresh tokens
     public class AuthService<TEntity> : IAuthService<TEntity> where TEntity : AccountBase
     {
         private readonly TerminBaContext _context;
@@ -64,10 +63,12 @@ namespace TerminBA.Services.Service
             var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenExperation = DateTime.UtcNow.AddDays(7);
+            var jti = Guid.NewGuid().ToString();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject=new ClaimsIdentity(new List<Claim>
                 {
+                    new Claim(JwtRegisteredClaimNames.Jti, jti),
                     new Claim(ClaimTypes.Name, account.Username!),
                     new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
                     new Claim(ClaimTypes.Role, account.Role!.Name!)
@@ -159,6 +160,41 @@ namespace TerminBA.Services.Service
 
             _context.Set<TEntity>().Update(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task Logout()
+        {
+            var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].FirstOrDefault();
+            if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var tokenString = authHeader.Substring("Bearer ".Length).Trim();
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            if (!tokenHandler.CanReadToken(tokenString))
+                return;
+
+            var jwtToken = tokenHandler.ReadJwtToken(tokenString);
+            var jti = jwtToken.Id;
+            var expiresAt = jwtToken.ValidTo;
+
+            if (string.IsNullOrEmpty(jti))
+                return;
+
+            // Avoid duplicate revocation (token may already be in the table)
+            var alreadyRevoked = await _context.RevokedTokens
+                .AnyAsync(rt => rt.Jti == jti);
+
+            if (!alreadyRevoked)
+            {
+                _context.RevokedTokens.Add(new RevokedToken
+                {
+                    Jti = jti,
+                    ExpiresAt = expiresAt,
+                    RevokedAt = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

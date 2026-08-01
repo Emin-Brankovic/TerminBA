@@ -57,6 +57,7 @@ builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
+builder.Services.AddHostedService<RevokedTokenCleanupService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 
@@ -142,7 +143,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var jti = context.Principal?.FindFirst("jti")?.Value;
+                if (string.IsNullOrEmpty(jti))
+                    return;
 
+                var dbContext = context.HttpContext.RequestServices
+                    .GetRequiredService<TerminBaContext>();
+
+                var isRevoked = await dbContext.RevokedTokens
+                    .AnyAsync(rt => rt.Jti == jti);
+
+                if (isRevoked)
+                    context.Fail("Token has been revoked.");
+            }
         };
     });
 builder.Services.AddAuthorization();

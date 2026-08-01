@@ -43,6 +43,14 @@ namespace TerminBA.WebAPI.Controllers
         {
             return await _userService.GetPlayedMatches(id);
         }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _userService.Logout();
+            return Ok();
+        }
     }
 }
 

@@ -41,6 +41,7 @@ namespace TerminBA.Services.Database
         public DbSet<Payment> Payments { get; set; }
         public DbSet<CancelationNotification> CancelationNotifications { get; set; }
         public DbSet<RecommendationEvent> RecommendationEvents { get; set; }
+        public DbSet<RevokedToken> RevokedTokens { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -200,6 +201,10 @@ namespace TerminBA.Services.Database
                 .WithMany()
                 .HasForeignKey(re => re.FacilityId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RevokedToken>()
+                .HasIndex(rt => rt.Jti)
+                .IsUnique();
         }
     }
 }

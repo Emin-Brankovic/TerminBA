@@ -130,6 +130,10 @@ namespace TerminBA.Services.Service
             return await GetPlayedMatches(userId);
         }
 
+        public async Task Logout()
+        {
+            await _authService.Logout();
+        }
     }
 }
 

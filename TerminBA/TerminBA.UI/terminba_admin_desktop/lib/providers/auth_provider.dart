@@ -90,6 +90,20 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    try {
+      final token = await _storage.read(key: _tokenKey);
+      if (token != null) {
+        await http.post(
+          Uri.parse('$_baseUrl/user/logout'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+      }
+    } catch (_) {
+    }
+
     await _storage.delete(key: _tokenKey);
     _isLoggedIn = false;
     notifyListeners();

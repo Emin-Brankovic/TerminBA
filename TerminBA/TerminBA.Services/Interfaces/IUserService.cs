@@ -15,5 +15,6 @@ namespace TerminBA.Services.Interfaces
         public Task<int> GetPlayedMatches(int id);
         public Task<UserResponse> GetProfile();
         public Task<int> GetMyPlayedMatches();
+        public Task Logout();
     }
 }

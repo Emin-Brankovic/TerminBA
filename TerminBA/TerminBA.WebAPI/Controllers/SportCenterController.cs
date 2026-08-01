@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
@@ -33,6 +34,7 @@ namespace TerminBA.WebAPI.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet("getCurrent")]
         public async Task<SportCenterResponse> GetCurrentSportCenter()
         {
@@ -57,6 +59,14 @@ namespace TerminBA.WebAPI.Controllers
         public async Task<double> GetAverageRatingAsync(int id)
         {
             return await _sportCenterService.GetAverageRatingAsync(id);
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _sportCenterService.Logout();
+            return Ok();
         }
     }
 }

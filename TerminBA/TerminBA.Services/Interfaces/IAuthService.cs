@@ -15,5 +15,6 @@ namespace TerminBA.Services.Interfaces
         public string GetUserId();
         public Dictionary<string, string> GetCurrentUser();
         public Task ChangePassword(ChangePasswordRequest request);
+        public Task Logout();
     }
 }

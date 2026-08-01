@@ -17,6 +17,6 @@ namespace TerminBA.Services.Interfaces
         public Task<PagedResult<SportCenterResponse>> SearchAvailableAsync(SportCenterAvailabilitySearchObject search);
         public Task<double> GetAverageRatingAsync(int sportCenterId);
         public Task ChangePassword(ChangePasswordRequest request);
+        public Task Logout();
     }
 }
-
