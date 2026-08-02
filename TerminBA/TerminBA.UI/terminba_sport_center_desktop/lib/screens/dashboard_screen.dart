@@ -101,6 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchDashboardData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -108,15 +109,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       final data = await _reportProvider.fetchSportCenterDashboard();
+      if (!mounted) return;
       setState(() {
         _dashboardData = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = e.toString();
       });
+      // ignore: avoid_print
       print(e);
     }
   }
