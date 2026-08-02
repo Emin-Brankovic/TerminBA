@@ -40,6 +40,11 @@ namespace TerminBA.Services.Database
 
         public ICollection<Post>? Posts { get; set; } = new List<Post>();
 
+        public ICollection<Payment>? Payments { get; set; } = new List<Payment>();
+
+        [NotMapped]
+        public bool IsPaid => Payments?.Any(p => p.Status == TerminBA.Services.Enums.PaymentStatus.Paid) ?? false;
+
         [ForeignKey(nameof(ChosenSport))]
         public int? ChosenSportId { get; set; }
         public Sport? ChosenSport { get; set; }

@@ -34,6 +34,8 @@ namespace TerminBA.Models.Model
         public int? ChosenSportId { get; set; }
 
         public SportResponse? ChosenSport { get; set; }
+
+        public bool IsPaid { get; set; }
     }
 }
 

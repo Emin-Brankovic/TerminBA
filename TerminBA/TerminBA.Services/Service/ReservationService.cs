@@ -143,7 +143,8 @@ namespace TerminBA.Services.Service
                     .ThenInclude(f => f.SportCenter)
                         .ThenInclude(sc => sc.City)
                 .Include(r => r.User)
-                .Include(r => r.ChosenSport);
+                .Include(r => r.ChosenSport)
+                .Include(r => r.Payments);
 
             return query;
         }

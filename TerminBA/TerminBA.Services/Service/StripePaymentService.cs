@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Stripe;
+using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Services.Interfaces;
 
@@ -22,6 +23,42 @@ namespace TerminBA.Services.Service
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request)
         {
+            var reservation = await _context.Reservations
+                .Include(r => r.Facility)
+                    .ThenInclude(f => f.DynamicPrices)
+                .FirstOrDefaultAsync(r => r.Id == request.ReservationId);
+
+            if (reservation == null)
+            {
+                throw new UserException($"Reservation with ID {request.ReservationId} not found.");
+            }
+
+            var isAlreadyPaid = await _context.Payments
+                .AnyAsync(p => p.ReservationId == request.ReservationId && p.Status == Enums.PaymentStatus.Paid);
+
+            if (isAlreadyPaid)
+            {
+                throw new UserException("This reservation has already been paid for.");
+            }
+
+            if (reservation.Facility == null)
+            {
+                throw new UserException($"Facility for Reservation {request.ReservationId} not found.");
+            }
+
+            var expectedPrice = TerminBA.Services.Helpers.DynamicPriceHelper.GetExpectedPrice(
+                reservation.Facility,
+                reservation.ReservationDate,
+                reservation.StartTime,
+                reservation.EndTime);
+
+            var expectedAmount = (long)expectedPrice;
+
+            if (expectedAmount != request.Amount)
+            {
+                throw new UserException("Amount mismatch between request and calculated price.");
+            }
+
             var options = new PaymentIntentCreateOptions
             {
                 Amount = request.Amount,

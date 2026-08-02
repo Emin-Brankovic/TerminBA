@@ -19,6 +19,7 @@ class ReservationResponse {
   final double? price;
   final int? chosenSportId;
   final Sport? chosenSport;
+  final bool? isPaid;
 
   const ReservationResponse({
     required this.id,
@@ -33,6 +34,7 @@ class ReservationResponse {
     this.price,
     this.chosenSportId,
     this.chosenSport,
+    this.isPaid,
   });
 
   bool get isCancelled => status == 'Cancelled' || status == 'CanceledReservationState' || status == 'CanceledWithRefundReservationState' || status == 'CanceledWithoutRefundReservationState';

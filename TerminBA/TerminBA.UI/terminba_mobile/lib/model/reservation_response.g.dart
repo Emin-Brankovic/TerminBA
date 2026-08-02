@@ -26,21 +26,23 @@ ReservationResponse _$ReservationResponseFromJson(Map<String, dynamic> json) =>
       chosenSport: json['chosenSport'] == null
           ? null
           : Sport.fromJson(json['chosenSport'] as Map<String, dynamic>),
+      isPaid: json['isPaid'] as bool?,
     );
 
 Map<String, dynamic> _$ReservationResponseToJson(
-  ReservationResponse instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'userId': instance.userId,
-  'user': instance.user?.toJson(),
-  'facilityId': instance.facilityId,
-  'facility': instance.facility?.toJson(),
-  'reservationDate': instance.reservationDate,
-  'startTime': instance.startTime,
-  'endTime': instance.endTime,
-  'status': instance.status,
-  'price': instance.price,
-  'chosenSportId': instance.chosenSportId,
-  'chosenSport': instance.chosenSport?.toJson(),
-};
+        ReservationResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'userId': instance.userId,
+      'user': instance.user?.toJson(),
+      'facilityId': instance.facilityId,
+      'facility': instance.facility?.toJson(),
+      'reservationDate': instance.reservationDate,
+      'startTime': instance.startTime,
+      'endTime': instance.endTime,
+      'status': instance.status,
+      'price': instance.price,
+      'chosenSportId': instance.chosenSportId,
+      'chosenSport': instance.chosenSport?.toJson(),
+      'isPaid': instance.isPaid,
+    };

@@ -20,6 +20,7 @@ class ReservationResponse {
   double price;
   int? chosenSportId;
   Sport? chosenSport;
+  bool? isPaid;
 
   ReservationResponse({
     required this.id,
@@ -34,6 +35,7 @@ class ReservationResponse {
     required this.price,
     this.chosenSportId,
     this.chosenSport,
+    this.isPaid,
   });
 
   factory ReservationResponse.fromJson(Map<String, dynamic> json) =>
