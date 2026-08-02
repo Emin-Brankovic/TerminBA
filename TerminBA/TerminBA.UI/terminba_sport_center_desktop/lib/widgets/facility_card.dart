@@ -3,6 +3,7 @@ import 'package:terminba_sport_center_desktop/enums/day_of_week_enum.dart';
 import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price.dart';
 import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dart';
+import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
 // import 'package:terminba_admin_desktop/enums/day_of_week_enum.dart';
 // import 'package:terminba_admin_desktop/model/sport_center.dart';
 // import 'package:terminba_admin_desktop/model/working_hours.dart';
@@ -144,32 +145,19 @@ class _FacilityCardState extends State<FacilityCard> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Confirm Delete'),
-                            content: const Text(
-                              'Are you sure you want to delete this item?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(ctx);
-                                  widget.onDelete(widget.facility.id);
-                                },
-                                child: const Text('Confirm'),
-                              ),
-                            ],
-                          ),
+                      onPressed: () async {
+                        final confirmed = await ConfirmationDialog.show(
+                          context,
+                          title: 'Delete Facility',
+                          message: 'Are you sure you want to delete this facility? This action cannot be undone.',
+                          confirmText: 'Delete',
+                          cancelText: 'Cancel',
+                          confirmButtonColor: const Color(0xFFFF3D00),
                         );
+
+                        if (confirmed) {
+                          widget.onDelete(widget.facility.id);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF3D00), // Red/Orange

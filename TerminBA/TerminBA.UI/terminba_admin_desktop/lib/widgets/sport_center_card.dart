@@ -3,6 +3,7 @@ import 'package:terminba_admin_desktop/enums/day_of_week_enum.dart';
 import 'package:terminba_admin_desktop/model/sport_center.dart';
 import 'package:terminba_admin_desktop/model/working_hours.dart';
 import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
+import 'package:terminba_admin_desktop/widgets/confirmation_dialog.dart';
 
 class SportCenterCard extends StatefulWidget {
   const SportCenterCard({
@@ -144,32 +145,19 @@ class _SportCenterCardState extends State<SportCenterCard> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Confirm Delete'),
-                            content: const Text(
-                              'Are you sure you want to delete this item?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text(
-                                  'Cancel',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(ctx);
-                                  widget.onDelete(widget.sportCenter.id);
-                                },
-                                child: const Text('Confirm'),
-                              ),
-                            ],
-                          ),
+                      onPressed: () async {
+                        final confirmed = await ConfirmationDialog.show(
+                          context,
+                          title: 'Delete Sport Center',
+                          message: 'Are you sure you want to delete this sport center? This action cannot be undone.',
+                          confirmText: 'Delete',
+                          cancelText: 'Cancel',
+                          confirmButtonColor: const Color(0xFFFF3D00),
                         );
+
+                        if (confirmed) {
+                          widget.onDelete(widget.sportCenter.id);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF3D00), // Red/Orange

@@ -88,28 +88,6 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     });
   }
 
-  Future<bool> _showConfirmationDialog(String title, String content) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
-  }
-
   Future<void> _markSelectedAsRead() async {
     if (_selectedIds.isEmpty) return;
 
@@ -135,10 +113,30 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
   Future<void> _deleteSelected() async {
     if (_selectedIds.isEmpty) return;
 
-    final confirm = await _showConfirmationDialog(
-      'Delete Notifications',
-      'Are you sure you want to delete selected notifications?',
-    );
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Notifications'),
+          content: const Text('Are you sure you want to delete the selected notifications? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+
     if (!confirm) return;
 
     try {

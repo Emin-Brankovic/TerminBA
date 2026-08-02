@@ -11,6 +11,7 @@ import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_provider.dart';
 import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
+import 'package:terminba_admin_desktop/widgets/confirmation_dialog.dart';
 
 class ReferenceDataScreen extends StatefulWidget {
   const ReferenceDataScreen({super.key});
@@ -219,40 +220,32 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     );
   }
 
-  void _onDelete(int index) {
+  void _onDelete(int index) async {
     var currentItem = _referenceDataDataSource._items[index];
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this item?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              if (currentItem is TurfType) {
-                await turfTypeProvider.delete(currentItem.id);
-              } else if (currentItem is Amenity) {
-                await amenityProvider.delete(currentItem.id);
-              } else if (currentItem is City) {
-                await cityProvider.delete(currentItem.id);
-              } else if (currentItem is Sport) {
-                await sportProvider.delete(currentItem.id);
-              } else if (currentItem is Role) {
-                await roleProvider.delete(currentItem.id);
-              }
-              await _refreshTable();
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: 'Delete Item',
+      message: 'Are you sure you want to delete this item? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmButtonColor: const Color(0xFFFF3D00),
     );
+
+    if (!confirmed) return;
+
+    if (currentItem is TurfType) {
+      await turfTypeProvider.delete(currentItem.id);
+    } else if (currentItem is Amenity) {
+      await amenityProvider.delete(currentItem.id);
+    } else if (currentItem is City) {
+      await cityProvider.delete(currentItem.id);
+    } else if (currentItem is Sport) {
+      await sportProvider.delete(currentItem.id);
+    } else if (currentItem is Role) {
+      await roleProvider.delete(currentItem.id);
+    }
+    await _refreshTable();
   }
 
   @override
