@@ -11,8 +11,8 @@ namespace TerminBA.Services.Interfaces
 {
     public interface IPlayRequestService : IBaseCRUDService<PlayRequestResponse, PlayRequestSearchObject, PlayRequestInsertRequest, PlayRequestUpdateRequest>
     {
-        Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, bool response);
-        public Task<PlayRequestResponse> CancelAsync(int playRequestId);
+        Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, PlayRequestRespondRequest request);
+        Task<PlayRequestResponse> CancelAsync(int playRequestId, PlayRequestCancelRequest request);
         Task<int> GetUnseenRequestsCountAsync();
         Task<PlayRequestResponse> MarkRequestAsSeenAsync(int requestId);
         Task<int> GetUnseenResponsesCountAsync();

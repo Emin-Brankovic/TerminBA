@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,16 +50,6 @@ namespace TerminBA.Services.PostStateMachine
         }
 
         public virtual Task<PlayRequestResponse> SendPlayRequestAsync(PlayRequestInsertRequest request)
-        {
-            throw new UserException("Method not allowed");
-        }
-
-        public virtual Task<PlayRequestResponse> CancelAsync(int playRequestId)
-        {
-            throw new UserException("Method not allowed");
-        }
-
-        public virtual Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, bool response)
         {
             throw new UserException("Method not allowed");
         }

@@ -11,6 +11,7 @@ using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PlayRequestStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -84,10 +85,10 @@ namespace TerminBA.Services.Service
                     throw new UserException("You have already submitted a review for this player on this reservation.");
 
                 bool isReviewerParticipant = reservation.UserId == entity.ReviewerId.Value || 
-                    await _context.PlayRequests.AnyAsync(pr => pr.Post!.ReservationId == entity.ReservationId.Value && pr.RequesterId == entity.ReviewerId.Value && pr.isAccepted == true);
+                    await _context.PlayRequests.AnyAsync(pr => pr.Post!.ReservationId == entity.ReservationId.Value && pr.RequesterId == entity.ReviewerId.Value && pr.PlayRequestState == nameof(AcceptedPlayRequestState));
 
                 bool isReviewedParticipant = reservation.UserId == entity.ReviewedId.Value || 
-                    await _context.PlayRequests.AnyAsync(pr => pr.Post!.ReservationId == entity.ReservationId.Value && pr.RequesterId == entity.ReviewedId.Value && pr.isAccepted == true);
+                    await _context.PlayRequests.AnyAsync(pr => pr.Post!.ReservationId == entity.ReservationId.Value && pr.RequesterId == entity.ReviewedId.Value && pr.PlayRequestState == nameof(AcceptedPlayRequestState));
 
                 if (!isReviewerParticipant || !isReviewedParticipant)
                     throw new UserException("Both users must be participants in this reservation.");

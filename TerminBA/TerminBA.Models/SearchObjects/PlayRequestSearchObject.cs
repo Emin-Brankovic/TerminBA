@@ -13,7 +13,7 @@ namespace TerminBA.Models.SearchObjects
         public int? RecipientUserId { get; set; }
         public int? ReservationId { get; set; }
         public DateTime? DateOfRequest { get; set; }
-        public string? Status { get; set; }
+        public string? PlayRequestState { get; set; }
     }
 }
 

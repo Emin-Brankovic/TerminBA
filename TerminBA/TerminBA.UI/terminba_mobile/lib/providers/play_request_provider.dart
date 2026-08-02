@@ -13,13 +13,17 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
   }
 
   /// Accepts or denies a received request.
-  Future<PlayRequestResponse?> respondToRequest(int id, bool accepted) async {
-    final url =
-        '$baseUrl${endpoint}/requestResponse/$id?response=$accepted';
+  Future<PlayRequestResponse?> respondToRequest(int id, bool accepted, {String? reason}) async {
+    final url = '$baseUrl${endpoint}/requestResponse/$id';
     final uri = Uri.parse(url);
     final headers = await createHeaders();
 
-    final response = await http.put(uri, headers: headers);
+    final body = jsonEncode({
+      'isAccepted': accepted,
+      if (reason != null) 'reason': reason,
+    });
+
+    final response = await http.put(uri, headers: headers, body: body);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
     final data = jsonDecode(response.body);
@@ -27,12 +31,16 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
   }
 
   /// Cancels a sent request (by requester).
-  Future<PlayRequestResponse?> cancelRequest(int id) async {
+  Future<PlayRequestResponse?> cancelRequest(int id, {String? reason}) async {
     final url = '$baseUrl${endpoint}/cancleRequest/$id';
     final uri = Uri.parse(url);
     final headers = await createHeaders();
 
-    final response = await http.put(uri, headers: headers);
+    final body = jsonEncode({
+      if (reason != null) 'reason': reason,
+    });
+
+    final response = await http.put(uri, headers: headers, body: body);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
     final data = jsonDecode(response.body);

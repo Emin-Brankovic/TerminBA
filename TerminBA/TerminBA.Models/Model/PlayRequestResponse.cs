@@ -16,8 +16,14 @@ namespace TerminBA.Models.Model
         public int RequesterId { get; set; }
         public UserResponse? Requester { get; set; }
 
-        public bool? isAccepted { get; set; }  // false = denied, true = accepted
+        public string PlayRequestState { get; set; } = "PendingPlayRequestState";
+        public bool? isAccepted => PlayRequestState == "PendingPlayRequestState" ? null : PlayRequestState == "AcceptedPlayRequestState";
 
+        public string? Reason { get; set; }
+        public DateTime? RespondedAt { get; set; }
+        public int? RespondedById { get; set; }
+        public DateTime? CanceledAt { get; set; }
+        public int? CanceledById { get; set; }
         public string? RequestText { get; set; }
 
         public DateTime? DateOfRequest { get; set; }

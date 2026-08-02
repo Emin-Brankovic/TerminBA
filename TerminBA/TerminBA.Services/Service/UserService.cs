@@ -12,6 +12,7 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PlayRequestStateMachine;
 using TerminBA.Services.PostStateMachine;
 
 namespace TerminBA.Services.Service
@@ -113,7 +114,7 @@ namespace TerminBA.Services.Service
         public async Task<int> GetPlayedMatches(int id)
         {
             var count = await _context.PlayRequests
-                .Where(pr => pr.RequesterId == id && pr.Post.PostState == nameof(ClosedPostState) && pr.isAccepted == true)
+                .Where(pr => pr.RequesterId == id && pr.Post.PostState == nameof(ClosedPostState) && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
                 .CountAsync();
             return count;
         }

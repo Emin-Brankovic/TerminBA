@@ -12,18 +12,21 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PostStateMachine;
+using TerminBA.Services.PlayRequestStateMachine;
 
 namespace TerminBA.Services.Service
 {
     public class PlayRequestService : BaseCRUDService<PlayRequestResponse, PlayRequest, PlayRequestSearchObject, PlayRequestInsertRequest, PlayRequestUpdateRequest>, IPlayRequestService
     {
         protected readonly BasePostState _basePostState;
+        protected readonly BasePlayRequestState _basePlayRequestState;
         private readonly IAuthService<AccountBase> _authService;
         private readonly Dictionary<string, string> _currentUser;
 
-        public PlayRequestService(TerminBaContext context, IMapper mapper, BasePostState basePostState, IAuthService<AccountBase> authService) : base(context, mapper)
+        public PlayRequestService(TerminBaContext context, IMapper mapper, BasePostState basePostState, BasePlayRequestState basePlayRequestState, IAuthService<AccountBase> authService) : base(context, mapper)
         {
             this._basePostState = basePostState;
+            this._basePlayRequestState = basePlayRequestState;
             this._authService = authService;
             _currentUser = _authService.GetCurrentUser();
         }
@@ -40,17 +43,25 @@ namespace TerminBA.Services.Service
             return result;
         }
 
-        public async Task<PlayRequestResponse> RespondToPlayRequestAsync(int id,bool response)
+        public async Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, PlayRequestRespondRequest request)
         {
             var entity = await _context.PlayRequests
-                .Include(pr=>pr.Post)
                 .FirstOrDefaultAsync(pr=>pr.Id==id);
 
-            var baseState = _basePostState.GetPostState(entity!.Post!.PostState);
+            if (entity == null) throw new UserException("Request not found");
 
-            var result = await baseState.RespondToPlayRequestAsync(id, response);
+            var baseState = _basePlayRequestState.GetState(entity.PlayRequestState);
+            
+            var currentUserId = int.Parse(_authService.GetUserId());
 
-            return result;
+            if (request.IsAccepted)
+            {
+                return await baseState.AcceptAsync(id, currentUserId);
+            }
+            else
+            {
+                return await baseState.RejectAsync(id, request.Reason ?? string.Empty, currentUserId);
+            }
         }
 
         public override IQueryable<PlayRequest> ApplyFilter(IQueryable<PlayRequest> query, PlayRequestSearchObject search)
@@ -70,14 +81,18 @@ namespace TerminBA.Services.Service
             if(search.DateOfRequest.HasValue)
                 query=query.Where(pr=>pr.DateOfRequest!.Value.Date== search.DateOfRequest.Value.Date);
 
-            if (!string.IsNullOrEmpty(search.Status))
+            if (!string.IsNullOrEmpty(search.PlayRequestState))
             {
-                if (search.Status.ToLower() == "pending")
-                    query = query.Where(pr => pr.isAccepted == null);
-                else if (search.Status.ToLower() == "accepted")
-                    query = query.Where(pr => pr.isAccepted == true);
-                else if (search.Status.ToLower() == "denied")
-                    query = query.Where(pr => pr.isAccepted == false);
+                if (search.PlayRequestState.ToLower() == "pending")
+                    query = query.Where(pr => pr.PlayRequestState == "PendingPlayRequestState");
+                else if (search.PlayRequestState.ToLower() == "accepted")
+                    query = query.Where(pr => pr.PlayRequestState == "AcceptedPlayRequestState");
+                else if (search.PlayRequestState.ToLower() == "rejected")
+                    query = query.Where(pr => pr.PlayRequestState == "RejectedPlayRequestState");
+                else if (search.PlayRequestState.ToLower() == "canceled")
+                    query = query.Where(pr => pr.PlayRequestState == "CanceledPlayRequestState");
+                else
+                    query = query.Where(pr => pr.PlayRequestState == search.PlayRequestState);
             }
 
             query = query.OrderByDescending(pr => pr.DateOfRequest);
@@ -85,16 +100,18 @@ namespace TerminBA.Services.Service
             return query;
         }
 
-        public async Task<PlayRequestResponse> CancelAsync(int playRequestId)
+        public async Task<PlayRequestResponse> CancelAsync(int playRequestId, PlayRequestCancelRequest request)
         {
             var entity = await _context.PlayRequests
-                .Include(pr => pr.Post)
                 .FirstOrDefaultAsync(pr => pr.Id == playRequestId);
 
-            var baseState = _basePostState.GetPostState(entity!.Post!.PostState);
+            if (entity == null) throw new UserException("Request not found");
 
-            return await baseState.CancelAsync(playRequestId);
+            var baseState = _basePlayRequestState.GetState(entity.PlayRequestState);
+            
+            var currentUserId = int.Parse(_authService.GetUserId());
 
+            return await baseState.CancelAsync(playRequestId, request.Reason, currentUserId);
         }
 
         public override IQueryable<PlayRequest> ApplyIncludes(IQueryable<PlayRequest> query)
@@ -147,7 +164,7 @@ namespace TerminBA.Services.Service
         {
             var userId = int.Parse(_authService.GetUserId());
             return await _context.PlayRequests
-                .Where(pr => pr.RequesterId == userId && !pr.IsSeenByRequester && pr.isAccepted != null)
+                .Where(pr => pr.RequesterId == userId && !pr.IsSeenByRequester && pr.PlayRequestState != "PendingPlayRequestState")
                 .CountAsync();
         }
 

@@ -11,7 +11,18 @@ class PlayRequestResponse {
   final PostResponse? post;
   final int requesterId;
   final User? requester;
-  final bool? isAccepted;
+  final String playRequestState;
+  final String? reason;
+  final String? respondedAt;
+  final int? respondedById;
+  final String? canceledAt;
+  final int? canceledById;
+
+  bool? get isAccepted {
+    if (playRequestState == 'PendingPlayRequestState') return null;
+    if (playRequestState == 'AcceptedPlayRequestState') return true;
+    return false;
+  }
   final String? requestText;
   final String? dateOfRequest;
   final String? dateOfResponse;
@@ -24,7 +35,12 @@ class PlayRequestResponse {
     this.post,
     required this.requesterId,
     this.requester,
-    this.isAccepted,
+    required this.playRequestState,
+    this.reason,
+    this.respondedAt,
+    this.respondedById,
+    this.canceledAt,
+    this.canceledById,
     this.requestText,
     this.dateOfRequest,
     this.dateOfResponse,

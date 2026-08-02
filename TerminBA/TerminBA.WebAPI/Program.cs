@@ -13,6 +13,7 @@ using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PostStateMachine;
+using TerminBA.Services.PlayRequestStateMachine;
 using TerminBA.Services.Recommender;
 using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Service;
@@ -60,6 +61,13 @@ builder.Services.AddHostedService<ReservationCompletionHostedService>();
 builder.Services.AddHostedService<RevokedTokenCleanupService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
+
+// PlayRequest State Machine
+builder.Services.AddScoped<BasePlayRequestState>();
+builder.Services.AddScoped<PendingPlayRequestState>();
+builder.Services.AddScoped<AcceptedPlayRequestState>();
+builder.Services.AddScoped<RejectedPlayRequestState>();
+builder.Services.AddScoped<CanceledPlayRequestState>();
 
 // Stripe payment service (reads StripeSecretKey from env, secret stays server-side)
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
@@ -382,21 +390,21 @@ using (var scope = app.Services.CreateScope())
 
         // Seed Posts
         dataContext.Posts.AddRange(
-            new Post {SkillLevel = "Intermediate", NumberOfPlayersWanted = 3, NumberOfPlayersFound = 1, Text = "Looking for players for a friendly match", ReservationId = 1, PostState = "PlayerSearchPostState" },
-            new Post {SkillLevel = "Beginner", NumberOfPlayersWanted = 2, NumberOfPlayersFound = 0, Text = "Need players for basketball game", ReservationId = 2, PostState = "PlayerSearchPostState" },
-            new Post {SkillLevel = "Advanced", NumberOfPlayersWanted = 1, NumberOfPlayersFound = 1, Text = "Looking for a tennis partner", ReservationId = 3, PostState = "PlayerFoundPostState" },
-            new Post {SkillLevel = "Intermediate", NumberOfPlayersWanted = 4, NumberOfPlayersFound = 2, Text = "Football match - need more players", ReservationId = 4, PostState = "PlayerSearchPostState" }
+            new Post {SkillLevel = "Intermediate", NumberOfPlayersWanted = 3, NumberOfPlayersFound = 1, Text = "Looking for players for a friendly match", ReservationId = 1, PostState = nameof(PlayerSearchPostState) },
+            new Post {SkillLevel = "Beginner", NumberOfPlayersWanted = 2, NumberOfPlayersFound = 0, Text = "Need players for basketball game", ReservationId = 2, PostState = nameof(PlayerSearchPostState) },
+            new Post {SkillLevel = "Advanced", NumberOfPlayersWanted = 1, NumberOfPlayersFound = 1, Text = "Looking for a tennis partner", ReservationId = 3, PostState = nameof(PlayerFoundPostState) },
+            new Post {SkillLevel = "Intermediate", NumberOfPlayersWanted = 4, NumberOfPlayersFound = 2, Text = "Football match - need more players", ReservationId = 4, PostState = nameof(PlayerSearchPostState) }
         );
 
         dataContext.SaveChanges();
 
         // Seed PlayRequests
         dataContext.PlayRequests.AddRange(
-            new PlayRequest { PostId = 1, RequesterId = 10, isAccepted = true, RequestText = "I'd like to join your game", DateOfRequest = DateTime.UtcNow.AddDays(-2), DateOfResponse = DateTime.UtcNow.AddDays(-1) },
-            new PlayRequest {PostId = 2, RequesterId = 11, isAccepted = null, RequestText = "Can I join?", DateOfRequest = DateTime.UtcNow.AddDays(-1) },
-            new PlayRequest { PostId = 3, RequesterId = 2, isAccepted = true, RequestText = "I'm available for tennis", DateOfRequest = DateTime.UtcNow.AddDays(-3), DateOfResponse = DateTime.UtcNow.AddDays(-2) },
-            new PlayRequest { PostId = 4, RequesterId = 3, isAccepted = true, RequestText = "Count me in for football", DateOfRequest = DateTime.UtcNow.AddDays(-2), DateOfResponse = DateTime.UtcNow.AddDays(-1) },
-            new PlayRequest { PostId = 4, RequesterId = 6, isAccepted = true, RequestText = "I want to play", DateOfRequest = DateTime.UtcNow.AddDays(-1), DateOfResponse = DateTime.UtcNow }
+            new PlayRequest { PostId = 1, RequesterId = 10, PlayRequestState = nameof(AcceptedPlayRequestState), RequestText = "I'd like to join your game", DateOfRequest = DateTime.UtcNow.AddDays(-2), DateOfResponse = DateTime.UtcNow.AddDays(-1) },
+            new PlayRequest {PostId = 2, RequesterId = 11, PlayRequestState = nameof(PendingPlayRequestState), RequestText = "Can I join?", DateOfRequest = DateTime.UtcNow.AddDays(-1) },
+            new PlayRequest { PostId = 3, RequesterId = 2, PlayRequestState = nameof(AcceptedPlayRequestState), RequestText = "I'm available for tennis", DateOfRequest = DateTime.UtcNow.AddDays(-3), DateOfResponse = DateTime.UtcNow.AddDays(-2) },
+            new PlayRequest { PostId = 4, RequesterId = 3, PlayRequestState = nameof(AcceptedPlayRequestState), RequestText = "Count me in for football", DateOfRequest = DateTime.UtcNow.AddDays(-2), DateOfResponse = DateTime.UtcNow.AddDays(-1) },
+            new PlayRequest { PostId = 4, RequesterId = 6, PlayRequestState = nameof(AcceptedPlayRequestState), RequestText = "I want to play", DateOfRequest = DateTime.UtcNow.AddDays(-1), DateOfResponse = DateTime.UtcNow }
         );
 
         dataContext.SaveChanges();

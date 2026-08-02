@@ -165,8 +165,16 @@ class _PlayerSearchRequestsScreenState
   }
 
   Future<void> _respond(PlayRequestResponse req, bool accept) async {
+    String? reason;
+    if (!accept) {
+      reason = await _showReasonDialog('Reject Request', 'Please enter a reason for rejecting this request:');
+      if (reason == null || reason.trim().isEmpty) {
+        return; // User cancelled or didn't provide a reason
+      }
+    }
+
     try {
-      await context.read<PlayRequestProvider>().respondToRequest(req.id, accept);
+      await context.read<PlayRequestProvider>().respondToRequest(req.id, accept, reason: reason);
       _receivedController.refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +190,39 @@ class _PlayerSearchRequestsScreenState
         );
       }
     }
+  }
+
+  Future<String?> _showReasonDialog(String title, String message) async {
+    String? inputReason;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Reason',
+              hintText: message,
+            ),
+            onChanged: (val) => inputReason = val,
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, null),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx, inputReason);
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _cancel(PlayRequestResponse req) async {
@@ -205,8 +246,9 @@ class _PlayerSearchRequestsScreenState
     );
 
     if (confirmed == true && mounted) {
+      String? reason = await _showReasonDialog('Cancel Request', 'Optional: enter a reason for cancellation');
       try {
-        await context.read<PlayRequestProvider>().cancelRequest(req.id);
+        await context.read<PlayRequestProvider>().cancelRequest(req.id, reason: reason);
         _sentController.refresh();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

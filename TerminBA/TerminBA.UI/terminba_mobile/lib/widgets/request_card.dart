@@ -151,6 +151,26 @@ class ReceivedRequestCard extends StatelessWidget {
               ],
             ),
 
+            if (request.reason != null && request.reason!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Reason: ${request.reason}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.red.shade800,
+                  ),
+                ),
+              ),
+            ],
+
             if (request.requestText != null &&
                 request.requestText!.isNotEmpty) ...[
               const SizedBox(height: 10),
@@ -350,6 +370,26 @@ class SentRequestCard extends StatelessWidget {
               ],
             ),
 
+            if (request.reason != null && request.reason!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Reason: ${request.reason}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.red.shade800,
+                  ),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 8),
             Row(
               children: [
@@ -379,15 +419,15 @@ class SentRequestCard extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
 
-            if (request.isAccepted != false && request.post?.isClosed != true) ...[
+            if ((request.playRequestState == 'PendingPlayRequestState' || request.playRequestState == 'AcceptedPlayRequestState') && request.post?.isClosed != true) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: onCancel,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey.shade700,
-                    side: BorderSide(color: Colors.grey.shade400),
+                    foregroundColor: Colors.red.shade600,
+                    side: BorderSide(color: Colors.red.shade300),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

@@ -20,18 +20,18 @@ namespace TerminBA.WebAPI.Controllers
 
 
         [HttpPut("requestResponse/{id}")]
-        public async Task<PlayRequestResponse> RespondToPlayRequest(int id, bool response)
+        public async Task<PlayRequestResponse> RespondToPlayRequest(int id, [FromBody] PlayRequestRespondRequest request)
         {
-            var playRequest=await _playRequestService.RespondToPlayRequestAsync(id, response);
+            var playRequest = await _playRequestService.RespondToPlayRequestAsync(id, request);
 
             return playRequest;
         }
 
 
         [HttpPut("cancleRequest/{id}")]
-        public async Task<PlayRequestResponse> CancleRequest (int id)
+        public async Task<PlayRequestResponse> CancleRequest(int id, [FromBody] PlayRequestCancelRequest request)
         {
-            var playRequest = await _playRequestService.CancelAsync(id);
+            var playRequest = await _playRequestService.CancelAsync(id, request);
 
             return playRequest;
         }

@@ -55,19 +55,6 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 			NotificationService().init();
 			_notificationSubscription = NotificationService().onJoinRequestReceived.listen((payload) {
 				notificationProvider.incrementUnseenReceivedCount();
-
-				ScaffoldMessenger.of(context).showSnackBar(
-					SnackBar(
-						content: Text("New join request from ${payload['fromUserDisplayName'] ?? 'a user'}"),
-						action: SnackBarAction(
-							label: 'View',
-							onPressed: () {
-								_onTabTapped(BottomTab.profile.index); // Or wherever requests are managed
-							},
-						),
-						duration: const Duration(seconds: 4),
-					),
-				);
 			});
 
 			_respondedSubscription = NotificationService().onJoinRequestResponded.listen((payload) {

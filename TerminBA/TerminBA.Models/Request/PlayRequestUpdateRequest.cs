@@ -15,7 +15,7 @@ namespace TerminBA.Models.Request
         [Required]
         public int RequesterId { get; set; }
 
-        public bool? isAccepted { get; set; }
+        public string? PlayRequestState { get; set; }
         [MaxLength(100)]
         public string? RequestText { get; set; }
 

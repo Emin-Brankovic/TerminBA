@@ -23,8 +23,15 @@ namespace TerminBA.Services.Database
         public int RequesterId { get; set; }
         public User? Requester{ get; set; }
 
-        public bool? isAccepted { get; set; } = null; // false = denied, true = accepted
+        public string PlayRequestState { get; set; } = "PendingPlayRequestState";
 
+        public string? Reason { get; set; }
+        
+        public DateTime? RespondedAt { get; set; }
+        public int? RespondedById { get; set; }
+        
+        public DateTime? CanceledAt { get; set; }
+        public int? CanceledById { get; set; }
         [MaxLength(100)]
         public string? RequestText { get; set; }
 
