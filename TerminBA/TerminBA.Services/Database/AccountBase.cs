@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -20,6 +20,7 @@ namespace TerminBA.Services.Database
 
 
         [Phone(ErrorMessage = "Not valid phone number format")]
+        [RegularExpression(@"^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$", ErrorMessage = "Not valid phone number format")]
         public string? PhoneNumber { get; set; }
 
         [Required]

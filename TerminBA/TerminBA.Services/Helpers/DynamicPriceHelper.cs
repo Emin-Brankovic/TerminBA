@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +12,6 @@ namespace TerminBA.Services.Helpers
     {
         public static decimal GetExpectedPrice(Facility facility, DateOnly reservationDate, TimeOnly startTime, TimeOnly endTime)
         {
-            var durationHours = (decimal)facility.Duration.TotalHours;
 
             if (!facility.IsDynamicPricing)
             {

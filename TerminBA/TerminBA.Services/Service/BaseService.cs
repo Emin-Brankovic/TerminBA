@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -33,12 +33,12 @@ namespace TerminBA.Services.Service
 
             int totalCount = await query.CountAsync();
 
-            if (search.Page.HasValue && search.PageSize.HasValue)
-            {
-                query = query
-                    .Skip((search.Page.Value - 1) * search.PageSize.Value)
-                    .Take(search.PageSize.Value);
-            }
+            var page = search?.Page ?? 1;
+            var pageSize = search?.PageSize ?? 10;
+
+            query = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
 
             var list = await query.ToListAsync();
 

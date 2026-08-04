@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -29,13 +29,11 @@ namespace TerminBA.Models.Request
         public string? Email { get; set; }
 
         [Phone]
+        [RegularExpression(@"^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$", ErrorMessage = "Not a valid phone number")]
         public string? PhoneNumber { get; set; }
 
         [Url]
         public string? InstagramAccount { get; set; }
-
-        //[Required]
-        //public string? Password { get; set; }
 
         [Required]
         public DateOnly BirthDate { get; set; }
@@ -43,6 +41,5 @@ namespace TerminBA.Models.Request
         [Required]
         public int CityId { get; set; }
 
-        //public bool IsActive { get; set; }
     }
 }
