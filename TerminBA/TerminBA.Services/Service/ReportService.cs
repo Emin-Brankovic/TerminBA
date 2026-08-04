@@ -294,11 +294,18 @@ namespace TerminBA.Services.Service
                 }).ToDictionaryAsync(x => x.Facility, x => x.ReservationCount);
 
 
-            var countByDay = (await reservationsQuery
-                .Select(r => r.ReservationDate)   
-                .ToListAsync())                   
-                .GroupBy(d => d.DayOfWeek)        
-                .ToDictionary(g => g.Key.ToString(), g => g.Count());
+            var countsByDate = await reservationsQuery
+                .GroupBy(r => r.ReservationDate)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var countByDay = countsByDate
+                .GroupBy(x => x.Date.DayOfWeek)
+                .ToDictionary(g => g.Key.ToString(), g => g.Sum(x => x.Count));
 
 
 

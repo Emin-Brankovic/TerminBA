@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.Recommender;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -208,6 +209,33 @@ namespace TerminBA.Services.Service
                 .ToListAsync();
 
             var today = DateTime.Today;
+            var windowStart = DateOnly.FromDateTime(today.AddDays(1));
+            var windowEnd = DateOnly.FromDateTime(today.AddDays(CandidateDaysAhead));
+            var facilityIds = facilities.Select(f => f.Id).ToList();
+
+            var activeReservations = await _db.Reservations
+                .Where(r =>
+                    r.FacilityId != null &&
+                    facilityIds.Contains(r.FacilityId!.Value) &&
+                    r.ReservationDate >= windowStart &&
+                    r.ReservationDate <= windowEnd &&
+                    r.Status != nameof(CanceledReservationState) &&
+                    r.Status != nameof(CanceledWithRefundReservationState) &&
+                    r.Status != nameof(CanceledWithoutRefundReservationState))
+                .Select(r => new
+                {
+                    FacilityId = r.FacilityId!.Value,
+                    r.ReservationDate,
+                    r.StartTime,
+                    r.EndTime
+                })
+                .ToListAsync();
+
+            // Group by (FacilityId, Date) for O(1) per-day lookup
+            var reservationLookup = activeReservations
+                .GroupBy(r => (r.FacilityId, r.ReservationDate))
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var candidates = new List<TimeSlotCandidate>();
 
             // For each facility, generate virtual slots over the next CandidateDaysAhead days
@@ -236,6 +264,9 @@ namespace TerminBA.Services.Service
                     var slotEnd = slotStart.Add(slotDuration);
                     var closeTime = date.Date.Add(wh.CloseingHours.ToTimeSpan());
 
+                    var dateOnly = DateOnly.FromDateTime(date);
+                    reservationLookup.TryGetValue((facility.Id, dateOnly), out var dayReservations);
+
                     while (slotEnd <= closeTime)
                     {
                         var startTod = slotStart.TimeOfDay;
@@ -243,19 +274,12 @@ namespace TerminBA.Services.Service
                         // Hard filter: must fall inside the user's usual window
                         if (startTod >= window.PreferredStart && startTod <= window.PreferredEnd)
                         {
-                            // Check no confirmed reservation overlaps this slot
-                            var dateOnly = DateOnly.FromDateTime(slotStart);
                             var startOnly = TimeOnly.FromDateTime(slotStart);
                             var endOnly = TimeOnly.FromDateTime(slotEnd);
 
-                            bool isOccupied = await _db.Reservations.AnyAsync(r =>
-                                r.FacilityId == facility.Id &&
-                                r.ReservationDate == dateOnly &&
-                                r.Status != "CanceledReservationState" &&
-                                r.Status != "CanceledWithRefundReservationState" &&
-                                r.Status != "CanceledWithoutRefundReservationState" &&
-                                r.StartTime < endOnly &&
-                                r.EndTime > startOnly);
+                            // In-memory overlap check — no database round-trip
+                            bool isOccupied = dayReservations != null &&
+                                dayReservations.Any(r => r.StartTime < endOnly && r.EndTime > startOnly);
 
                             if (!isOccupied)
                             {
