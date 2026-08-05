@@ -1,39 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace TerminBA.Services.Helpers
 {
     public static class HashingHelper
     {
+        private const int SaltSize = 32;
+        private const int HashSize = 64;
+        private const int Iterations = 300_000;
+
         public static string GenerateSalt()
         {
-            int saltSize = 16;
-
-            byte[] saltBytes = new byte[saltSize];
-
-            using (var rng = new RNGCryptoServiceProvider())
-            {
-                rng.GetBytes(saltBytes);
-            }
-
+            byte[] saltBytes = new byte[SaltSize];
+            RandomNumberGenerator.Fill(saltBytes);
             return Convert.ToBase64String(saltBytes);
         }
 
         public static string GenerateHash(string salt, string password)
         {
-            string saltedPassword = salt + password;
+            byte[] saltBytes = Convert.FromBase64String(salt);
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
-                byte[] hashBytes = sha256.ComputeHash(saltedPasswordBytes);
+            byte[] hashBytes = Rfc2898DeriveBytes.Pbkdf2(
+                passwordBytes,
+                saltBytes,
+                Iterations,
+                HashAlgorithmName.SHA512,
+                HashSize);
 
-                return Convert.ToBase64String(hashBytes);
-            }
+            return Convert.ToBase64String(hashBytes);
         }
     }
 }
