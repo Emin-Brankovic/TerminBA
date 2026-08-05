@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:terminba_admin_desktop/model/search_result.dart';
+import 'package:terminba_admin_desktop/exceptions/user_exception.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
   static Future<void> Function()? onUnauthorized;
@@ -46,9 +47,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
       result.items = List<T>.from(data["items"].map((e) => fromJson(e)));
 
       return result;
-    } else {
-      throw new Exception("Unknown error");
     }
+    
+    throw Exception("Unknown error");
     // print("response: ${response.request} ${response.statusCode}, ${response.body}");
   }
 
@@ -70,9 +71,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
       } catch (e) {
         return null;
       }
-    } else {
-      throw new Exception("Unknown error");
     }
+    
+    return null;
   }
 
   Future<T?> update(int id, [dynamic request]) async {
@@ -92,9 +93,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
       } catch (_) {
         return null;
       }
-    } else {
-      throw new Exception("Unknown error");
     }
+    
+    return null;
   }
 
   Future<T?> getById(int id) async {
@@ -113,9 +114,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
       } catch (_) {
         return null;
       }
-    } else {
-      throw Exception("Unknown error");
     }
+    
+    return null;
   }
 
   Future<bool> delete(int id) async {
@@ -127,9 +128,9 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     if (isValidResponse(response)) {
       return true;
-    } else {
-      throw Exception("Unknown error");
     }
+    
+    return false;
   }
 
   T fromJson(data) {
@@ -149,14 +150,14 @@ abstract class BaseProvider<T> with ChangeNotifier {
       );
 
       if (_isUserExceptionResponse(response)) {
-        throw Exception(message);
+        throw UserException(message);
       }
 
       if (response.statusCode >= 500) {
         throw Exception(message);
       }
 
-      throw Exception(message);
+      throw UserException(message);
     }
   }
 

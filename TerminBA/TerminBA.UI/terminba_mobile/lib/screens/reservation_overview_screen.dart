@@ -56,31 +56,29 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
     setState(() => _isLoading = true);
     try {
       final provider = Provider.of<ReservationProvider>(context, listen: false);
-      final details = await provider.getById(widget.reservationId);
+      final reviewProvider = Provider.of<FacilityReviewProvider>(context, listen: false);
+      final userReviewProvider = Provider.of<UserReviewProvider>(context, listen: false);
+      
+      final detailsFuture = provider.getById(widget.reservationId);
+      final reviewFuture = reviewProvider.get(filter: {'reservationId': widget.reservationId}).catchError((_) => null);
+      final userReviewFuture = userReviewProvider.get(filter: {
+        'reservationId': widget.reservationId,
+        'isReviewer': 'true',
+      }).catchError((_) => null);
+
+      final results = await Future.wait([detailsFuture, reviewFuture, userReviewFuture]);
+      final details = results[0] as ReservationResponse?;
       
       FacilityReview? review;
-      try {
-        final reviewProvider = Provider.of<FacilityReviewProvider>(context, listen: false);
-        final reviewResult = await reviewProvider.get(filter: {'reservationId': widget.reservationId});
-        if (reviewResult.items != null && reviewResult.items!.isNotEmpty) {
-          review = reviewResult.items!.first;
-        }
-      } catch (e) {
-        // ignore review fetch errors
+      final reviewResult = results[1] as dynamic;
+      if (reviewResult != null && reviewResult.items != null && reviewResult.items!.isNotEmpty) {
+        review = reviewResult.items!.first;
       }
 
       List<UserReview>? userReviews;
-      try {
-        final userReviewProvider = Provider.of<UserReviewProvider>(context, listen: false);
-        final userReviewResult = await userReviewProvider.get(filter: {
-          'reservationId': widget.reservationId,
-          'isReviewer': 'true',
-        });
-        if (userReviewResult.items != null) {
-          userReviews = userReviewResult.items;
-        }
-      } catch (e) {
-        // ignore user review fetch errors
+      final userReviewResult = results[2] as dynamic;
+      if (userReviewResult != null && userReviewResult.items != null) {
+        userReviews = userReviewResult.items;
       }
 
       if (mounted) {

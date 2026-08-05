@@ -36,7 +36,11 @@ void main() async {
   await authProvider.checkAuthStatus(); 
 
     BaseProvider.onUnauthorized = () async {
-    await authProvider.checkAuthStatus();
+    await authProvider.logout();
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   };
 
   runApp(MultiProvider(

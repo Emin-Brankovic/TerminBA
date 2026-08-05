@@ -220,7 +220,7 @@ namespace TerminBA.Services.Service
 
 
             if (nameExists)
-                throw new UserException($"Facility with name: {request.Name} already exits for entered sport center.");
+                throw new UserException($"Facility with name {request.Name} already exits in your sport center.");
 
 
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);

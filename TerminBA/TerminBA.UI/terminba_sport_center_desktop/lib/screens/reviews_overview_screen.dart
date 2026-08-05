@@ -80,8 +80,10 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
         ? await _authProvider.getCurrentUserId()
         : null;
 
-    await _loadFacilities();
-    await _fetchReviews();
+    await Future.wait([
+      _loadFacilities(),
+      _fetchReviews(),
+    ]);
   }
 
   Future<void> _loadFacilities() async {

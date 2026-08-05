@@ -54,9 +54,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 				throw Exception('Unable to load user profile.');
 			}
 
-			final cityResult = await _cityProvider.get();
+			final results = await Future.wait<dynamic>([
+				_cityProvider.get(),
+				_userProvider.getById(userId),
+			]);
+			
+			final cityResult = results[0];
 			final cities = (cityResult.items ?? []).cast<City>();
-			final user = await _userProvider.getById(userId);
+			final user = results[1] as User?;
 
 			if (!mounted) return;
 			setState(() {

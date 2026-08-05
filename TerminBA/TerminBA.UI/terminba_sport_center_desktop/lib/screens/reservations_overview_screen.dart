@@ -80,8 +80,10 @@ class _ReservationsOverviewScreenState
         throw Exception('Sport center not found for current user.');
       }
 
-      await _loadFacilities();
-      await _loadReservations();
+      await Future.wait([
+        _loadFacilities(),
+        _loadReservations(),
+      ]);
     } catch (e) {
       // Errors are intentionally not surfaced in the UI on this screen.
     } finally {

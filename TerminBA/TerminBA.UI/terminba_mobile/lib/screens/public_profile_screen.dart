@@ -50,22 +50,32 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       var reviewsResult;
 
       if (isCurrentUser) {
-        user = widget.user ?? await _userProvider.getProfile();
+        final profileFuture = widget.user != null ? Future.value(widget.user) : _userProvider.getProfile();
+        final reviewsFuture = _userReviewProvider.get(filter: {
+          'IsReviewed': true,
+        });
+        final playedCountFuture = _userProvider.getMyPlayedMatches();
+
+        final results = await Future.wait<dynamic>([profileFuture, reviewsFuture, playedCountFuture]);
+        user = results[0] as User?;
         if (user == null) throw Exception('User not found');
         targetUserId = user.id;
         _currentUserId = targetUserId;
-        reviewsResult = await _userReviewProvider.get(filter: {
-          'IsReviewed': true,
-        });
-        playedCount = await _userProvider.getMyPlayedMatches();
+        reviewsResult = results[1];
+        playedCount = results[2] as int;
       } else {
         targetUserId = widget.userId!;
-        user = widget.user ?? await _userProvider.getById(targetUserId);
-        if (user == null) throw Exception('User not found');
-        reviewsResult = await _userReviewProvider.get(filter: {
+        final profileFuture = widget.user != null ? Future.value(widget.user) : _userProvider.getById(targetUserId);
+        final reviewsFuture = _userReviewProvider.get(filter: {
           'ReviewedId': targetUserId,
         });
-        playedCount = await _userProvider.getPlayedMatches(targetUserId);
+        final playedCountFuture = _userProvider.getPlayedMatches(targetUserId);
+
+        final results = await Future.wait<dynamic>([profileFuture, reviewsFuture, playedCountFuture]);
+        user = results[0] as User?;
+        if (user == null) throw Exception('User not found');
+        reviewsResult = results[1];
+        playedCount = results[2] as int;
       }
 
       final reviews = (reviewsResult.items ?? []).cast<UserReview>();
