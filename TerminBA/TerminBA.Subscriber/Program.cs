@@ -1,21 +1,22 @@
-﻿using DotNetEnv;
+using DotNetEnv;
 using EasyNetQ;
 using Microsoft.Extensions.Configuration;
 using TerminBA.Models.Messages;
 using TerminBA.Services.Service;
 
-var builder = new ConfigurationBuilder()
-              .AddEnvironmentVariables();
-
-var configuration = builder.Build();
-
 try
 {
     Env.Load("..\\..\\..\\..\\.env");
 }
-catch
+catch (Exception ex)
 {
+    Console.WriteLine($"Could not load .env file: {ex.Message}");
 }
+
+var builder = new ConfigurationBuilder()
+              .AddEnvironmentVariables();
+
+var configuration = builder.Build();
 
 var from = Environment.GetEnvironmentVariable("From");
 
@@ -34,17 +35,38 @@ Console.WriteLine("Email subscriber started...");
 
 await bus.PubSub.SubscribeAsync<EmailMessage>("email_sender", async msg =>
 {
-    Console.WriteLine($"Sending email to: {msg.RecipientEmail}");
-
-    if(msg.RecipientEmail != null && msg.MessageBody != null)
+    int maxRetries = 4;
+    int delayMs = 1000;
+    
+    for (int attempt = 1; attempt <= maxRetries + 1; attempt++)
     {
-         await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody);
+        try
+        {
+            Console.WriteLine($"[Attempt {attempt}] Sending email to: {msg.RecipientEmail}");
+
+            if (msg.RecipientEmail != null && msg.MessageBody != null)
+            {
+                 await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody);
+            }
+
+            Console.WriteLine($"Email sent to: {msg.RecipientEmail}");
+            break; // Success, exit retry loop
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing email message on attempt {attempt}: {ex.Message}");
+            
+            if (attempt > maxRetries)
+            {
+                Console.WriteLine($"Failed to process message for {msg.RecipientEmail} after {maxRetries} retries. Error: {ex}");
+                throw; // Rethrow so EasyNetQ can move it to the error queue
+            }
+            
+            await Task.Delay(delayMs);
+            delayMs *= 2; // Exponential backoff: 1s, 2s, 4s, 8s
+        }
     }
-
-
-    Console.WriteLine($"Email sent to: {msg.RecipientEmail}");
 });
-
 
 // Keep the application running
 await Task.Delay(Timeout.Infinite);

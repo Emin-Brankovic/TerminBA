@@ -1,6 +1,9 @@
+using EasyNetQ;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using TerminBA.Models.Execptions;
+using TerminBA.Models.Messages;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
@@ -43,6 +46,8 @@ namespace TerminBA.Services.ReservationStateMachine
             {
                 entity.Status = nameof(ActiveReservationState);
                 await _context.SaveChangesAsync();
+                var userId=entity.UserId ?? throw new UserException("UserId is null");
+                await SendEmailAsync(entity.Id);
                 return _mapper.Map<ReservationResponse>(entity);
             }
 
@@ -86,6 +91,14 @@ namespace TerminBA.Services.ReservationStateMachine
             var today = DateOnly.FromDateTime(now);
             if (request.ReservationDate < today || (request.ReservationDate == today && request.StartTime.ToTimeSpan() <= now.TimeOfDay))
                 throw new UserException("Can't make a reservation in the past.");
+        }
+
+        private async Task SendEmailAsync(int reservationId)
+        {
+            var bus = _serviceProvider.GetService<IBus>()
+                ?? throw new UserException("Message bus is not configured");
+
+            await Helpers.EmailPublisherHelper.PublishReservationCreatedEmailAsync(bus, _context, reservationId);
         }
     }
 }

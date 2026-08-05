@@ -30,11 +30,10 @@ namespace TerminBA.Services.ReservationStateMachine
             entity.CancellationDeadline = reservationStart.AddHours(-hours);
 
             await ValidateReservationInsertAsync(request);
-            //await SendEmailAsync(request);
 
             await _context.Reservations.AddAsync(entity);
             await _context.SaveChangesAsync();
-
+            
             return _mapper.Map<ReservationResponse>(entity);
         }
 

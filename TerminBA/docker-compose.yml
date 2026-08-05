@@ -37,7 +37,7 @@ services:
       - 5078:5078
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__db=${ConnectionStrings__db}
+      - ConnectionStrings__db=Server=terminba-sql,1433;Database=220230;User ID=${SQL_USER};Password=${SQL_PASSWORD};MultipleActiveResultSets=true;TrustServerCertificate=True
       - RABBITMQ_HOST=terminba-rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=${RABBITMQ_USER}

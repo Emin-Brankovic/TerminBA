@@ -4,6 +4,9 @@ using Stripe;
 using TerminBA.Models.Execptions;
 using TerminBA.Models.Model;
 using TerminBA.Services.Interfaces;
+using EasyNetQ;
+using TerminBA.Models.Messages;
+using TerminBA.Services.Helpers;
 
 namespace TerminBA.Services.Service
 {
@@ -11,10 +14,12 @@ namespace TerminBA.Services.Service
     {
 
         private readonly Database.TerminBaContext _context;
+        private readonly IBus _bus;
 
-        public StripePaymentService(Database.TerminBaContext context)
+        public StripePaymentService(Database.TerminBaContext context, IBus bus)
         {
             _context = context;
+            _bus = bus;
             var secretKey = Environment.GetEnvironmentVariable("StripeSecretKey")
                 ?? throw new InvalidOperationException("StripeSecretKey environment variable is not set.");
 
@@ -52,7 +57,7 @@ namespace TerminBA.Services.Service
                 reservation.StartTime,
                 reservation.EndTime);
 
-            var expectedAmount = (long)expectedPrice;
+            var expectedAmount = (long)(expectedPrice * 100);
 
             if (expectedAmount != request.Amount)
             {
@@ -140,6 +145,8 @@ namespace TerminBA.Services.Service
                 if (reservation != null && reservation.Status == "PendingReservationState")
                 {
                     reservation.Status = "ActiveReservationState";
+
+                    await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
                 }
                 await _context.SaveChangesAsync();
             }
