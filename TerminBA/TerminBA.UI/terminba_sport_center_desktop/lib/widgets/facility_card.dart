@@ -103,7 +103,7 @@ class _FacilityCardState extends State<FacilityCard> {
                         else
                            _buildDetailRow(
                              'Price:',
-                             widget.facility.staticPrice.toString() + ' €',
+                             widget.facility.staticPrice.toString() + ' KM',
                            ),
                       ],
                     ),
@@ -200,7 +200,7 @@ class _FacilityCardState extends State<FacilityCard> {
           child: Text(
             '${_dayName(dp.startDay)} – ${_dayName(dp.endDay)}: '
             '${_timeStr(dp.startTime)} – ${_timeStr(dp.endTime)} '
-            '(${dp.pricePerHour.toStringAsFixed(2)} €)',
+            '(${dp.pricePerHour.toStringAsFixed(2)} KM)',
             style: const TextStyle(fontSize: 13, color: Colors.black87),
           ),
         ),

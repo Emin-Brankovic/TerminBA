@@ -417,7 +417,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
-                  onPressed: () => _pickPhotos(replace: true),
+                  onPressed: (hasExisting || _selectedPhotos.isNotEmpty)
+                      ? () => _pickPhotos(replace: true)
+                      : null,
                   icon: const Icon(Icons.photo_library_outlined),
                   label: const Text('Replace photos'),
                 ),
@@ -496,25 +498,43 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 2,
-                        right: 2,
-                        child: IconButton(
-                          visualDensity: VisualDensity.compact,
-                          iconSize: 18,
-                          onPressed: () {
-                            setState(() {
-                              if (isRemoved) {
-                                _removedPhotoIds.remove(photo.id);
-                              } else {
-                                _removedPhotoIds.add(photo.id);
-                              }
-                            });
-                          },
-                          icon: Icon(
-                            isRemoved ? Icons.undo : Icons.delete_outline,
-                            color: isRemoved
-                                ? Colors.orange.shade700
-                                : Colors.red.shade600,
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 28,
+                              minHeight: 28,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            iconSize: 18,
+                            onPressed: () {
+                              setState(() {
+                                if (isRemoved) {
+                                  _removedPhotoIds.remove(photo.id);
+                                } else {
+                                  _removedPhotoIds.add(photo.id);
+                                }
+                              });
+                            },
+                            icon: Icon(
+                              isRemoved ? Icons.undo : Icons.delete_outline,
+                              color: isRemoved
+                                  ? Colors.orange.shade700
+                                  : Colors.black87,
+                            ),
                           ),
                         ),
                       ),
@@ -545,11 +565,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                 );
               },
             ),
-          )
-        else
-          Text(
-            'No existing photos uploaded.',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
           ),
         const SizedBox(height: 8),
         if (_selectedPhotos.isNotEmpty)
@@ -572,11 +587,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
               },
             ),
           )
-        else
-          Text(
-            'No new photos selected.',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-          ),
       ],
     );
   }
@@ -651,12 +661,12 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
         ],
-        decoration: _inputDecoration('Static Price (EUR)*'),
+        decoration: _inputDecoration('Static Price*'),
         initialValue: widget.facility?.staticPrice?.toString(),
         valueTransformer: (value) =>
             value == null || value.trim().isEmpty ? null : double.tryParse(value),
         validator: FormBuilderValidators.compose([
-          FormBuilderValidators.required(),
+          FormBuilderValidators.required(errorText: 'Price is required.'),
           (valueCandidate) {
             final parsed = double.tryParse(valueCandidate?.toString() ?? '');
             if (parsed == null || parsed <= 0) {
@@ -903,7 +913,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               name: 'name',
                               initialValue: widget.facility?.name,
                               decoration: _inputDecoration('Facility Name*'),
-                              validator: FormBuilderValidators.required(),
+                              validator: FormBuilderValidators.required(errorText: 'Facility Name is required.'),
                             ),
                             const SizedBox(height: 16),
                             FormBuilderTextField(
@@ -917,7 +927,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                       ? null
                                       : int.tryParse(value),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
+                                FormBuilderValidators.required(errorText: 'Max Capacity is required.'),
                                 (valueCandidate) {
                                   final parsed =
                                       int.tryParse(valueCandidate?.toString() ?? '');
@@ -929,6 +939,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                 FormBuilderValidators.max(80, errorText: 'Capacity seems too high.'),
                                 FormBuilderValidators.min(0, errorText: 'Capacity seems too low.'),
                               ]),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                             ),
                             const SizedBox(height: 16),
                             // _sectionHeader('Configuration'),
@@ -962,7 +975,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                             FilteringTextInputFormatter.digitsOnly,
                                           ],
                                           validator: FormBuilderValidators.compose([
-                                            FormBuilderValidators.required(),
+                                            FormBuilderValidators.required(errorText: 'Hours is required.'),
                                             (valueCandidate) {
                                               final parsed = int.tryParse(valueCandidate ?? '');
                                               if (parsed == null || parsed < 0) {
@@ -993,7 +1006,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                             FilteringTextInputFormatter.digitsOnly,
                                           ],
                                           validator: FormBuilderValidators.compose([
-                                            FormBuilderValidators.required(),
+                                            FormBuilderValidators.required(errorText: 'Minutes is required.'),
                                             (valueCandidate) {
                                               final parsed = int.tryParse(valueCandidate ?? '');
                                               if (parsed == null || parsed < 0) {
@@ -1023,7 +1036,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               name: 'turfTypeId',
                               decoration: _inputDecoration('Turf Type*'),
                               initialValue: widget.facility?.turfTypeId,
-                              validator: FormBuilderValidators.required(),
+                              validator: FormBuilderValidators.required(errorText: 'Turf Type is required.'),
                               items: _turfTypes
                                   .map(
                                     (t) => DropdownMenuItem<int>(

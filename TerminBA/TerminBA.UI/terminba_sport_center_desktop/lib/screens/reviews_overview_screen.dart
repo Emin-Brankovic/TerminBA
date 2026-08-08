@@ -190,14 +190,17 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
   }
 
   void _clearFilters() {
-    _filterFormKey.currentState?.reset();
-    // setState(() {
-    //   _selectedFacilityId = null;
-    //   _ratingDateFrom = null;
-    //   _ratingDateTo = null;
-    //   _sortOption = null;
-    // });
-    //_fetchReviews(page: 1);
+    _filterFormKey.currentState?.fields['facilityId']?.didChange(null);
+    _filterFormKey.currentState?.fields['sortOption']?.didChange(null);
+    _filterFormKey.currentState?.fields['ratingDateFrom']?.didChange(null);
+    _filterFormKey.currentState?.fields['ratingDateTo']?.didChange(null);
+    setState(() {
+      _selectedFacilityId = null;
+      _ratingDateFrom = null;
+      _ratingDateTo = null;
+      _sortOption = null;
+    });
+    _fetchReviews(page: 1);
   }
 
   Future<void> _removeReview(int id) async {

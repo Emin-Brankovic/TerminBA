@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
@@ -443,6 +444,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 FormBuilderValidators.required(errorText: 'Phone Number is required'),
                                 FormBuilderValidators.phoneNumber(errorText: 'Enter a valid phone number (e.g. +38761123456 or 033123456)'),
                               ]),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                             ),
                             const SizedBox(height: 16),
 
@@ -510,7 +514,6 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 180,
                                 errorText: 'Description cannot exceed 180 characters.',
                               ),
-                              
                             ),
                             const SizedBox(height: 16),
 

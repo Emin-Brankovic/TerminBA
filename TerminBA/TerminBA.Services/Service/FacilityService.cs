@@ -113,6 +113,8 @@ namespace TerminBA.Services.Service
                 entity.AvailableSports = sports;
             }
 
+            await BeforeInsert(entity, request);
+
             var photos = new List<FacilityPhoto>();
 
             if (request.PhotoFiles != null && request.PhotoFiles.Any())
@@ -156,8 +158,6 @@ namespace TerminBA.Services.Service
                 }
             }
 
-
-            await BeforeInsert(entity, request);
 
             await _context.Facilities.AddAsync(entity);
 
@@ -226,16 +226,6 @@ namespace TerminBA.Services.Service
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
             await ValidateDynamicPricesRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
-
-            if(request.IsDynamicPricing)
-            {
-                _context.Entry(entity).Collection(f => f.DynamicPrices).Load();
-                var existingDynamicPrices = await _context.FacilityDynamicPrices
-                    .Where(fdp => fdp.FacilityId == entity.Id)
-                    .ToListAsync();
-                entity.DynamicPrices = existingDynamicPrices;
-
-            }
 
         }
 
