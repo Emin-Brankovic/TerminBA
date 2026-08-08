@@ -217,11 +217,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .map((e) => FlSpot(e.key.toDouble(), e.value.toDouble()))
         .toList();
 
-    final maxY = sortedEntries.isEmpty
-        ? 10.0
-        : (sortedEntries.map((e) => e.value).reduce((a, b) => a > b ? a : b))
-                  .toDouble() *
-              1.2;
+    final maxVal = sortedEntries.isEmpty
+        ? 0
+        : sortedEntries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    
+    final maxY = maxVal == 0 ? 10.0 : maxVal.toDouble() * 1.2;
+
+    double yInterval = (maxY / 5).ceilToDouble();
+    if (yInterval == 0) yInterval = 1;
 
     return Card(
       elevation: 0,
@@ -277,8 +280,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               interval: 1,
                               getTitlesWidget: (value, meta) {
                                 final idx = value.toInt();
-                                if (idx < 1 || idx > 12)
+                                if (idx < 1 || idx > 12) {
                                   return const SizedBox.shrink();
+                                }
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Text(
@@ -296,13 +300,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 40,
-                              getTitlesWidget: (value, meta) => Text(
-                                value.toInt().toString(),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
+                              interval: yInterval,
+                              getTitlesWidget: (value, meta) {
+                                if (value != value.toInt().toDouble()) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),

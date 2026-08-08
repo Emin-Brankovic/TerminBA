@@ -425,7 +425,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
+                                FormBuilderValidators.required(errorText: 'Name is required'),
                               ]),
                             ),
                             const SizedBox(height: 16),
@@ -436,11 +436,12 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               initialValue: widget.sportCenter?.phoneNumber,
                               decoration: const InputDecoration(
                                 labelText: 'Phone Number*',
+                                hintText: 'e.g. Mobile: +38761123456, 061123456 | Landline: +38733123456, 033123456',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                                FormBuilderValidators.phoneNumber(),
+                                FormBuilderValidators.required(errorText: 'Phone Number is required'),
+                                FormBuilderValidators.phoneNumber(errorText: 'Enter a valid phone number (e.g. +38761123456 or 033123456)'),
                               ]),
                             ),
                             const SizedBox(height: 16),
@@ -470,7 +471,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 labelText: 'City*',
                                 border: OutlineInputBorder(),
                               ),
-                              validator: FormBuilderValidators.required(),
+                              validator: FormBuilderValidators.required(errorText: 'City is required'),
                               items: _cities
                                   .map(
                                     (c) => DropdownMenuItem(
@@ -491,7 +492,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
+                                FormBuilderValidators.required(errorText: 'Address is required'),
                               ]),
                             ),
                             const SizedBox(height: 16),
@@ -571,7 +572,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                                   )
                                   .toList(),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
+                                FormBuilderValidators.required(errorText: 'Amenities are required'),
                               ]),
                             ),
                             const SizedBox(height: 16),

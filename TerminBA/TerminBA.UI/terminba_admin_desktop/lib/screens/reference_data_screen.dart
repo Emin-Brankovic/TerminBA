@@ -25,6 +25,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   List<String> categories = ['Turf Type', 'Amenity', 'City', 'Sport', 'Role'];
   final List<String> data = [];
   late ReferenceDataDataSource<dynamic> _referenceDataDataSource;
+  final TextEditingController _searchController = TextEditingController();
 
   late AmenityProvider amenityProvider;
   late TurfTypeProvider turfTypeProvider;
@@ -57,6 +58,12 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       _onEdit,
       _onDelete,
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshTable() async {
@@ -255,7 +262,46 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       child: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [_buildHeaderChips(), _buildListSection()],
+          children: [_buildHeaderChips(), _buildSearchSection(), _buildListSection()],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: SizedBox(
+        width: 800,
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Search by name',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      _refreshTable();
+                    },
+                  ),
+                ),
+                onSubmitted: (value) {
+                  _refreshTable();
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () {
+                _refreshTable();
+              },
+              child: const Text('Search'),
+            ),
+          ],
         ),
       ),
     );
@@ -314,6 +360,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                       : (bool selected) async {
                           setState(() {
                             _selectedIndex = index;
+                            _searchController.clear();
                           });
                           if (selected) {
                             var source = await _getReferenceData(index);
@@ -342,9 +389,20 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   }
 
   Future<ReferenceDataDataSource<dynamic>> _getReferenceData(int index) async {
+    Map<String, dynamic>? filter;
+    if (_searchController.text.isNotEmpty) {
+      filter = {};
+      final search = _searchController.text;
+      if (index == 0) filter['name'] = search; // TurfType
+      else if (index == 1) filter['name'] = search; // Amenity
+      else if (index == 2) filter['cityName'] = search; // City
+      else if (index == 3) filter['sportName'] = search; // Sport
+      else if (index == 4) filter['roleName'] = search; // Role
+    }
+
     switch (index) {
       case 0:
-        var result = await turfTypeProvider.get();
+        var result = await turfTypeProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
           (item) => (item as TurfType).name,
@@ -352,7 +410,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           _onDelete,
         );
       case 1:
-        var result = await amenityProvider.get();
+        var result = await amenityProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
           (item) => (item as Amenity).name,
@@ -360,7 +418,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           _onDelete,
         );
       case 2:
-        var result = await cityProvider.get();
+        var result = await cityProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
           (item) => (item as City).name,
@@ -368,7 +426,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           _onDelete,
         );
       case 3:
-        var result = await sportProvider.get();
+        var result = await sportProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
           (item) => (item as Sport).name ?? '',
@@ -376,7 +434,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           _onDelete,
         );
       case 4:
-        var result = await roleProvider.get();
+        var result = await roleProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
           (item) => (item as Role).name ?? '',
