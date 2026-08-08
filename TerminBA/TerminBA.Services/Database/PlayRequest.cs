@@ -36,7 +36,7 @@ namespace TerminBA.Services.Database
         public string? RequestText { get; set; }
 
         [Required]
-        public DateTime? DateOfRequest { get; set; } = DateTime.Now;
+        public DateTime? DateOfRequest { get; set; } = DateTime.UtcNow;
         public DateTime? DateOfResponse { get; set; }
 
         public bool IsSeenByOwner { get; set; } = false;

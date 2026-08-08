@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,8 +46,8 @@ namespace TerminBA.Services.BackgroundServices
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<TerminBaContext>();
 
-                var today = DateOnly.FromDateTime(DateTime.Now);
-                var now = TimeOnly.FromDateTime(DateTime.Now);
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                var now = TimeOnly.FromDateTime(DateTime.UtcNow);
 
                 var updated = await context.Reservations
                     .Where(r => r.Status == nameof(ActiveReservationState)

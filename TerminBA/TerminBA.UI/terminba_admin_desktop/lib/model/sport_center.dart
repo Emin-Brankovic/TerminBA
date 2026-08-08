@@ -22,7 +22,9 @@ class SportCenter {
   String address;
   bool isEquipmentProvided;
   String description;
+  @JsonKey(fromJson: _utcDateTimeFromJson, toJson: _utcDateTimeToJson)
   DateTime createdAt;
+  @JsonKey(fromJson: _nullableUtcDateTimeFromJson, toJson: _nullableUtcDateTimeToJson)
   DateTime? updatedAt;
   int roleId;
   Role? role;
@@ -75,3 +77,11 @@ Uint8List? _bytesFromJson(dynamic value) {
 
 String? _bytesToJson(Uint8List? value) =>
     value == null ? null : base64Encode(value);
+
+/// Parses a server-issued UTC datetime string and converts it to local time.
+DateTime _utcDateTimeFromJson(String value) => DateTime.parse(value).toLocal();
+String _utcDateTimeToJson(DateTime value) => value.toUtc().toIso8601String();
+DateTime? _nullableUtcDateTimeFromJson(String? value) =>
+    value == null ? null : DateTime.parse(value).toLocal();
+String? _nullableUtcDateTimeToJson(DateTime? value) =>
+    value?.toUtc().toIso8601String();

@@ -20,10 +20,10 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       ? null
       : City.fromJson(json['city'] as Map<String, dynamic>),
   json['isActive'] as bool,
-  DateTime.parse(json['createdAt'] as String),
+  DateTime.parse(json['createdAt'] as String).toLocal(),
   json['updatedAt'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updatedAt'] as String).toLocal(),
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{

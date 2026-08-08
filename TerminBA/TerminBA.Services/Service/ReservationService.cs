@@ -93,14 +93,14 @@ namespace TerminBA.Services.Service
             {
                 if (search.Status.ToLower() == "upcoming")
                 {
-                    var now = DateTime.Now;
+                    var now = DateTime.UtcNow;
                     var dateOnly = DateOnly.FromDateTime(now);
                     var timeOnly = TimeOnly.FromDateTime(now);
                     query = query.Where(r => string.Equals(r.Status, nameof(ActiveReservationState)));
                 }
                 else if (search.Status.ToLower() == "past")
                 {
-                    var now = DateTime.Now;
+                    var now = DateTime.UtcNow;
                     var dateOnly = DateOnly.FromDateTime(now);
                     var timeOnly = TimeOnly.FromDateTime(now);
                     query = query.Where(r => string.Equals(r.Status, nameof(CompletedReservationState)));

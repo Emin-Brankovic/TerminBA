@@ -60,7 +60,7 @@ class _WriteUserReviewScreenState extends State<WriteUserReviewScreen> {
     try {
       final request = UserReviewInsertRequest(
         ratingNumber: _selectedRating,
-        ratingDate: DateTime.now(),
+        ratingDate: DateTime.now().toUtc(),
         comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
         reviewerId: null, // set by backend
         reviewedId: widget.reviewedUser.id,

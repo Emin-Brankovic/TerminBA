@@ -28,7 +28,7 @@ namespace TerminBA.Services.Database
         public string FacilityName { get; set; } = string.Empty;
 
         [Required]
-        public DateTime DateCancelled { get; set; } = DateTime.Now;
+        public DateTime DateCancelled { get; set; } = DateTime.UtcNow;
 
         public bool IsSeen { get; set; } = false;
     }

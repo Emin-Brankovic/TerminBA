@@ -1,4 +1,4 @@
-﻿using EasyNetQ;
+using EasyNetQ;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -49,7 +49,7 @@ namespace TerminBA.WebAPI.Controllers
 
             byte[] pdfBytes = _reportService.GetAdminReport(totalUsers,totalSportCenters,totalReservations,selectedYear,imageBytes);
 
-            return File(pdfBytes, "application/pdf", $"{DateTime.Now.ToString("dd.MM.yyyy")}-report.pdf");
+            return File(pdfBytes, "application/pdf", $"{DateTime.UtcNow.ToString("dd.MM.yyyy")}-report.pdf");
         }
 
         [HttpGet("sportCenterReservationStats")]
@@ -63,7 +63,7 @@ namespace TerminBA.WebAPI.Controllers
         {
             byte[] pdfBytes = _reportService.SportCenterReservationStatsReport(request);
 
-            return File(pdfBytes, "application/pdf", $"{DateTime.Now:dd.MM.yyyy}-sport-center-reservation-report.pdf");
+            return File(pdfBytes, "application/pdf", $"{DateTime.UtcNow:dd.MM.yyyy}-sport-center-reservation-report.pdf");
         }
 
 

@@ -17,7 +17,9 @@ class User {
 	int cityId;
 	City? city;
 	bool isActive;
+  @JsonKey(fromJson: _utcDateTimeFromJson, toJson: _utcDateTimeToJson)
 	DateTime createdAt;
+  @JsonKey(fromJson: _nullableUtcDateTimeFromJson, toJson: _nullableUtcDateTimeToJson)
 	DateTime? updatedAt;
 
 	User(this.id,this.firstName,this.lastName,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.city,this.isActive,this.createdAt,this.updatedAt,);
@@ -35,3 +37,11 @@ String _dateOnlyToJson(DateTime value) {
   final day = value.day.toString().padLeft(2, '0');
   return '${value.year}-$month-$day';
 }
+
+/// Parses a server-issued UTC datetime string and converts it to local time.
+DateTime _utcDateTimeFromJson(String value) => DateTime.parse(value).toLocal();
+String _utcDateTimeToJson(DateTime value) => value.toUtc().toIso8601String();
+DateTime? _nullableUtcDateTimeFromJson(String? value) =>
+    value == null ? null : DateTime.parse(value).toLocal();
+String? _nullableUtcDateTimeToJson(DateTime? value) =>
+    value?.toUtc().toIso8601String();

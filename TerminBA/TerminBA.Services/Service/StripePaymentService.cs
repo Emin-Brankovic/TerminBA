@@ -128,17 +128,17 @@ namespace TerminBA.Services.Service
                         Amount = paymentIntent.Amount / 100m,
                         Currency = paymentIntent.Currency,
                         Status = TerminBA.Services.Enums.PaymentStatus.Paid,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now,
-                        PaidAt = DateTime.Now
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        PaidAt = DateTime.UtcNow
                     };
                     _context.Payments.Add(payment);
                 }
                 else
                 {
                     payment.Status = TerminBA.Services.Enums.PaymentStatus.Paid;
-                    payment.PaidAt = DateTime.Now;
-                    payment.UpdatedAt = DateTime.Now;
+                    payment.PaidAt = DateTime.UtcNow;
+                    payment.UpdatedAt = DateTime.UtcNow;
                 }
 
                 var reservation = await _context.Reservations.FindAsync(payment.ReservationId);

@@ -43,8 +43,8 @@ class ReservationResponse {
     if (isCancelled) return false;
     if (reservationDate == null || reservationDate!.isEmpty) return false;
     try {
-      DateTime resDate = DateTime.parse(reservationDate!);
-      DateTime now = DateTime.now();
+      DateTime resDate = DateTime.parse(reservationDate!).toLocal();
+      DateTime now = DateTime.now().toLocal();
       DateTime today = DateTime(now.year, now.month, now.day);
       if (resDate.isBefore(today)) return false;
       if (resDate.isAtSameMomentAs(today)) {

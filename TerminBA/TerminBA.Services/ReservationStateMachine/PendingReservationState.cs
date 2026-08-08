@@ -47,7 +47,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.Status = nameof(ActiveReservationState);
                 await _context.SaveChangesAsync();
                 var userId=entity.UserId ?? throw new UserException("UserId is null");
-                await SendEmailAsync(entity.Id);
+                //await SendEmailAsync(entity.Id);
                 return _mapper.Map<ReservationResponse>(entity);
             }
 
@@ -63,7 +63,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 throw new UserException("Reservation was not found");
 
             entity.Status = nameof(CanceledWithoutRefundReservationState);
-            entity.CanceledAt = DateTime.Now;
+            entity.CanceledAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -87,7 +87,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var today = DateOnly.FromDateTime(now);
             if (request.ReservationDate < today || (request.ReservationDate == today && request.StartTime.ToTimeSpan() <= now.TimeOfDay))
                 throw new UserException("Can't make a reservation in the past.");

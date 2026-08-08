@@ -76,7 +76,7 @@ namespace TerminBA.Services.Service
 
         public byte[] GetAdminReport(int totalUsers, int totalSportCenters, int totalReservations, int selectedYear, byte[] imageBytes)
         {
-            var generatedAt = DateTime.Now;
+            var generatedAt = DateTime.UtcNow;
             var reservationsPerCenter = totalSportCenters > 0
                 ? (double)totalReservations / totalSportCenters
                 : 0;
@@ -322,7 +322,7 @@ namespace TerminBA.Services.Service
 
         public byte[] SportCenterReservationStatsReport(SportCenterReservationStatsReportRequest request)
         {
-            var generatedAt = DateTime.Now;
+            var generatedAt = DateTime.UtcNow;
             var imageBytes = request.ChartImage ?? Array.Empty<byte>();
 
             var effectiveFromDate = request.FromDate;
@@ -526,7 +526,7 @@ namespace TerminBA.Services.Service
         {
             var currentSportCenterId = int.Parse(_authService.GetUserId());
             var today = DateOnly.FromDateTime(DateTime.Today);
-            var nowTime = TimeOnly.FromDateTime(DateTime.Now);
+            var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
             var monthStart = new DateOnly(today.Year, today.Month, 1);
             var monthEnd = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
             var todayDateTime = DateTime.Today;

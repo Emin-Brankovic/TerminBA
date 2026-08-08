@@ -278,7 +278,7 @@ namespace TerminBA.Services.Service
                 bookedReservations.Select(ts => ts.ToTimeSpan())
             );
 
-            var today = DateOnly.FromDateTime(DateTime.Now);
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
             return allSlots.Any(t =>
                 !occupiedStartTimes.Contains(t.Start)

@@ -15,10 +15,10 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
   json['description'] as String,
-  DateTime.parse(json['createdAt'] as String),
+  DateTime.parse(json['createdAt'] as String).toLocal(),
   json['updatedAt'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updatedAt'] as String).toLocal(),
   (json['roleId'] as num).toInt(),
   (json['availableSports'] as List<dynamic>)
       .map((e) => Sport.fromJson(e as Map<String, dynamic>))

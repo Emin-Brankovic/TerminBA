@@ -54,8 +54,8 @@ namespace TerminBA.Services.Service
             {
                 if (p.Reservation != null)
                 {
-                    var today = DateOnly.FromDateTime(DateTime.Now);
-                    var now = TimeOnly.FromDateTime(DateTime.Now);
+                    var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                    var now = TimeOnly.FromDateTime(DateTime.UtcNow);
 
                     bool isPastReservation =
                         p.Reservation.ReservationDate < today ||
@@ -130,9 +130,9 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(Post entity, PostInsertRequest request)
         {
-            var currentDate = DateOnly.FromDateTime(DateTime.Now); 
+            var currentDate = DateOnly.FromDateTime(DateTime.UtcNow); 
 
-            var currentTime=TimeOnly.FromDateTime(DateTime.Now);
+            var currentTime=TimeOnly.FromDateTime(DateTime.UtcNow);
 
             var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == entity.ReservationId);
 

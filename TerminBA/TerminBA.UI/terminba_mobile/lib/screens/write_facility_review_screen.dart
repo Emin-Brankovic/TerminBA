@@ -64,7 +64,7 @@ class _WriteFacilityReviewScreenState
     try {
       final request = FacilityReviewInsertRequest(
         ratingNumber: _selectedRating,
-        ratingDate: DateTime.now(),
+        ratingDate: DateTime.now().toUtc(),
         comment: _commentController.text.trim().isEmpty
             ? null
             : _commentController.text.trim(),

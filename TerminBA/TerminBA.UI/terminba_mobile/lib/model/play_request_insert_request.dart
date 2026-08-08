@@ -13,6 +13,6 @@ class PlayRequestInsertRequest {
         'postId': postId,
         'requesterId': requesterId,
         'requestText': requestText,
-        'dateOfRequest': DateTime.now().toIso8601String(),
+        'dateOfRequest': DateTime.now().toUtc().toIso8601String(),
       };
 }

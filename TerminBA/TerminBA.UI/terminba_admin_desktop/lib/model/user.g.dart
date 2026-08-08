@@ -21,10 +21,10 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   json['isActive'] as bool,
   json['createdAt'] == null
       ? null
-      : DateTime.parse(json['createdAt'] as String),
+      : DateTime.parse(json['createdAt'] as String).toLocal(),
   json['updatedAt'] == null
       ? null
-      : DateTime.parse(json['updatedAt'] as String),
+      : DateTime.parse(json['updatedAt'] as String).toLocal(),
   json['city'] == null
       ? null
       : City.fromJson(json['city'] as Map<String, dynamic>),

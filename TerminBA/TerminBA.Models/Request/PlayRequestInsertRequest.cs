@@ -18,7 +18,7 @@ namespace TerminBA.Models.Request
         [MaxLength(100)]
         public string? RequestText { get; set; }
 
-        public DateTime? DateOfRequest { get; set; }=DateTime.Now;
+        public DateTime? DateOfRequest { get; set; }=DateTime.UtcNow;
         public DateTime? DateOfResponse { get; set; }
     }
 }
