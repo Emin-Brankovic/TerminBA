@@ -18,11 +18,11 @@ class User {
   City? city;
 	int? roleId;
   Role? role;
-	bool isActive;
+
 	DateTime? createdAt;
 	DateTime? updatedAt;
 
-	User(this.id,this.firstName,this.lastName,this.age,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.roleId,this.isActive,this.createdAt,this.updatedAt,this.city,this.role);
+	User(this.id,this.firstName,this.lastName,this.age,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.roleId,this.createdAt,this.updatedAt,this.city,this.role);
 
 	factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

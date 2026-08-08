@@ -97,7 +97,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               DataColumn(label: Text("Instagram")),
               DataColumn(label: Text("Birth Date")),
               DataColumn(label: Text("City")),
-              DataColumn(label: Text("Active")),
+
               DataColumn(label: Text("Created At")),
               DataColumn(label: Text("Updated At")),
             ],
@@ -221,7 +221,7 @@ class UserDataSource extends DataTableSource {
         DataCell(Text(user.instagramAccount ?? 'Not provided')),
         DataCell(Text(user.birthDate.toLocal().toString().split(' ')[0])),
         DataCell(Text(user.city?.name ?? '')),
-        DataCell(Text(user.isActive ? 'Yes' : 'No')),
+
         DataCell(
           Text(user.createdAt?.toLocal().toString().split(' ')[0] ?? ''),
         ),

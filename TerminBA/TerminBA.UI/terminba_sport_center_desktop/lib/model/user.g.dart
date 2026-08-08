@@ -19,7 +19,6 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   json['city'] == null
       ? null
       : City.fromJson(json['city'] as Map<String, dynamic>),
-  json['isActive'] as bool,
   DateTime.parse(json['createdAt'] as String).toLocal(),
   json['updatedAt'] == null
       ? null
@@ -37,7 +36,6 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'birthDate': _dateOnlyToJson(instance.birthDate),
   'cityId': instance.cityId,
   'city': instance.city,
-  'isActive': instance.isActive,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
 };

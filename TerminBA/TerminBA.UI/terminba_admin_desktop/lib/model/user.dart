@@ -18,13 +18,13 @@ class User {
   City? city;
 	int? roleId;
   Role? role;
-	bool isActive;
-  @JsonKey(fromJson: _utcDateTimeFromJson, toJson: _utcDateTimeToJson)
+
+  @JsonKey(fromJson: _nullableUtcDateTimeFromJson, toJson: _nullableUtcDateTimeToJson)
 	DateTime? createdAt;
   @JsonKey(fromJson: _nullableUtcDateTimeFromJson, toJson: _nullableUtcDateTimeToJson)
 	DateTime? updatedAt;
 
-	User(this.id,this.firstName,this.lastName,this.age,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.roleId,this.isActive,this.createdAt,this.updatedAt,this.city,this.role);
+	User(this.id,this.firstName,this.lastName,this.age,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.roleId,this.createdAt,this.updatedAt,this.city,this.role);
 
 	factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
@@ -32,8 +32,6 @@ class User {
 }
 
 /// Parses a server-issued UTC datetime string and converts it to local time.
-DateTime _utcDateTimeFromJson(String value) => DateTime.parse(value).toLocal();
-String _utcDateTimeToJson(DateTime value) => value.toUtc().toIso8601String();
 DateTime? _nullableUtcDateTimeFromJson(String? value) =>
     value == null ? null : DateTime.parse(value).toLocal();
 String? _nullableUtcDateTimeToJson(DateTime? value) =>

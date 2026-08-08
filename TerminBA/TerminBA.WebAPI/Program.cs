@@ -451,7 +451,6 @@ static User CreateUser(string firstName, string lastName, string email, string p
         RoleId = roleId,
         CityId = cityId,
         BirthDate = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-25)),
-        IsActive = true,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow
     };

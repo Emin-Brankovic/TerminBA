@@ -27,8 +27,6 @@ namespace TerminBA.Services.Database
         [Required]
         public DateOnly BirthDate { get; set; }
 
-        public bool IsActive { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

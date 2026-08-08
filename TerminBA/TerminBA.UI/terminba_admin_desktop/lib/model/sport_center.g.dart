@@ -15,10 +15,8 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
   json['description'] as String,
-  DateTime.parse(json['createdAt'] as String).toLocal(),
-  json['updatedAt'] == null
-      ? null
-      : DateTime.parse(json['updatedAt'] as String).toLocal(),
+  _utcDateTimeFromJson(json['createdAt'] as String),
+  _nullableUtcDateTimeFromJson(json['updatedAt'] as String?),
   (json['roleId'] as num).toInt(),
   (json['availableSports'] as List<dynamic>)
       .map((e) => Sport.fromJson(e as Map<String, dynamic>))
@@ -54,8 +52,8 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'address': instance.address,
       'isEquipmentProvided': instance.isEquipmentProvided,
       'description': instance.description,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'createdAt': _utcDateTimeToJson(instance.createdAt),
+      'updatedAt': _nullableUtcDateTimeToJson(instance.updatedAt),
       'roleId': instance.roleId,
       'role': instance.role,
       'credentialsReport': _bytesToJson(instance.credentialsReport),

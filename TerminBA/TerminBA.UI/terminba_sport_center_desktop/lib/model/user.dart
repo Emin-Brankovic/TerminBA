@@ -16,13 +16,13 @@ class User {
 	DateTime birthDate;
 	int cityId;
 	City? city;
-	bool isActive;
+
   @JsonKey(fromJson: _utcDateTimeFromJson, toJson: _utcDateTimeToJson)
 	DateTime createdAt;
   @JsonKey(fromJson: _nullableUtcDateTimeFromJson, toJson: _nullableUtcDateTimeToJson)
 	DateTime? updatedAt;
 
-	User(this.id,this.firstName,this.lastName,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.city,this.isActive,this.createdAt,this.updatedAt,);
+	User(this.id,this.firstName,this.lastName,this.username,this.email,this.phoneNumber,this.instagramAccount,this.birthDate,this.cityId,this.city,this.createdAt,this.updatedAt,);
 
 	factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

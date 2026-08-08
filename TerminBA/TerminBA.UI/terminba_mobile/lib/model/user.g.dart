@@ -18,7 +18,6 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   DateTime.parse(json['birthDate'] as String),
   (json['cityId'] as num?)?.toInt(),
   (json['roleId'] as num?)?.toInt(),
-  json['isActive'] as bool,
   json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -47,7 +46,6 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'city': instance.city,
   'roleId': instance.roleId,
   'role': instance.role,
-  'isActive': instance.isActive,
   'createdAt': instance.createdAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
 };

@@ -43,9 +43,6 @@ namespace TerminBA.Services.Service
             if (search.CityId.HasValue)
                 query = query.Where(u => u.CityId == search.CityId.Value);
 
-            if (search.IsActive.HasValue)
-                query = query.Where(u => u.IsActive == search.IsActive.Value);
-
             return query;
         }
 
