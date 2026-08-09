@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
@@ -31,6 +33,10 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
   int? _selectedSportId;
   int? _selectedTurfTypeId;
   bool? _selectedIsIndoor;
+  
+  int? _formSportId;
+  int? _formTurfTypeId;
+  bool? _formIsIndoor;
   bool _isLoading = false;
   bool _initialized = false;
   bool _showFilters = false;
@@ -38,6 +44,45 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
   int _totalPages = 1;
   int totalItems = 0;
   final TextEditingController _searchController = TextEditingController();
+
+  static const Duration _searchDebounceDuration = Duration(milliseconds: 450);
+  Timer? _searchDebounce;
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String _) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(_searchDebounceDuration, () {
+      if (!mounted) return;
+      _loadFacilities(page: 1);
+    });
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _selectedSportId = _formSportId;
+      _selectedTurfTypeId = _formTurfTypeId;
+      _selectedIsIndoor = _formIsIndoor;
+    });
+    _loadFacilities(page: 1);
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _formSportId = null;
+      _formTurfTypeId = null;
+      _formIsIndoor = null;
+      _selectedSportId = null;
+      _selectedTurfTypeId = null;
+      _selectedIsIndoor = null;
+    });
+    _loadFacilities(page: 1);
+  }
 
   @override
   void didChangeDependencies() {
@@ -116,216 +161,255 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       title: 'Facilities',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [_buildSearch(), _buildResult()],
-          ),
+      child: Container(
+        color: const Color(0xFFF4F6F8),
+        width: double.infinity,
+        child: Column(
+          children: [
+            const SizedBox(height: 22),
+            _buildSearchRow(),
+            if (_showFilters) ...[
+              const SizedBox(height: 10),
+              _buildFilterForm(),
+            ],
+            const SizedBox(height: 18),
+            _buildResult(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSearch() {
+  Widget _buildSearchRow() {
     return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          ElevatedButton(
-            onPressed: () async {
-              final created = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(builder: (_) => const FacilityInsertScreen()),
-              );
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ElevatedButton(
+              onPressed: () async {
+                final created = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => const FacilityInsertScreen()),
+                );
 
-              if (created == true) {
-                _loadFacilities(page: 1);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(100, 46), // width, height
-              textStyle: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+                if (created == true) {
+                  _loadFacilities(page: 1);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(100, 40),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+              child: const Text("Add Facility"),
             ),
-            child: const Text("Add Facility"),
           ),
-
-          Expanded(
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 400,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search facilities...",
-                        suffixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(),
-                      ),
-                      controller: _searchController,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 430,
+                height: 40,
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) {
+                    _searchDebounce?.cancel();
+                    _loadFacilities(page: 1);
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search keywords',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF97A1AF),
+                      fontSize: 14,
+                    ),
+                    suffixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF7F8895),
+                      size: 18,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFDFE3E8)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFDFE3E8)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFA9B3BF)),
                     ),
                   ),
-                  if (_showFilters) ...[
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 180,
-                      child: DropdownButtonFormField<int?>(
-                        value: _selectedSportId,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
-                        ),
-                        iconSize: _selectedSportId != null ? 0 : 24,
-                        decoration: InputDecoration(
-                          hintText: 'Sport',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          suffixIcon: _selectedSportId != null
-                              ? IconButton(
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedSportId = null;
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        items: _sports
-                            .map(
-                              (c) => DropdownMenuItem<int?>(
-                                value: c.id,
-                                child: Text(c.name ?? ''),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedSportId = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 180,
-                      child: DropdownButtonFormField<int?>(
-                        value: _selectedTurfTypeId,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
-                        ),
-                        iconSize: _selectedTurfTypeId != null ? 0 : 24,
-                        decoration: InputDecoration(
-                          hintText: 'Turf type',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          suffixIcon: _selectedTurfTypeId != null
-                              ? IconButton(
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedTurfTypeId = null;
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        items: _turfTypes
-                            .map(
-                              (t) => DropdownMenuItem<int?>(
-                                value: t.id,
-                                child: Text(t.name),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedTurfTypeId = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    SizedBox(
-                      width: 180,
-                      child: DropdownButtonFormField<bool?>(
-                        value: _selectedIsIndoor,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black,
-                        ),
-                        iconSize: _selectedIsIndoor != null ? 0 : 24,
-                        decoration: InputDecoration(
-                          hintText: 'Indoor/Outdoor',
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          suffixIcon: _selectedIsIndoor != null
-                              ? IconButton(
-                                  icon: const Icon(Icons.close, size: 18),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedIsIndoor = null;
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                        items: const [
-                          DropdownMenuItem<bool?>(
-                            value: true,
-                            child: Text('Indoor'),
-                          ),
-                          DropdownMenuItem<bool?>(
-                            value: false,
-                            child: Text('Outdoor'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedIsIndoor = value;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 12),
-                  IconButton(
-                    tooltip: 'Filters',
-                    onPressed: () {
-                      setState(() {
-                        _showFilters = !_showFilters;
-                      });
-                    },
-                    icon: Icon(
-                      _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      _onSearch();
-                    },
-                    child: const Text("Search"),
-                  ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 34,
+                height: 34,
+                child: OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showFilters = !_showFilters;
+                    });
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    side: const BorderSide(color: Color(0xFFD1D6DD)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    backgroundColor: Colors.white,
+                  ),
+                  child: const Icon(Icons.filter_list, color: Color(0xFF4B5563), size: 16),
+                ),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterForm() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Center(
+        child: SizedBox(
+          width: 1000,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<int?>(
+                  value: _formSportId,
+                  iconSize: _formSportId != null ? 0 : 24,
+                  decoration: InputDecoration(
+                    labelText: 'Sport',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    suffixIcon: _formSportId != null
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () {
+                              setState(() {
+                                _formSportId = null;
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                  items: _sports
+                      .map(
+                        (c) => DropdownMenuItem<int?>(
+                          value: c.id,
+                          child: Text(c.name ?? ''),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _formSportId = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: DropdownButtonFormField<int?>(
+                  value: _formTurfTypeId,
+                  iconSize: _formTurfTypeId != null ? 0 : 24,
+                  decoration: InputDecoration(
+                    labelText: 'Turf type',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    suffixIcon: _formTurfTypeId != null
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () {
+                              setState(() {
+                                _formTurfTypeId = null;
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                  items: _turfTypes
+                      .map(
+                        (t) => DropdownMenuItem<int?>(
+                          value: t.id,
+                          child: Text(t.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _formTurfTypeId = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: DropdownButtonFormField<bool?>(
+                  value: _formIsIndoor,
+                  iconSize: _formIsIndoor != null ? 0 : 24,
+                  decoration: InputDecoration(
+                    labelText: 'Indoor/Outdoor',
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                    suffixIcon: _formIsIndoor != null
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () {
+                              setState(() {
+                                _formIsIndoor = null;
+                              });
+                            },
+                          )
+                        : null,
+                  ),
+                  items: const [
+                    DropdownMenuItem<bool?>(
+                      value: true,
+                      child: Text('Indoor'),
+                    ),
+                    DropdownMenuItem<bool?>(
+                      value: false,
+                      child: Text('Outdoor'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _formIsIndoor = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _applyFilters,
+                child: const Text('Apply'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: _clearFilters,
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -339,8 +423,11 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
       return const Expanded(
         child: Center(
           child: Text(
-            'No results found',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            'No facilities found.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xFF6B7280),
+            ),
           ),
         ),
       );
@@ -360,31 +447,37 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
       child: Column(
         children: [
           Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: itemCount,
-                childAspectRatio: 0.8,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: GridView.builder(
+                padding: const EdgeInsets.only(bottom: 14),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: itemCount,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                ),
+                itemCount: _facilities.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: FacilityCard(
+                      facility: _facilities[index],
+                      onDelete: _onDelete,
+                      onRefresh: () => _loadFacilities(page: _currentPage),
+                    ),
+                  );
+                },
               ),
-              itemCount: _facilities.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: FacilityCard(
-                    facility: _facilities[index],
-                    onDelete: _onDelete,
-                    onRefresh: () => _loadFacilities(page: _currentPage),
-                  ),
-                );
-              },
             ),
           ),
-          const SizedBox(height: 6),
-          UniversalPagination(
-            currentPage: _currentPage,
-            totalPages: _totalPages,
-            onPageChanged: (page) => _loadFacilities(page: page),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: UniversalPagination(
+              currentPage: _currentPage,
+              totalPages: _totalPages,
+              onPageChanged: (page) => _loadFacilities(page: page),
+            ),
           ),
         ],
       ),
@@ -409,7 +502,4 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
     }
   }
 
-  void _onSearch() {
-    _loadFacilities(page: 1);
-  }
 }
