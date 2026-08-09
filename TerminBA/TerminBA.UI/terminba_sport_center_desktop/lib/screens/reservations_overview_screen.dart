@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_sport_center_desktop/helpers/currency_helper.dart';
 import 'package:terminba_sport_center_desktop/helpers/date_helper.dart';
@@ -280,6 +281,9 @@ class _ReservationsOverviewScreenState
                 _currentPage = 1;
               });
             },
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             decoration: InputDecoration(
               hintText: 'Reservation No.',
               hintStyle: const TextStyle(fontSize: 14),

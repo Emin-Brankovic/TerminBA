@@ -566,7 +566,13 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
               },
             ),
           ),
-        const SizedBox(height: 8),
+        if (hasExisting && _selectedPhotos.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Divider(),
+          const SizedBox(height: 16),
+        ] else ...[
+          const SizedBox(height: 8),
+        ],
         if (_selectedPhotos.isNotEmpty)
           SizedBox(
             height: 90,
@@ -577,11 +583,50 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.memory(
-                    _selectedPhotos[index],
-                    width: 90,
-                    height: 90,
-                    fit: BoxFit.cover,
+                  child: Stack(
+                    children: [
+                      Image.memory(
+                        _selectedPhotos[index],
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 28,
+                              minHeight: 28,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            iconSize: 18,
+                            onPressed: () {
+                              setState(() {
+                                _selectedPhotos.removeAt(index);
+                              });
+                            },
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

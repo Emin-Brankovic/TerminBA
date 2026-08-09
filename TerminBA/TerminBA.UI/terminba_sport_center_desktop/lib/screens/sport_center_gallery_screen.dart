@@ -280,7 +280,9 @@ class _SportCenterGalleryScreenState extends State<SportCenterGalleryScreen> {
 							label: const Text('Add photos'),
 						),
 						OutlinedButton.icon(
-							onPressed: _isSaving ? null : () => _pickPhotos(replace: true),
+							onPressed: (_isSaving || (_existingPhotos.isEmpty && _selectedPhotos.isEmpty))
+									? null
+									: () => _pickPhotos(replace: true),
 							icon: const Icon(Icons.collections_outlined),
 							label: const Text('Replace gallery'),
 						),
@@ -354,24 +356,24 @@ class _SportCenterGalleryScreenState extends State<SportCenterGalleryScreen> {
 	}
 
 	Widget _buildNetworkPhotoCard(SportCenterPhotoResponse photo, bool removed) {
-		return InkWell(
-			onTap: _isSaving ? null : () => _toggleRemovePhoto(photo),
-			child: Stack(
-				children: [
-					Container(
-						decoration: BoxDecoration(
-							borderRadius: BorderRadius.circular(14),
-							border: Border.all(color: Colors.grey.shade200),
-							color: Colors.grey.shade50,
-							image: DecorationImage(
-								image: NetworkImage(photo.url ?? ''),
-								fit: BoxFit.cover,
-							),
+		return Stack(
+			children: [
+				Container(
+					decoration: BoxDecoration(
+						borderRadius: BorderRadius.circular(14),
+						border: Border.all(color: Colors.grey.shade200),
+						color: Colors.grey.shade50,
+						image: DecorationImage(
+							image: NetworkImage(photo.url ?? ''),
+							fit: BoxFit.cover,
 						),
 					),
-					Positioned(
-						top: 10,
-						right: 10,
+				),
+				Positioned(
+					top: 10,
+					right: 10,
+					child: InkWell(
+						onTap: _isSaving ? null : () => _toggleRemovePhoto(photo),
 						child: Container(
 							padding: const EdgeInsets.all(6),
 							decoration: BoxDecoration(
@@ -385,8 +387,11 @@ class _SportCenterGalleryScreenState extends State<SportCenterGalleryScreen> {
 							),
 						),
 					),
-					if (removed)
-						Container(
+				),
+				if (removed)
+					InkWell(
+						onTap: _isSaving ? null : () => _toggleRemovePhoto(photo),
+						child: Container(
 							decoration: BoxDecoration(
 								color: Colors.black.withValues(alpha: 120),
 								borderRadius: BorderRadius.circular(14),
@@ -401,8 +406,8 @@ class _SportCenterGalleryScreenState extends State<SportCenterGalleryScreen> {
 								),
 							),
 						),
-				],
-			),
+					),
+			],
 		);
 	}
 

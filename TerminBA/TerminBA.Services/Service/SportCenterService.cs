@@ -429,7 +429,6 @@ namespace TerminBA.Services.Service
                     photo.SportCenterId = entity.Id;
                 }
 
-                entity.Photos = photos;
                 await _context.SportCenterPhotos.AddRangeAsync(photos);
                 await _context.SaveChangesAsync();
             }

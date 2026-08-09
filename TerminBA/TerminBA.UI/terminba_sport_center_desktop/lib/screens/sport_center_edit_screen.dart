@@ -621,13 +621,21 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Address*',
                                 border: const OutlineInputBorder(),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(Icons.search),
-                                  tooltip: 'Search Address on Map',
-                                  onPressed: () {
-                                    final addressStr = _formKey.currentState?.fields['address']?.value?.toString() ?? '';
-                                    _geocodeAddress(addressStr);
-                                  },
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: TextButton.icon(
+                                    icon: const Icon(Icons.location_on, size: 20),
+                                    label: const Text('Find on Map'),
+                                    style: TextButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      final addressStr = _formKey.currentState?.fields['address']?.value?.toString() ?? '';
+                                      _geocodeAddress(addressStr);
+                                    },
+                                  ),
                                 ),
                               ),
                               validator: FormBuilderValidators.required(),
