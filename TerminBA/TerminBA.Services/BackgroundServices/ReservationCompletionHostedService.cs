@@ -46,13 +46,15 @@ namespace TerminBA.Services.BackgroundServices
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<TerminBaContext>();
 
-                var today = DateOnly.FromDateTime(DateTime.UtcNow);
-                var now = TimeOnly.FromDateTime(DateTime.UtcNow);
+                var now = DateTime.Now;
+                var today = DateOnly.FromDateTime(now);
+                var timeNow = TimeOnly.FromDateTime(now);
+
 
                 var updated = await context.Reservations
                     .Where(r => r.Status == nameof(ActiveReservationState)
                         && (r.ReservationDate < today
-                            || (r.ReservationDate == today && r.EndTime <= now)))
+                            || (r.ReservationDate == today && r.EndTime <= timeNow)))
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(r => r.Status, nameof(CompletedReservationState)), ct);
 

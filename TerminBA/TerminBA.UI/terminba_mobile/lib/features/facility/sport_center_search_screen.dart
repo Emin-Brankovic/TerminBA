@@ -8,6 +8,7 @@ import 'package:terminba_mobile/widgets/sport_filter_chips.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
+import 'package:terminba_mobile/model/city.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/sport_center_detail_screen.dart';
 
@@ -60,7 +61,7 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
-                    child: _buildTopBar(state),
+                    child: _buildTopBar(state, notifier),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -118,7 +119,7 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
     );
   }
 
-  Widget _buildTopBar(SportCenterSearchState state) {
+  Widget _buildTopBar(SportCenterSearchState state, SportCenterSearchNotifier notifier) {
     final theme = Theme.of(context);
     final city = state.userCity.isEmpty ? 'Your city' : state.userCity;
     final name = state.userName.isEmpty ? 'User' : state.userName;
@@ -126,11 +127,19 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
 
     return Row(
       children: [
-        const Icon(Icons.place_outlined, color: Colors.black54),
-        const SizedBox(width: 6),
-        Text(
-          city,
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        GestureDetector(
+          onTap: () => _showCitySelectionDialog(context, state, notifier),
+          child: Row(
+            children: [
+              const Icon(Icons.place_outlined, color: Colors.black54),
+              const SizedBox(width: 6),
+              Text(
+                city,
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+            ],
+          ),
         ),
         const Spacer(),
         Text(
@@ -250,6 +259,135 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
         pickedDate.day,
       ));
     }
+  }
+
+  void _showCitySelectionDialog(
+    BuildContext context,
+    SportCenterSearchState state,
+    SportCenterSearchNotifier notifier,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return _CitySelectionSheet(
+          cities: state.cities,
+          selectedCity: state.userCity,
+          onCitySelected: (city) {
+            notifier.selectCity(city);
+            Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _CitySelectionSheet extends StatefulWidget {
+  final List<City> cities;
+  final String selectedCity;
+  final ValueChanged<String> onCitySelected;
+
+  const _CitySelectionSheet({
+    required this.cities,
+    required this.selectedCity,
+    required this.onCitySelected,
+  });
+
+  @override
+  State<_CitySelectionSheet> createState() => _CitySelectionSheetState();
+}
+
+class _CitySelectionSheetState extends State<_CitySelectionSheet> {
+  late List<City> _filteredCities;
+  final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredCities = widget.cities;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterCities(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredCities = widget.cities;
+      } else {
+        _filteredCities = widget.cities
+            .where((city) =>
+                city.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Select City',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _searchController,
+            onChanged: _filterCities,
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: 'Search city...',
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _filteredCities.length,
+              itemBuilder: (context, index) {
+                final city = _filteredCities[index];
+                final isSelected = city.name == widget.selectedCity;
+                return ListTile(
+                  title: Text(city.name),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: Color(0xFF00A565))
+                      : null,
+                  onTap: () => widget.onCitySelected(city.name),
+                );
+              },
+            ),
+          ),
+          if (_filteredCities.isEmpty && _searchController.text.isNotEmpty)
+            ListTile(
+              title: Text('Use "${_searchController.text}"'),
+              leading: const Icon(Icons.search),
+              onTap: () => widget.onCitySelected(_searchController.text.trim()),
+            ),
+        ],
+      ),
+    );
   }
 }
 

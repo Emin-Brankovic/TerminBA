@@ -106,17 +106,23 @@ class FacilityReviewsScreen extends StatefulWidget  {
   }
 
   Widget _buildSummaryHeader(ThemeData theme, ReviewsState state) {
+    double displayRating = widget.averageRating;
+    if (state.reviews.isNotEmpty) {
+      final total = state.reviews.fold<int>(0, (sum, r) => sum + r.ratingNumber);
+      displayRating = total / state.reviews.length;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${widget.averageRating.toStringAsFixed(1)}/5.0',
+          '${displayRating.toStringAsFixed(1)}/5.0',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 6),
-        _StarRow(rating: widget.averageRating),
+        _StarRow(rating: displayRating),
         const SizedBox(height: 4),
         Text(
           '${state.reviews.length} ratings',

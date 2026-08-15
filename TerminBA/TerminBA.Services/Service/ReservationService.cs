@@ -142,6 +142,8 @@ namespace TerminBA.Services.Service
                 .Include(r => r.Facility)
                     .ThenInclude(f => f.SportCenter)
                         .ThenInclude(sc => sc.City)
+                .Include(r => r.Facility)
+                    .ThenInclude(f => f.TurfType)
                 .Include(r => r.User)
                 .Include(r => r.ChosenSport)
                 .Include(r => r.Payments)

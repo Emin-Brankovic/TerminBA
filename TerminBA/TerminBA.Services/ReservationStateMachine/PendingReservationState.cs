@@ -87,7 +87,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var today = DateOnly.FromDateTime(now);
             if (request.ReservationDate < today || (request.ReservationDate == today && request.StartTime.ToTimeSpan() <= now.TimeOfDay))
                 throw new UserException("Can't make a reservation in the past.");

@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/features/sport_center/sport_center_search_state.dart';
 import 'package:terminba_mobile/model/sport.dart';
-import 'package:terminba_mobile/model/sport_center.dart';
+import 'package:terminba_mobile/model/city.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
+import 'package:terminba_mobile/providers/city_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
+import 'package:terminba_mobile/model/sport_center.dart';
 import 'package:intl/intl.dart';
 
 class SportCenterSearchNotifier extends ChangeNotifier {
@@ -15,15 +17,18 @@ class SportCenterSearchNotifier extends ChangeNotifier {
     required AuthProvider authProvider,
     required SportCenterProvider sportCenterProvider,
     required SportProvider sportProvider,
+    CityProvider? cityProvider,
     UserProvider? userProvider,
   })  : _authProvider = authProvider,
         _sportCenterProvider = sportCenterProvider,
         _sportProvider = sportProvider,
+        _cityProvider = cityProvider ?? CityProvider(),
         _userProvider = userProvider ?? UserProvider();
 
   final AuthProvider _authProvider;
   final SportCenterProvider _sportCenterProvider;
   final SportProvider _sportProvider;
+  final CityProvider _cityProvider;
   final UserProvider _userProvider;
 
   SportCenterSearchState _state = SportCenterSearchState.initial();
@@ -60,11 +65,15 @@ class SportCenterSearchNotifier extends ChangeNotifier {
       final sportsResult = await _sportProvider.get();
       final sports = (sportsResult.items ?? []).cast<Sport>();
 
+      final citiesResult = await _cityProvider.get();
+      final cities = (citiesResult.items ?? []).cast<City>();
+
       _setState(
         _state.copyWith(
           userCity: userCity,
           userName: userName,
           sports: sports,
+          cities: cities,
         ),
       );
 
@@ -141,6 +150,11 @@ class SportCenterSearchNotifier extends ChangeNotifier {
 
   void selectDate(DateTime date) {
     _setState(_state.copyWith(selectedDate: date));
+    loadFacilities();
+  }
+
+  void selectCity(String city) {
+    _setState(_state.copyWith(userCity: city));
     loadFacilities();
   }
 

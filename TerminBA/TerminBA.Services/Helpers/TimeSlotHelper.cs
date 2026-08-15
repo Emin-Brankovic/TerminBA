@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace TerminBA.Services.Helpers
             && (rv.ValidTo == null || rv.ValidTo >= pickedDate));
 
             if (currentWorkingHours == null)
-                throw new UserException("No working hours for selected date");
+                return new List<(TimeSpan Start, TimeSpan End)>();
 
             TimeSpan opening = currentWorkingHours.OpeningHours.ToTimeSpan();
             TimeSpan closing = currentWorkingHours.CloseingHours.ToTimeSpan();
@@ -61,13 +61,5 @@ namespace TerminBA.Services.Helpers
             return validFrom <= reservationDate &&
                    (validTo == null || validTo >= reservationDate);
         }
-
-        //public static Expression<Func<FacilityDynamicPrice, bool>> MatchesDayOfWeek(DayOfWeek target)
-        //{
-        //    return x =>
-        //        (x.StartDay <= x.EndDay
-        //            ? (target >= x.StartDay && target <= x.EndDay)
-        //            : (target >= x.StartDay || target <= x.EndDay));
-        //}
     }
 }

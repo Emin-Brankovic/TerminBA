@@ -181,7 +181,7 @@ namespace TerminBA.Services.Service
         public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId, DateOnly pickedDate)
         {
             var allSlots = await TimeSlotHelper.GenerateTimeSlots(facilityId, pickedDate, _context);
-            DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
             var bookedReservations = await _context.Reservations
                 .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate && (r.Status == nameof(ActiveReservationState)
@@ -195,7 +195,7 @@ namespace TerminBA.Services.Service
                 bookedReservations.Select(ts => ts.ToTimeSpan())
             );
 
-            var nowTime = DateTime.UtcNow.TimeOfDay;
+            var nowTime = DateTime.Now.TimeOfDay;
             var isToday = pickedDate == today;
             var isFutureDate = pickedDate > today;
 

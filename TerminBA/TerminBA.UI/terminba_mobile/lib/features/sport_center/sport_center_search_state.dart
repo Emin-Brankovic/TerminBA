@@ -1,5 +1,6 @@
 import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/model/sport_center.dart';
+import 'package:terminba_mobile/model/city.dart';
 
 class SportCenterSearchState {
   final String userCity;
@@ -9,6 +10,7 @@ class SportCenterSearchState {
   final String searchQuery;
   final List<SportCenter> sportCenters;
   final List<Sport> sports;
+  final List<City> cities;
   final bool isLoading;
   final String? error;
 
@@ -20,6 +22,7 @@ class SportCenterSearchState {
     required this.searchQuery,
     required this.sportCenters,
     required this.sports,
+    required this.cities,
     required this.isLoading,
     required this.error,
   });
@@ -34,6 +37,7 @@ class SportCenterSearchState {
       searchQuery: '',
       sportCenters: const [],
       sports: const [],
+      cities: const [],
       isLoading: false,
       error: null,
     );
@@ -48,6 +52,7 @@ class SportCenterSearchState {
     String? searchQuery,
     List<SportCenter>? sportCenters,
     List<Sport>? sports,
+    List<City>? cities,
     bool? isLoading,
     String? error,
     bool clearError = false,
@@ -60,6 +65,7 @@ class SportCenterSearchState {
       searchQuery: searchQuery ?? this.searchQuery,
       sportCenters: sportCenters ?? this.sportCenters,
       sports: sports ?? this.sports,
+      cities: cities ?? this.cities,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : error ?? this.error,
     );

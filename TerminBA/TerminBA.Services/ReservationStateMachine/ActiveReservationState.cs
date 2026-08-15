@@ -76,7 +76,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
                     if (payment != null)
                     {
-                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.UtcNow;
+                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.Now;
                         decimal refundAmount = missedDeadline ? Math.Round(payment.Amount * 0.3m, 2) : payment.Amount;
 
                         var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
@@ -84,7 +84,7 @@ namespace TerminBA.Services.ReservationStateMachine
                         
                         payment.StripeRefundId = refundId;
                         payment.RefundAmount = refundAmount;
-                        payment.RefundRequestedAt = DateTime.UtcNow;
+                        payment.RefundRequestedAt = DateTime.Now;
                         payment.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
 
                         entity.Status = nameof(CanceledWithRefundReservationState);
@@ -165,7 +165,6 @@ namespace TerminBA.Services.ReservationStateMachine
             ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
 
             var allSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
-
             var slot = allSlots.FirstOrDefault(t =>
                 t.Start == request.StartTime.ToTimeSpan() &&
                 t.End == request.EndTime.ToTimeSpan());
@@ -203,7 +202,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private static void ValidateReservationNotInPast(DateOnly reservationDate, TimeOnly reservationStartTime)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var today = DateOnly.FromDateTime(now);
 
             if (reservationDate < today)
