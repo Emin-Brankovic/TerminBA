@@ -370,26 +370,40 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                             ),
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => CreatePlayerSearchPostScreen(
-                                      reservation: _details!,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.people_outline, color: Color(0xFF00C875)),
-                              label: const Text(
+                              onPressed: _details!.hasActivePost == true
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => CreatePlayerSearchPostScreen(
+                                            reservation: _details!,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              icon: Icon(
+                                Icons.people_outline,
+                                color: _details!.hasActivePost == true
+                                    ? Colors.grey
+                                    : const Color(0xFF00C875),
+                              ),
+                              label: Text(
                                 'Find Players',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF00C875),
+                                  color: _details!.hasActivePost == true
+                                      ? Colors.grey
+                                      : const Color(0xFF00C875),
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFF00C875), width: 1.5),
+                                side: BorderSide(
+                                  color: _details!.hasActivePost == true
+                                      ? Colors.grey
+                                      : const Color(0xFF00C875),
+                                  width: 1.5,
+                                ),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

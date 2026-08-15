@@ -144,7 +144,9 @@ namespace TerminBA.Services.Service
                         .ThenInclude(sc => sc.City)
                 .Include(r => r.User)
                 .Include(r => r.ChosenSport)
-                .Include(r => r.Payments);
+                .Include(r => r.Payments)
+                .Include(r => r.Posts)
+                .AsSplitQuery();
 
             return query;
         }

@@ -53,7 +53,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       final filter = <String, dynamic>{
         'status': status,
         'SortByChosenTimeSlot': true,
-        'TimeSlotSortDirection': 'desc',
+        'TimeSlotSortDirection': _selectedTab == 0 ? 'asc' : 'desc',
         'Page': pageKey,
         'PageSize': _pageSize,
       };

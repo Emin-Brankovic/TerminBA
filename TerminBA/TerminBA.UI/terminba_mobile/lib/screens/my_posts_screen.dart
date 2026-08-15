@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/post_response.dart';
+import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/screens/edit_player_search_post_screen.dart';
+import 'package:terminba_mobile/widgets/filter_chip_bar.dart';
 import 'package:terminba_mobile/widgets/player_search_post_card.dart';
 
 /// Screen showing all player-search posts created by the currently logged-in user.
@@ -20,12 +23,19 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
   late PagingController<int, PostResponse> _pagingController;
   int? _currentUserId;
 
+  int? _selectedSportId;
+  String? _selectedSkillLevel;
+  DateTime? _selectedDate;
+  String _sortDirection = 'asc';
+  List<Sport> _sports = [];
+
   @override
   void initState() {
     super.initState();
     _pagingController = PagingController(firstPageKey: 1);
     _pagingController.addPageRequestListener(_fetchPage);
     _loadUserId();
+    _loadSports();
   }
 
   @override
@@ -42,6 +52,22 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
     }
   }
 
+  Future<void> _loadSports() async {
+    try {
+      final result =
+          await context.read<SportProvider>().get(filter: {'pageSize': 10});
+      if (mounted) {
+        setState(() {
+          _sports = result.items ?? [];
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _applyFilters() {
+    _pagingController.refresh();
+  }
+
   Future<void> _fetchPage(int pageKey) async {
     if (_currentUserId == null) {
       _pagingController.appendLastPage([]);
@@ -49,12 +75,22 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
     }
 
     try {
+      final filter = <String, dynamic>{
+        'UserId': _currentUserId,
+        'SortByReservationDate': true,
+        'SortDirection': _sortDirection,
+        'Page': pageKey,
+        'PageSize': _pageSize,
+      };
+
+      if (_selectedSportId != null) filter['SportId'] = _selectedSportId;
+      if (_selectedSkillLevel != null) filter['SkillLevel'] = _selectedSkillLevel;
+      if (_selectedDate != null) {
+        filter['ReservationDate'] = _selectedDate!.toIso8601String().split('T').first;
+      }
+
       final result = await context.read<PostProvider>().get(
-        filter: {
-          'UserId': _currentUserId,
-          'Page': pageKey,
-          'PageSize': _pageSize,
-        },
+        filter: filter,
       );
 
       final items = result.items ?? [];
@@ -145,77 +181,121 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async => _pagingController.refresh(),
-        color: const Color(0xFF00C875),
-        child: PagedListView<int, PostResponse>(
-          pagingController: _pagingController,
-          builderDelegate: PagedChildBuilderDelegate<PostResponse>(
-            itemBuilder: (ctx, post, _) => PlayerSearchPostCard(
-              post: post,
-              isOwner: true,
-              onClosePost: post.isActive ? () => _onClosePost(post) : null,
-              onEditPost: post.isActive ? () => _onEditPost(post) : null,
-            ),
-            firstPageProgressIndicatorBuilder: (_) =>
-                const Center(child: CircularProgressIndicator()),
-            newPageProgressIndicatorBuilder: (_) => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            noItemsFoundIndicatorBuilder: (_) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.article_outlined,
-                      size: 64,
-                      color: Colors.grey.shade300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No posts yet.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade500,
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: FilterChipBar(
+                  sports: _sports,
+                  selectedSportId: _selectedSportId,
+                  selectedSkillLevel: _selectedSkillLevel,
+                  selectedDate: _selectedDate,
+                  onSportChanged: (id) {
+                    setState(() => _selectedSportId = id);
+                    _applyFilters();
+                  },
+                  onSkillLevelChanged: (level) {
+                    setState(() => _selectedSkillLevel = level);
+                    _applyFilters();
+                  },
+                  onDateChanged: (date) {
+                    setState(() => _selectedDate = date);
+                    _applyFilters();
+                  },
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  _sortDirection == 'asc' ? Icons.arrow_downward : Icons.arrow_upward,
+                  color: Colors.grey.shade700,
+                ),
+                tooltip: 'Sort by date',
+                onPressed: () {
+                  setState(() {
+                    _sortDirection = _sortDirection == 'asc' ? 'desc' : 'asc';
+                  });
+                  _applyFilters();
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async => _pagingController.refresh(),
+              color: const Color(0xFF00C875),
+              child: PagedListView<int, PostResponse>(
+                pagingController: _pagingController,
+                builderDelegate: PagedChildBuilderDelegate<PostResponse>(
+                  itemBuilder: (ctx, post, _) => PlayerSearchPostCard(
+                    post: post,
+                    isOwner: true,
+                    onClosePost: post.isActive ? () => _onClosePost(post) : null,
+                    onEditPost: post.isActive ? () => _onEditPost(post) : null,
+                  ),
+                  firstPageProgressIndicatorBuilder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
+                  newPageProgressIndicatorBuilder: (_) => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  noItemsFoundIndicatorBuilder: (_) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.article_outlined,
+                            size: 64,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No posts found.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try adjusting your filters or create a new post.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Create one from a reservation to find players.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade400,
-                      ),
+                  ),
+                  firstPageErrorIndicatorBuilder: (_) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Failed to load posts.'),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: _pagingController.refresh,
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                  newPageErrorIndicatorBuilder: (_) => Center(
+                    child: TextButton(
+                      onPressed: () => _pagingController.retryLastFailedRequest(),
+                      child: const Text('Retry'),
+                    ),
+                  ),
                 ),
               ),
             ),
-            firstPageErrorIndicatorBuilder: (_) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Failed to load posts.'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _pagingController.refresh,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-            newPageErrorIndicatorBuilder: (_) => Center(
-              child: TextButton(
-                onPressed: () => _pagingController.retryLastFailedRequest(),
-                child: const Text('Retry'),
-              ),
-            ),
           ),
-        ),
+        ],
       ),
     );
   }

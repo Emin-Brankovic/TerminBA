@@ -27,6 +27,7 @@ ReservationResponse _$ReservationResponseFromJson(Map<String, dynamic> json) =>
           ? null
           : Sport.fromJson(json['chosenSport'] as Map<String, dynamic>),
       isPaid: json['isPaid'] as bool?,
+      hasActivePost: json['hasActivePost'] as bool?,
     );
 
 Map<String, dynamic> _$ReservationResponseToJson(
@@ -45,4 +46,5 @@ Map<String, dynamic> _$ReservationResponseToJson(
       'chosenSportId': instance.chosenSportId,
       'chosenSport': instance.chosenSport?.toJson(),
       'isPaid': instance.isPaid,
+      'hasActivePost': instance.hasActivePost,
     };

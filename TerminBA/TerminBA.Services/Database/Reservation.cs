@@ -40,6 +40,9 @@ namespace TerminBA.Services.Database
 
         public ICollection<Post>? Posts { get; set; } = new List<Post>();
 
+        [NotMapped]
+        public bool HasActivePost => Posts?.Any(p => p.PostState == "PlayerSearchPostState") ?? false;
+
         public ICollection<Payment>? Payments { get; set; } = new List<Payment>();
 
         [NotMapped]

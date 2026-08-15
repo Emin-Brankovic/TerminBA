@@ -36,6 +36,8 @@ namespace TerminBA.Models.Model
         public SportResponse? ChosenSport { get; set; }
 
         public bool IsPaid { get; set; }
+
+        public bool HasActivePost { get; set; }
     }
 }
 

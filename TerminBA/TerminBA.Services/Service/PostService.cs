@@ -101,6 +101,9 @@ namespace TerminBA.Services.Service
             if (!string.IsNullOrEmpty(search.PostState))
                 query = query.Where(p => p.PostState == search.PostState);
 
+            if(search.ReservationId.HasValue)
+                query = query.Where(p => p.ReservationId == search.ReservationId);
+
             if (search.UserId.HasValue)
             {
                 query = query.Where(p => p.Reservation!.UserId == search.UserId.Value);
@@ -109,6 +112,15 @@ namespace TerminBA.Services.Service
             {
                 int currentUserId = int.Parse(_authService.GetUserId());
                 query = query.Where(p => p.Reservation!.UserId != currentUserId);
+            }
+
+            if (search.SortByReservationDate)
+            {
+                var desc = string.Equals(search.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+                query = desc
+                    ? query.OrderByDescending(p => p.Reservation!.ReservationDate).ThenByDescending(p => p.Reservation!.StartTime)
+                    : query.OrderBy(p => p.Reservation!.ReservationDate).ThenBy(p => p.Reservation!.StartTime);
             }
 
             return query;
