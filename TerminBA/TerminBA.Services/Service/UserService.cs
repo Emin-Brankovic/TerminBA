@@ -58,6 +58,23 @@ namespace TerminBA.Services.Service
             if (await UserExists(entity.Username!, entity.Email!))
                 throw new UserException("Username or email is already taken");
 
+            if (string.IsNullOrEmpty(request.Password))
+                throw new UserException("Password is required.");
+
+            var hasNumber = new System.Text.RegularExpressions.Regex(@"[0-9]+");
+            var hasUpperChar = new System.Text.RegularExpressions.Regex(@"[A-Z]+");
+            var hasLowerChar = new System.Text.RegularExpressions.Regex(@"[a-z]+");
+            var hasMinimum8Chars = new System.Text.RegularExpressions.Regex(@".{8,}");
+            var hasSpecialChar = new System.Text.RegularExpressions.Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+
+            if (!hasMinimum8Chars.IsMatch(request.Password) ||
+                !hasNumber.IsMatch(request.Password) ||
+                !hasUpperChar.IsMatch(request.Password) ||
+                !hasLowerChar.IsMatch(request.Password) ||
+                !hasSpecialChar.IsMatch(request.Password))
+            {
+                throw new UserException("Password does not meet the security policy.");
+            }
 
             entity.PasswordSalt = HashingHelper.GenerateSalt();
             entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, request.Password!);
@@ -131,6 +148,11 @@ namespace TerminBA.Services.Service
         public async Task Logout()
         {
             await _authService.Logout();
+        }
+
+        public async Task ChangePassword(ChangePasswordRequest request)
+        {
+            await _authService.ChangePassword(request);
         }
     }
 }

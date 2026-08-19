@@ -51,6 +51,14 @@ namespace TerminBA.WebAPI.Controllers
             await _userService.Logout();
             return Ok();
         }
+
+        [Authorize]
+        [HttpPost("changePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            await _userService.ChangePassword(request);
+            return Ok();
+        }
     }
 }
 

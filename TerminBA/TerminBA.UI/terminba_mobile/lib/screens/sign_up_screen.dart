@@ -150,7 +150,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 		if (value == null || value.trim().isEmpty) {
 			return null;
 		}
-		return FormBuilderValidators.phoneNumber()(value);
+		final regex = RegExp(r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$');
+		if (!regex.hasMatch(value)) {
+			return 'Not a valid phone number';
+		}
+		return FormBuilderValidators.phoneNumber(errorText: 'Not a valid phone number')(value);
 	}
 
 	String? _confirmPasswordValidator(String? value) {
@@ -203,7 +207,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
 										validator: FormBuilderValidators.compose([
-											FormBuilderValidators.required(),
+											FormBuilderValidators.required(errorText: 'First name is required'),
 											FormBuilderValidators.minLength(2),
 											FormBuilderValidators.maxLength(50),
 										]),
@@ -218,7 +222,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
 										validator: FormBuilderValidators.compose([
-											FormBuilderValidators.required(),
+											FormBuilderValidators.required(errorText: 'Last name is required'),
 											FormBuilderValidators.minLength(2),
 											FormBuilderValidators.maxLength(50),
 										]),
@@ -233,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
 										validator: FormBuilderValidators.compose([
-											FormBuilderValidators.required(),
+											FormBuilderValidators.required(errorText: 'Username is required'),
 											FormBuilderValidators.minLength(3),
 											FormBuilderValidators.maxLength(30),
 										]),
@@ -249,8 +253,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 										),
 										keyboardType: TextInputType.emailAddress,
 										validator: FormBuilderValidators.compose([
-											FormBuilderValidators.required(),
-											FormBuilderValidators.email(),
+											FormBuilderValidators.required(errorText: 'Email is required'),
+											FormBuilderValidators.email(errorText: 'Please enter a valid email'),
 										]),
 									),
 									const SizedBox(height: 14),
@@ -285,7 +289,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 											contentPadding:
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
-										validator: FormBuilderValidators.required(),
+										validator: FormBuilderValidators.required(errorText: 'Birth date is required'),
 									),
 									const SizedBox(height: 14),
 									FormBuilderDropdown<int>(
@@ -305,11 +309,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 													),
 												)
 												.toList(),
-										validator: FormBuilderValidators.required(),
+										validator: FormBuilderValidators.required(errorText: 'City is required'),
 									),
 									const SizedBox(height: 14),
 									FormBuilderTextField(
 										name: 'password',
+										autovalidateMode: AutovalidateMode.onUserInteraction,
 										obscureText: !_showPassword,
 										decoration: InputDecoration(
 											prefixIcon: const Icon(Icons.lock_outline, size: 22),
@@ -336,13 +341,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 										),
 										validator: FormBuilderValidators.compose([
 											FormBuilderValidators.required(),
-											FormBuilderValidators.minLength(6),
+											FormBuilderValidators.minLength(8, errorText: 'Password must be at least 8 characters'),
+											FormBuilderValidators.match(RegExp(r'[A-Z]'), errorText: 'Password must contain at least one uppercase letter'),
+											FormBuilderValidators.match(RegExp(r'[a-z]'), errorText: 'Password must contain at least one lowercase letter'),
+											FormBuilderValidators.match(RegExp(r'[0-9]'), errorText: 'Password must contain at least one number'),
+											FormBuilderValidators.match(RegExp(r'[!@#\$%\^&\*\(\)_\+=\[{\]};:<>|./?,-]'), errorText: 'Password must contain at least one special character'),
 										]),
 									),
 									const SizedBox(height: 14),
 									FormBuilderTextField(
 										name: 'confirmPassword',
 										obscureText: true,
+                    autovalidateMode: AutovalidateMode.onUnfocus,
 										decoration: const InputDecoration(
 											prefixIcon: Icon(Icons.lock_outline, size: 22),
 											hintText: 'Confirm Password',

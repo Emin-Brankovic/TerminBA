@@ -356,19 +356,19 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            ElevatedButton(
-                              onPressed: _details!.ticketDownloaded ? null : _downloadTicket,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                              child: Text(
-                                _details!.ticketDownloaded ? 'Ticket Already Downloaded' : 'Download Ticket',
-                                style: const TextStyle(fontSize: 18, color: Colors.white),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
+                            // ElevatedButton(
+                            //   onPressed: _details!.ticketDownloaded ? null : _downloadTicket,
+                            //   style: ElevatedButton.styleFrom(
+                            //     backgroundColor: Colors.green,
+                            //     padding: const EdgeInsets.symmetric(vertical: 16),
+                            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            //   ),
+                            //   child: Text(
+                            //     _details!.ticketDownloaded ? 'Ticket Already Downloaded' : 'Download Ticket',
+                            //     style: const TextStyle(fontSize: 18, color: Colors.white),
+                            //   ),
+                            // ),
+                            // const SizedBox(height: 12),
                             OutlinedButton.icon(
                               onPressed: _details!.hasActivePost == true
                                   ? null

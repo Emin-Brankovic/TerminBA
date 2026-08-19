@@ -143,4 +143,42 @@ class AuthProvider extends ChangeNotifier {
       MaterialPageRoute(builder: (_) => const LoginPage()),
     );
   }
+
+  Future<void> changePassword(
+    String currentPassword,
+    String confirmCurrentPassword,
+    String newPassword,
+    String confirmNewPassword,
+  ) async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/User/changePassword'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'currentPassword': currentPassword,
+        'confirmCurrentPassword': confirmCurrentPassword,
+        'newPassword': newPassword,
+        'confirmNewPassword': confirmNewPassword,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      String errorMessage = 'Failed to change password';
+      try {
+        final body = jsonDecode(response.body);
+        if (body is Map && body.containsKey('errors')) {
+          print(body);
+          errorMessage = body['errors']['userError']?.first?.toString() ?? errorMessage;
+        } else if (body is String) {
+          errorMessage = body;
+        }
+      } catch (_) {}
+      throw Exception(errorMessage);
+    }
+  }
 }

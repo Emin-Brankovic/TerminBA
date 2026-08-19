@@ -9,6 +9,7 @@ import 'package:terminba_mobile/model/user_update_request.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/city_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
+import 'package:terminba_mobile/screens/change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
 	final ScrollController? scrollController;
@@ -170,10 +171,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 		);
 	}
 
-	Future<void> _showChangePasswordInfo() async {
-		await _showMessage(
-			title: 'Change Password',
-			message: 'This feature is coming soon.',
+	void _showChangePasswordInfo() {
+		Navigator.push(
+			context,
+			MaterialPageRoute(
+				builder: (context) => const ChangePasswordScreen(),
+			),
 		);
 	}
 
