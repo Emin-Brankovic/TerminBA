@@ -7,6 +7,7 @@ using TerminBA.Services.Interfaces;
 using EasyNetQ;
 using TerminBA.Models.Messages;
 using TerminBA.Services.Helpers;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -142,11 +143,11 @@ namespace TerminBA.Services.Service
                 }
 
                 var reservation = await _context.Reservations.FindAsync(payment.ReservationId);
-                if (reservation != null && reservation.Status == "PendingReservationState")
+                if (reservation != null && reservation.Status == nameof(PendingReservationState))
                 {
-                    reservation.Status = "ActiveReservationState";
+                    reservation.Status = nameof(ActiveReservationState);
 
-                    await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
+                    //await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
                 }
                 await _context.SaveChangesAsync();
             }

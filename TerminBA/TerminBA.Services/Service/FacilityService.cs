@@ -86,7 +86,7 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
             var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
             query = query
                 .Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr))
@@ -181,7 +181,7 @@ namespace TerminBA.Services.Service
         public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId, DateOnly pickedDate)
         {
             var allSlots = await TimeSlotHelper.GenerateTimeSlots(facilityId, pickedDate, _context);
-            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+            DateOnly today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
 
             var bookedReservations = await _context.Reservations
                 .Where(r => r.FacilityId == facilityId && r.ReservationDate == pickedDate && (r.Status == nameof(ActiveReservationState)
@@ -195,7 +195,7 @@ namespace TerminBA.Services.Service
                 bookedReservations.Select(ts => ts.ToTimeSpan())
             );
 
-            var nowTime = DateTime.Now.TimeOfDay;
+            var nowTime = TimeHelper.GetFacilityNow().TimeOfDay;
             var isToday = pickedDate == today;
             var isFutureDate = pickedDate > today;
 

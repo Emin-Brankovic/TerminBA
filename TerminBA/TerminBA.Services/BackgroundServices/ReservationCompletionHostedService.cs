@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TerminBA.Services.Database;
 using TerminBA.Services.ReservationStateMachine;
+using TerminBA.Services.Helpers;
 
 namespace TerminBA.Services.BackgroundServices
 {
@@ -30,7 +31,7 @@ namespace TerminBA.Services.BackgroundServices
         {
             await CompleteFinishedReservationsAsync(stoppingToken);
 
-            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(10));
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(2));
 
             while (!stoppingToken.IsCancellationRequested &&
                     await timer.WaitForNextTickAsync(stoppingToken))
@@ -46,7 +47,7 @@ namespace TerminBA.Services.BackgroundServices
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<TerminBaContext>();
 
-                var now = DateTime.Now;
+                var now = TimeHelper.GetFacilityNow();
                 var today = DateOnly.FromDateTime(now);
                 var timeNow = TimeOnly.FromDateTime(now);
 
@@ -54,7 +55,7 @@ namespace TerminBA.Services.BackgroundServices
                 var updated = await context.Reservations
                     .Where(r => r.Status == nameof(ActiveReservationState)
                         && (r.ReservationDate < today
-                            || (r.ReservationDate == today && r.EndTime <= timeNow)))
+                            || (r.ReservationDate == today && r.StartTime <= timeNow)))
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(r => r.Status, nameof(CompletedReservationState)), ct);
 

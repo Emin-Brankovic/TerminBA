@@ -7,6 +7,7 @@ using TerminBA.Models.Messages;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 
 namespace TerminBA.Services.ReservationStateMachine
 {
@@ -26,7 +27,8 @@ namespace TerminBA.Services.ReservationStateMachine
             var facility = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == request.FacilityId);
             var hours = facility?.SportCenter?.CancellationDeadlineHours ?? 24;
             var reservationStart = request.ReservationDate.ToDateTime(request.StartTime);
-            entity.CancellationDeadline = reservationStart.AddHours(-hours);
+            var reservationStartUtc = TimeHelper.ConvertToUtc(reservationStart);
+            entity.CancellationDeadline = reservationStartUtc.AddHours(-hours);
 
             await ValidateReservationInsertAsync(request);
 
@@ -87,7 +89,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
-            var now = DateTime.Now;
+            var now = TimeHelper.GetFacilityNow();
             var today = DateOnly.FromDateTime(now);
             if (request.ReservationDate < today || (request.ReservationDate == today && request.StartTime.ToTimeSpan() <= now.TimeOfDay))
                 throw new UserException("Can't make a reservation in the past.");

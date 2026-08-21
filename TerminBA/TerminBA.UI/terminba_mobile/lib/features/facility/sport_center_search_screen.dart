@@ -63,6 +63,7 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
                     child: _buildTopBar(state, notifier),
                   ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: TextField(
@@ -141,30 +142,30 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
             ],
           ),
         ),
-        const Spacer(),
-        Text(
-          'Hi, $name',
-          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-            );
-          },
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: const Color(0xFFECFFF6),
-            child: Text(
-              initials,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF00A565),
-              ),
-            ),
-          ),
-        ),
+         const SizedBox(width: 25),
+        // Text(
+        //   'Hi, $name',
+        //   style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        // ),
+        // const SizedBox(width: 10),
+        // GestureDetector(
+        //   onTap: () {
+        //     Navigator.of(context).push(
+        //       MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        //     );
+        //   },
+        //   child: CircleAvatar(
+        //     radius: 18,
+        //     backgroundColor: const Color(0xFFECFFF6),
+        //     child: Text(
+        //       initials,
+        //       style: theme.textTheme.titleMedium?.copyWith(
+        //         fontWeight: FontWeight.bold,
+        //         color: const Color(0xFF00A565),
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

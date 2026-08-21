@@ -45,7 +45,6 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   }
 
   Future<void> _fetchPage(int pageKey) async {
-    await Future.delayed(const Duration(seconds: 1));
     try {
       final provider = context.read<ReservationProvider>();
       final status = _selectedTab == 0 ? 'upcoming' : 'past';

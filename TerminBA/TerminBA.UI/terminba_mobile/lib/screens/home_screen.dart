@@ -84,12 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ──────────────────────────────────────────────────────────────────────────
 
   Widget _buildGreeting(String username) {
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : hour < 18
-            ? 'Good afternoon'
-            : 'Good evening';
+    final greeting = 'Hello';
 
     return Row(
       children: [

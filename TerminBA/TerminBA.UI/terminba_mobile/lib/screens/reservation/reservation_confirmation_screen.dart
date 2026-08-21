@@ -5,10 +5,6 @@ import 'package:terminba_mobile/features/booking/booking_flow_state.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:intl/intl.dart';
 
-/// Screen 5: Reservation Confirmation (Digital Ticket).
-///
-/// Terminal screen — back press navigates to Home, not back to summary.
-/// [PopScope] is used (Flutter 3.22+) to intercept back gestures.
 class ReservationConfirmationScreen extends StatelessWidget {
   const ReservationConfirmationScreen({super.key});
 
@@ -67,45 +63,23 @@ class ReservationConfirmationScreen extends StatelessWidget {
           const SizedBox(height: 32),
 
           // ── Action buttons ───────────────────────────────────────────────
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _navigateHome(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: const BorderSide(color: Color(0xFF4CAF50)),
-                    foregroundColor: const Color(0xFF4CAF50),
-                  ),
-                  child: const Text(
-                    'Home',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _navigateHome(context),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                side: const BorderSide(color: Color(0xFF4CAF50)),
+                foregroundColor: const Color(0xFF4CAF50),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _downloadTicket(context, reservationId),
-                  icon: const Icon(Icons.download_outlined, size: 18),
-                  label: const Text(
-                    'Download Ticket',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              child: const Text(
+                'Home',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -119,15 +93,7 @@ class ReservationConfirmationScreen extends StatelessWidget {
     );
   }
 
-  // TODO: Implement PDF/image download when a PDF utility is added to the project.
-  void _downloadTicket(BuildContext context, int bookingId) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Download ticket #$bookingId — coming soon.'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+
 }
 
 // ─── Ticket Card ──────────────────────────────────────────────────────────────

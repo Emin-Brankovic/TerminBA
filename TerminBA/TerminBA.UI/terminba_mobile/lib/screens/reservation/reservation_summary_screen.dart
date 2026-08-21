@@ -73,43 +73,31 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             selected: state.paymentMethod,
             onChanged: notifier.setPaymentMethod,
           ),
-          if (state.paymentMethod == PaymentMethod.online) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.indigo.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.indigo.shade100),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.credit_card_rounded,
-                      color: Colors.indigo.shade400, size: 28),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Stripe Secure Payment',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 14),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'You will be prompted to enter your card details. '
-                          'Test card: 4242 4242 4242 4242 · Any future date · Any CVC.',
-                          style: TextStyle(
-                              color: Color(0xFF757575), fontSize: 12),
-                        ),
-                      ],
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F4FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFD0D7F5)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline, color: Color(0xFF5C7AE6), size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Cancellation Policy: Free cancellation up to ${state.selectedCourt?.sportCenter?.cancellationDeadlineHours ?? 24} hours before the reservation. (30% refund after deadline)',
+                    style: const TextStyle(
+                      color: Color(0xFF334A99),
+                      fontSize: 12,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
           const SizedBox(height: 24),
 
           // ── Reservation details ──────────────────────────────────────────────
@@ -266,6 +254,21 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           paymentIntentClientSecret: intentResponse.clientSecret,
           merchantDisplayName: 'TerminBA',
           style: ThemeMode.light,
+          paymentMethodOrder: const ['card'],
+          billingDetails: const BillingDetails(
+            address: Address(
+              country: 'BA',
+              city: null,
+              line1: null,
+              line2: null,
+              postalCode: null,
+              state: null,
+            ),
+          ),
+          billingDetailsCollectionConfiguration:
+              const BillingDetailsCollectionConfiguration(
+            address: AddressCollectionMode.never,
+          ),
         ),
       );
 
@@ -535,31 +538,6 @@ class _BillDetailsSection extends StatelessWidget {
           label: 'Total',
           value: '${grandTotal.toStringAsFixed(0)} KM',
           isBold: true,
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F4FF),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFD0D7F5)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.info_outline, color: Color(0xFF5C7AE6), size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Cancellation Policy: Free cancellation up to ${state.selectedCourt?.sportCenter?.cancellationDeadlineHours ?? 24} hours before the reservation. (30% refund after deadline)',
-                  style: const TextStyle(
-                    color: Color(0xFF334A99),
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );

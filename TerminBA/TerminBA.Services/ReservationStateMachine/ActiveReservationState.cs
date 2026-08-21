@@ -27,7 +27,8 @@ namespace TerminBA.Services.ReservationStateMachine
             var facility = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == request.FacilityId);
             var hours = facility?.SportCenter?.CancellationDeadlineHours ?? 24;
             var reservationStart = request.ReservationDate.ToDateTime(request.StartTime);
-            entity.CancellationDeadline = reservationStart.AddHours(-hours);
+            var reservationStartUtc = TimeHelper.ConvertToUtc(reservationStart);
+            entity.CancellationDeadline = reservationStartUtc.AddHours(-hours);
 
             await ValidateReservationInsertAsync(request);
 
@@ -76,7 +77,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
                     if (payment != null)
                     {
-                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.Now;
+                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.UtcNow;
                         decimal refundAmount = missedDeadline ? Math.Round(payment.Amount * 0.3m, 2) : payment.Amount;
 
                         var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
@@ -84,7 +85,7 @@ namespace TerminBA.Services.ReservationStateMachine
                         
                         payment.StripeRefundId = refundId;
                         payment.RefundAmount = refundAmount;
-                        payment.RefundRequestedAt = DateTime.Now;
+                        payment.RefundRequestedAt = DateTime.UtcNow;
                         payment.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
 
                         entity.Status = nameof(CanceledWithRefundReservationState);
@@ -202,7 +203,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private static void ValidateReservationNotInPast(DateOnly reservationDate, TimeOnly reservationStartTime)
         {
-            var now = DateTime.Now;
+            var now = TimeHelper.GetFacilityNow();
             var today = DateOnly.FromDateTime(now);
 
             if (reservationDate < today)
