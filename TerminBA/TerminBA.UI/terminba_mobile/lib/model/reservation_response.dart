@@ -50,8 +50,8 @@ class ReservationResponse {
       DateTime today = DateTime(now.year, now.month, now.day);
       if (resDate.isBefore(today)) return false;
       if (resDate.isAtSameMomentAs(today)) {
-        if (endTime != null && endTime!.isNotEmpty) {
-          var parts = endTime!.split(':');
+        if (startTime != null && startTime!.isNotEmpty) {
+          var parts = startTime!.split(':');
           if (parts.length >= 2) {
             int h = int.parse(parts[0]);
             int m = int.parse(parts[1]);

@@ -117,5 +117,13 @@ namespace TerminBA.Services.Service
             }
             return response;
         }
+
+        protected override Task BeforeUpdate(UserReview entity, UserReviewUpdateRequest request)
+        {
+            if (entity.ReviewerId != request.ReviewerId)
+                throw new UserException("Editing of other reviews isn't possible");
+
+            return Task.CompletedTask;
+        }
     }
 }

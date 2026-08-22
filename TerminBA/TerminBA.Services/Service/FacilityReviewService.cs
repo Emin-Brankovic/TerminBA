@@ -1,3 +1,4 @@
+using CloudinaryDotNet;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -30,8 +31,8 @@ namespace TerminBA.Services.Service
             if (_currentUser["userRole"] == "Sport center")
                 search.SportCenterId = int.Parse(_authService.GetUserId());
 
-            //if (_currentUser["userRole"] == "User")
-            //    search.SportCenterId = int.Parse(_authService.GetUserId());
+            if (_currentUser["userRole"] == "User")
+                search.UserId = int.Parse(_authService.GetUserId());
 
             if (search.SportCenterId.HasValue)
                 query = query.Where(fr => fr.Facility!.SportCenterId == search.SportCenterId.Value);
@@ -143,6 +144,14 @@ namespace TerminBA.Services.Service
                 .AverageAsync() ?? 0.0;
 
             return Math.Round(avg, 1);
+        }
+
+        protected override Task BeforeUpdate(FacilityReview entity, FacilityReviewUpdateRequest request)
+        {
+            if (entity.UserId != request.UserId)
+                throw new UserException("Editing of other reviews isn't possible");
+
+            return Task.CompletedTask;
         }
     }
 }
