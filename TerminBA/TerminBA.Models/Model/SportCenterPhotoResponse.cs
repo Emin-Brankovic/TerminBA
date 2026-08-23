@@ -13,6 +13,5 @@ namespace TerminBA.Services.Database
         public string? Url { get; set; }
         public string? PublicId { get; set; }
         public int SportCenterId { get; set; }
-        public bool? IsMain { get; set; }
     }
 }

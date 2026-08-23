@@ -49,7 +49,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.Status = nameof(ActiveReservationState);
                 await _context.SaveChangesAsync();
                 var userId=entity.UserId ?? throw new UserException("UserId is null");
-                //await SendEmailAsync(entity.Id);
+                await SendEmailAsync(entity.Id);
                 return _mapper.Map<ReservationResponse>(entity);
             }
 

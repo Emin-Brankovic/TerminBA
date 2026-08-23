@@ -8,14 +8,14 @@ class FacilityPhotoResponse {
   String? url;
   String? publicId;
   int facilityId;
-  bool? isMain;
+  
 
   FacilityPhotoResponse(
     this.id,
     this.url,
     this.publicId,
     this.facilityId,
-    this.isMain,
+    
   );
 
   factory FacilityPhotoResponse.fromJson(Map<String, dynamic> json) =>

@@ -112,7 +112,7 @@ class SportCenterCard extends StatelessWidget {
   String? _resolveImageUrl() {
     if (sportCenter.photos.isEmpty) return null;
     final mainPhoto = sportCenter.photos.firstWhere(
-      (photo) => photo.isMain == true && (photo.url ?? '').isNotEmpty,
+      (photo) => (photo.url ?? '').isNotEmpty,
       orElse: () => sportCenter.photos.first,
     );
     final url = mainPhoto.url;

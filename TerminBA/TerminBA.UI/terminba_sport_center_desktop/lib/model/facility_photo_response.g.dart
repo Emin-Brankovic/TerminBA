@@ -13,7 +13,6 @@ FacilityPhotoResponse _$FacilityPhotoResponseFromJson(
   json['url'] as String?,
   json['publicId'] as String?,
   (json['facilityId'] as num).toInt(),
-  json['isMain'] as bool?,
 );
 
 Map<String, dynamic> _$FacilityPhotoResponseToJson(
@@ -23,5 +22,4 @@ Map<String, dynamic> _$FacilityPhotoResponseToJson(
   'url': instance.url,
   'publicId': instance.publicId,
   'facilityId': instance.facilityId,
-  'isMain': instance.isMain,
 };

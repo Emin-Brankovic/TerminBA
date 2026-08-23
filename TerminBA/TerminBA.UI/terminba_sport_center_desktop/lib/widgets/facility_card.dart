@@ -353,16 +353,7 @@ class _FacilityCardState extends State<FacilityCard> {
       return const [];
     }
 
-    final mainPhotos = widget.facility.photos
-        .where((p) => p.isMain == true && (p.url?.isNotEmpty ?? false))
-        .map((p) => p.url!)
-        .toList();
-
-    final otherPhotos = widget.facility.photos
-        .where((p) => p.isMain != true && (p.url?.isNotEmpty ?? false))
-        .map((p) => p.url!)
-        .toList();
-
-    return [...mainPhotos, ...otherPhotos];
+    return widget.facility.photos.where((p) => (p.url?.isNotEmpty ?? false)).map((p) => p.url!).toList();
   }
 }
+

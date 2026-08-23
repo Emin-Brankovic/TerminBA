@@ -135,7 +135,7 @@ class FacilityCard extends StatelessWidget {
   String? _resolveImageUrl() {
     if (facility.photos.isEmpty) return null;
     final mainPhoto = facility.photos.firstWhere(
-      (photo) => photo.isMain == true && (photo.url ?? '').isNotEmpty,
+      (photo) => (photo.url ?? '').isNotEmpty,
       orElse: () => facility.photos.first,
     );
     final url = mainPhoto.url;

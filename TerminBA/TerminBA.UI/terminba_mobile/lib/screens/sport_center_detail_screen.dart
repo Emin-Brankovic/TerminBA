@@ -387,21 +387,10 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
   }
 
   List<String> _buildPhotoUrls(SportCenter center) {
-    if (center.photos.isEmpty) {
-      return const [];
-    }
-
-    final mainPhotos = center.photos
-        .where((p) => p.isMain == true && (p.url?.isNotEmpty ?? false))
+    return center.photos
+        .where((p) => (p.url?.isNotEmpty ?? false))
         .map((p) => p.url!)
         .toList();
-
-    final otherPhotos = center.photos
-        .where((p) => p.isMain != true && (p.url?.isNotEmpty ?? false))
-        .map((p) => p.url!)
-        .toList();
-
-    return [...mainPhotos, ...otherPhotos];
   }
 
   Widget _buildMap(SportCenter center) {
@@ -566,5 +555,6 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
     );
   }
 }
+
 
 

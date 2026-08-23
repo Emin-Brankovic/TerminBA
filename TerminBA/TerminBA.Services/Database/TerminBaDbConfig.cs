@@ -1,0 +1,168 @@
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace TerminBA.Services.Database
+{
+    public partial class TerminBaContext : DbContext
+    {
+        private void CreateConfiguration(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SportCenter>()
+                .HasMany(sc => sc.AvailableAmenities)
+                .WithMany(a => a.SportCentars)
+                .UsingEntity(j => j.ToTable("SportCenterAmenities"));
+
+            modelBuilder.Entity<SportCenter>()
+                .HasMany(sc => sc.AvailableSports)
+                .WithMany(a => a.SportCentars)
+                .UsingEntity(j => j.ToTable("SportCenterSports"));
+
+            modelBuilder.Entity<Facility>()
+                .HasMany(sc => sc.AvailableSports)
+                .WithMany(a => a.Facilities)
+                .UsingEntity(j => j.ToTable("FacilitySports"));
+
+            modelBuilder.Entity<UserReview>(entity =>
+            {
+                entity.HasOne(r => r.Reviewer)
+                      .WithMany(u => u.UserReviewsGiven)
+                      .HasForeignKey(r => r.ReviewerId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(r => r.Reviewed)
+                      .WithMany(u => u.ReviewsReceived)
+                      .HasForeignKey(r => r.ReviewedId)
+                      .OnDelete(DeleteBehavior.ClientCascade);
+
+                entity.HasIndex(ur => new { ur.ReviewerId, ur.ReviewedId });
+
+            });
+
+            modelBuilder.Entity<FacilityReview>()
+                        .HasIndex(fr => new { fr.UserId, fr.FacilityId });
+
+            modelBuilder.Entity<FacilityReview>()
+                        .HasIndex(fr => fr.ReservationId)
+                        .IsUnique()
+                        .HasFilter("[ReservationId] IS NOT NULL");
+
+            modelBuilder.Entity<FacilityReview>()
+                .HasOne(fr => fr.User)
+                .WithMany(u => u.FacilityReviewsGiven)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<FacilityReview>()
+                .HasOne(fr => fr.Facility)
+                .WithMany(f => f.ReviewsReceived)
+                .OnDelete(DeleteBehavior.ClientCascade);
+
+            modelBuilder.Entity<Post>()
+                .HasIndex(p => p.SkillLevel);
+
+            modelBuilder.Entity<SportCenter>()
+                .HasMany(sc => sc.WorkingHours)
+                .WithOne(wh => wh.SportCentar)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Reservation>()
+                .HasIndex(r => new { r.FacilityId, r.ReservationDate, r.StartTime });
+
+
+            modelBuilder.Entity<Reservation>()
+                .HasMany(r => r.Posts)
+                .WithOne(p => p.Reservation)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Reservation>()
+                .HasIndex(r => r.ReservationDate);
+
+            modelBuilder.Entity<Facility>()
+                .HasOne(f => f.SportCenter)
+                .WithMany(sc => sc.Facilities)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Facility>()
+                .HasMany(f => f.DynamicPrices)
+                .WithOne(fdp => fdp.Facility)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Facility>()
+                .HasIndex(f => f.Name);
+
+            modelBuilder.Entity<City>()
+                .HasMany(c => c.Users)
+                .WithOne(u => u.City)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<City>()
+                .HasMany(c => c.SportCenters)
+                .WithOne(u => u.City)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TurfType>()
+                .HasIndex(tt => tt.Name);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => pr.RequesterId);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => pr.PostId);
+
+            modelBuilder.Entity<PlayRequest>()
+                .HasIndex(pr => new { pr.PostId, pr.RequesterId });
+
+            modelBuilder.Entity<FacilityDynamicPrice>()
+                .HasIndex(fdp => fdp.FacilityId);
+
+            modelBuilder.Entity<FacilityDynamicPrice>()
+                .HasIndex(fdp => new { fdp.FacilityId, fdp.ValidFrom, fdp.ValidTo });
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasIndex(fsc => new { fsc.UserId, fsc.SportCenterId })
+                .IsUnique();
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasOne(fsc => fsc.User)
+                .WithMany(u => u.FavoriteSportCenters)
+                .HasForeignKey(fsc => fsc.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FavoriteSportCenter>()
+                .HasOne(fsc => fsc.SportCenter)
+                .WithMany(sc => sc.FavoritedByUsers)
+                .HasForeignKey(fsc => fsc.SportCenterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SportCenter>()
+                .Property(x => x.CancellationDeadlineHours)
+                .HasDefaultValue(24);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasIndex(re => re.UserId);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasIndex(re => re.ShownAt);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasOne(re => re.User)
+                .WithMany()
+                .HasForeignKey(re => re.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RecommendationEvent>()
+                .HasOne(re => re.Facility)
+                .WithMany()
+                .HasForeignKey(re => re.FacilityId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RevokedToken>()
+                .HasIndex(rt => rt.Jti)
+                .IsUnique();
+        }
+    }
+}

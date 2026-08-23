@@ -352,16 +352,7 @@ class _SportCenterCardState extends State<SportCenterCard> {
       return const [];
     }
 
-    final mainPhotos = widget.sportCenter.photos
-        .where((p) => p.isMain == true && (p.url?.isNotEmpty ?? false))
-        .map((p) => p.url!)
-        .toList();
-
-    final otherPhotos = widget.sportCenter.photos
-        .where((p) => p.isMain != true && (p.url?.isNotEmpty ?? false))
-        .map((p) => p.url!)
-        .toList();
-
-    return [...mainPhotos, ...otherPhotos];
+    return widget.sportCenter.photos.where((p) => (p.url?.isNotEmpty ?? false)).map((p) => p.url!).toList();
   }
 }
+
