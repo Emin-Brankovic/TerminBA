@@ -64,6 +64,7 @@ namespace TerminBA.Services.ReservationStateMachine
             try
             {
                 var entity = await _context.Reservations
+                    .Include(r => r.Facility)
                     .FirstOrDefaultAsync(r => r.Id == id);
 
                 if (entity == null)
@@ -127,8 +128,22 @@ namespace TerminBA.Services.ReservationStateMachine
                     var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
                     if (notificationHubService != null && acceptedRequests.Any())
                     {
+                        var postOwner = await _context.Users.FindAsync(entity.UserId);
+                        var facilityName = entity.Facility?.Name ?? "Unknown facility";
+
                         foreach (var ar in acceptedRequests)
                         {
+                            var notification = new CancelationNotification
+                            {
+                                PostOwnerId = ar.RequesterId, // The player receiving the notification
+                                ReservationId = id,
+                                RequesterName = postOwner != null ? $"{postOwner.FirstName} {postOwner.LastName}" : "The post owner",
+                                FacilityName = facilityName,
+                                DateCancelled = DateTime.UtcNow,
+                                IsSeen = false
+                            };
+                            _context.CancelationNotifications.Add(notification);
+
                             var payload = new
                             {
                                 type = "reservation_canceled",

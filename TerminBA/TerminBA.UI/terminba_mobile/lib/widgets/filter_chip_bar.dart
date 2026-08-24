@@ -158,7 +158,7 @@ class FilterChipBar extends StatelessWidget {
               final picked = await showDatePicker(
                 context: context,
                 initialDate: selectedDate ?? DateTime.now(),
-                firstDate: DateTime.now(),
+                firstDate: DateTime(2000),
                 lastDate: DateTime.now().add(const Duration(days: 365)),
                 builder: (ctx, child) => Theme(
                   data: Theme.of(ctx).copyWith(

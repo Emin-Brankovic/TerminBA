@@ -167,7 +167,7 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'to ${post.reservation?.facility?.name ?? 'this post'}',
+              'to ${post.reservation?.user != null ? '${post.reservation!.user!.firstName} ${post.reservation!.user!.lastName}' : 'this post owner'}',
               style: const TextStyle(color: Colors.grey, fontSize: 13),
             ),
             const SizedBox(height: 16),

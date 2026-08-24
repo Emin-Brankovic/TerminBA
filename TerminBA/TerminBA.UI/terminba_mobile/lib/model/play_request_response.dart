@@ -53,6 +53,7 @@ class PlayRequestResponse {
   /// Returns a human-readable status string.
   String get statusLabel {
     if (playRequestState == 'ExpiredPlayRequestState') return 'Expired';
+    if (playRequestState == 'CanceledPlayRequestState') return 'Canceled';
     if (isAccepted == null) return 'Pending';
     if (isAccepted == true) return 'Accepted';
     return 'Denied';

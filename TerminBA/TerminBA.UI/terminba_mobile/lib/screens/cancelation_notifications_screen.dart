@@ -266,7 +266,9 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Request Cancelled',
+                      notification.postOwnerId != notification.reservation?.userId
+                          ? 'Reservation Cancelled'
+                          : 'Accepted Request Cancelled',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -298,7 +300,9 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
               ),
               const SizedBox(height: 12),
               Text(
-                '${notification.requesterName} has cancelled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.',
+                notification.postOwnerId != notification.reservation?.userId
+                    ? '${notification.requesterName} has cancelled their reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}, so your accepted request is cancelled.'
+                    : '${notification.requesterName} has cancelled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.',
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 12),

@@ -59,41 +59,13 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 
 			_respondedSubscription = NotificationService().onJoinRequestResponded.listen((payload) {
 				notificationProvider.incrementUnseenSentCount();
-				final isAccepted = payload['isAccepted'] == true;
-				final status = isAccepted ? 'accepted' : 'denied';
-				ScaffoldMessenger.of(context).showSnackBar(
-					SnackBar(
-						content: Text("${payload['fromUserDisplayName'] ?? 'A user'} $status your request"),
-						backgroundColor: isAccepted ? const Color(0xFF00C875) : Colors.red.shade600,
-						action: SnackBarAction(
-							label: 'View',
-							textColor: Colors.white,
-							onPressed: () {
-								_onTabTapped(BottomTab.profile.index);
-							},
-						),
-						duration: const Duration(seconds: 4),
-					),
-				);
 			});
 
+
 			_cancelledSubscription = NotificationService().onJoinRequestCancelled.listen((payload) {
-				notificationProvider.incrementUnseenCancelationCount(); // Treated as an incoming cancelation notification for the owner
-				ScaffoldMessenger.of(context).showSnackBar(
-					SnackBar(
-						content: Text("${payload['fromUserDisplayName'] ?? 'A user'} cancelled their accepted request"),
-						backgroundColor: Colors.orange.shade600,
-						action: SnackBarAction(
-							label: 'View',
-							textColor: Colors.white,
-							onPressed: () {
-								_onTabTapped(BottomTab.profile.index);
-							},
-						),
-						duration: const Duration(seconds: 4),
-					),
-				);
+				notificationProvider.incrementUnseenCancelationCount(); 
 			});
+
 		});
 	}
 
@@ -230,17 +202,13 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 						NavigationDestination(
 							icon: Semantics(
 								selected: false,
-								child: Badge(
-									child: Icon(Icons.event_available_outlined),
-								),
+								child: Icon(Icons.event_available_outlined),
 							),
 							selectedIcon: Semantics(
 								selected: true,
-								child: Badge(
-									child: Icon(
-										Icons.event_available_outlined,
-										color: selectedColor,
-									),
+								child: Icon(
+									Icons.event_available_outlined,
+									color: selectedColor,
 								),
 							),
 							label: 'Bookings',

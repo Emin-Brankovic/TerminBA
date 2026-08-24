@@ -62,10 +62,19 @@ class ReceivedRequestCard extends StatelessWidget {
     final sport = post?.reservation?.chosenSport;
     final city = facility?.sportCenter?.city?.name ?? '';
 
+    final bool isUnseen = request.isSeenByOwner == false;
+
     return Card(
+      color: isUnseen ? Colors.blue.shade50 : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
+      shadowColor: Colors.black.withOpacity(0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isUnseen
+            ? BorderSide(color: Colors.blue.shade200, width: 1.5)
+            : BorderSide(color: Colors.grey.shade200, width: 1),
+      ),
+      elevation: 3,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -122,26 +131,29 @@ class ReceivedRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.end,
+                  spacing: 4.0,
                   children: [
                     if (request.isSeenByOwner == false)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: _StatusChip(
-                          label: 'New',
-                          color: Colors.blue.shade600,
-                        ),
+                      _StatusChip(
+                        label: 'New',
+                        color: Colors.blue.shade600,
                       ),
                     if (alreadyResponded)
-                      Padding(
-                        padding: EdgeInsets.only(bottom: isPostClosed ? 4.0 : 0.0),
-                        child: _StatusChip(
-                          label: request.isAccepted == true ? 'Accepted' : 'Denied',
-                          color: request.isAccepted == true
-                              ? const Color(0xFF00C875)
-                              : Colors.red,
-                        ),
+                      _StatusChip(
+                        label: request.playRequestState == 'CanceledPlayRequestState' 
+                            ? 'Canceled' 
+                            : (request.isAccepted == true ? 'Accepted' : 'Denied'),
+                        color: request.isAccepted == true
+                            ? const Color(0xFF00C875)
+                            : (request.playRequestState == 'CanceledPlayRequestState' ? Colors.grey.shade600 : Colors.red),
+                      ),
+                    if (isExpired)
+                      _StatusChip(
+                        label: 'Expired',
+                        color: Colors.grey.shade600,
                       ),
                     if (isPostClosed)
                       _StatusChip(
@@ -317,10 +329,19 @@ class SentRequestCard extends StatelessWidget {
         ? '${postOwner.firstName} ${postOwner.lastName}'
         : 'Unknown';
 
+    final bool isUnseen = request.isSeenByRequester == false && request.isAccepted != null;
+
     return Card(
+      color: isUnseen ? Colors.blue.shade50 : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: isUnseen
+            ? BorderSide(color: Colors.blue.shade200, width: 1.5)
+            : BorderSide(color: Colors.grey.shade200, width: 1),
+      ),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -351,36 +372,29 @@ class SentRequestCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.end,
+                  spacing: 4.0,
                   children: [
                     if (request.isSeenByRequester == false && request.isAccepted != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: _StatusChip(
-                          label: 'New',
-                          color: Colors.blue.shade600,
-                        ),
+                      _StatusChip(
+                        label: 'New',
+                        color: Colors.blue.shade600,
                       ),
                     _StatusChip(
                       label: request.statusLabel,
-                      color: _statusColor(request.isAccepted),
+                      color: _statusColor(request),
                     ),
                     if (request.post?.isFinished == true || request.post?.isCanceled == true)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: _StatusChip(
-                          label: request.post?.isFinished == true ? 'Finished' : 'Canceled',
-                          color: Colors.grey.shade600,
-                        ),
+                      _StatusChip(
+                        label: request.post?.isFinished == true ? 'Finished' : 'Canceled',
+                        color: Colors.grey.shade600,
                       )
                     else if (request.post?.isClosed == true)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: _StatusChip(
-                          label: 'Closed',
-                          color: Colors.grey.shade600,
-                        ),
+                      _StatusChip(
+                        label: 'Closed',
+                        color: Colors.grey.shade600,
                       ),
                   ],
                 ),
@@ -459,9 +473,12 @@ class SentRequestCard extends StatelessWidget {
     );
   }
 
-  Color _statusColor(bool? accepted) {
-    if (accepted == null) return Colors.orange;
-    return accepted ? const Color(0xFF00C875) : Colors.red;
+  Color _statusColor(PlayRequestResponse request) {
+    if (request.playRequestState == 'ExpiredPlayRequestState' || request.playRequestState == 'CanceledPlayRequestState') {
+      return Colors.grey.shade600;
+    }
+    if (request.isAccepted == null) return Colors.orange;
+    return request.isAccepted! ? const Color(0xFF00C875) : Colors.red;
   }
 }
 

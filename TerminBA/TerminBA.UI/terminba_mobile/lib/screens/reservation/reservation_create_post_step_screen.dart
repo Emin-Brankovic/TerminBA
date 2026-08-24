@@ -115,12 +115,7 @@ class _ReservationCreatePostStepScreenState
                   }
                 },
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => _onSkip(notifier),
-                  child: const Text('Skip', style: TextStyle(color: Colors.black)),
-                ),
-              ],
+
             ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -239,23 +234,41 @@ class _ReservationCreatePostStepScreenState
           bottomNavigationBar: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              child: ElevatedButton(
-                onPressed: () => _onNext(notifier),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _onNext(notifier),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Next',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Next →',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => _onSkip(notifier),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade400),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text('Skip', style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
-                ),
+                ],
               ),
             ),
           ),

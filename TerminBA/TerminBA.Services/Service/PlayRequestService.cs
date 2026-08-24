@@ -76,10 +76,13 @@ namespace TerminBA.Services.Service
                 query = query.Where(pr => pr.RequesterId == search.RequesterId.Value);
 
             if (search.RecipientUserId.HasValue)
-                query=query.Where(pr=>pr.Post!.Reservation!.UserId== search.RecipientUserId.Value);
+                query=query.Where(pr=>pr.Post!.Reservation!.UserId == search.RecipientUserId.Value);
 
-            if(search.DateOfRequest.HasValue)
-                query=query.Where(pr=>pr.DateOfRequest!.Value.Date== search.DateOfRequest.Value.Date);
+            if (search.DateOfRequest.HasValue)
+            {
+                var targetDate = search.DateOfRequest.Value.Date;
+                query = query.Where(pr => pr.DateOfRequest >= targetDate && pr.DateOfRequest < targetDate.AddDays(1));
+            }
 
             if (!string.IsNullOrEmpty(search.PlayRequestState))
             {
@@ -91,6 +94,8 @@ namespace TerminBA.Services.Service
                     query = query.Where(pr => pr.PlayRequestState == "RejectedPlayRequestState");
                 else if (search.PlayRequestState.ToLower() == "canceled")
                     query = query.Where(pr => pr.PlayRequestState == "CanceledPlayRequestState");
+                else if (search.PlayRequestState.ToLower() == "expired")
+                    query = query.Where(pr => pr.PlayRequestState == "ExpiredPlayRequestState");
                 else
                     query = query.Where(pr => pr.PlayRequestState == search.PlayRequestState);
             }

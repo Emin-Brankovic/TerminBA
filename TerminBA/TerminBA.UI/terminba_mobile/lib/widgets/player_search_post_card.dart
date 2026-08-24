@@ -69,9 +69,14 @@ class PlayerSearchPostCard extends StatelessWidget {
         : '??';
 
     return Card(
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
+      shadowColor: Colors.black.withOpacity(0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200, width: 1),
+      ),
+      elevation: 3,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

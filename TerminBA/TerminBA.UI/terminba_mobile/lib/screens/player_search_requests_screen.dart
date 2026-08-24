@@ -95,8 +95,8 @@ class _PlayerSearchRequestsScreenState
           'RecipientUserId': _currentUserId,
           'Page': pageKey,
           'PageSize': _pageSize,
-          if (_selectedDate != null) 'DateOfRequest': _selectedDate!.toIso8601String(),
-          if (_selectedStatus != null) 'Status': _selectedStatus,
+          if (_selectedDate != null) 'DateOfRequest': '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+          if (_selectedStatus != null) 'PlayRequestState': _selectedStatus,
           if (_selectedPostId != null) 'PostId': _selectedPostId,
         },
       );
@@ -136,8 +136,8 @@ class _PlayerSearchRequestsScreenState
           'RequesterId': _currentUserId,
           'Page': pageKey,
           'PageSize': _pageSize,
-          if (_selectedDate != null) 'DateOfRequest': _selectedDate!.toIso8601String(),
-          if (_selectedStatus != null) 'Status': _selectedStatus,
+          if (_selectedDate != null) 'DateOfRequest': '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}',
+          if (_selectedStatus != null) 'PlayRequestState': _selectedStatus,
         },
       );
       final items = result.items ?? [];
@@ -324,7 +324,9 @@ class _PlayerSearchRequestsScreenState
                       DropdownMenuItem(value: null, child: Text('All')),
                       DropdownMenuItem(value: 'pending', child: Text('Pending')),
                       DropdownMenuItem(value: 'accepted', child: Text('Accepted')),
-                      DropdownMenuItem(value: 'denied', child: Text('Denied')),
+                      DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
+                      DropdownMenuItem(value: 'canceled', child: Text('Canceled')),
+                      DropdownMenuItem(value: 'expired', child: Text('Expired')),
                     ],
                     onChanged: (val) {
                       setSheetState(() => _selectedStatus = val);

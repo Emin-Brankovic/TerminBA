@@ -18,13 +18,6 @@ class ReservationSummaryScreen extends StatefulWidget {
 }
 
 class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
-  final TextEditingController _notesController = TextEditingController();
-
-  @override
-  void dispose() {
-    _notesController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,20 +101,6 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
           _BillDetailsSection(state: state),
           const SizedBox(height: 24),
 
-          // ── Additional notes ─────────────────────────────────────────────
-          _SectionHeader(title: 'Additional Notes'),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _notesController,
-            maxLines: 3,
-            onChanged: notifier.setNotes,
-            decoration: InputDecoration(
-              hintText: 'Add any special requests or notes (optional)...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
           const SizedBox(height: 100),
         ],
       ),
@@ -181,7 +160,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
                         ),
                       )
                     : const Text(
-                        'PROCEED TO PAY →',
+                        'PROCEED TO PAY',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),

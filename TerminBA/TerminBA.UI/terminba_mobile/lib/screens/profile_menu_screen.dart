@@ -65,7 +65,7 @@ class ProfileMenuScreen extends StatelessWidget {
           _listItem(
             context,
             icon: Icons.star_outline,
-            title: 'My Reviews',
+            title: 'Reviews Received',
             color: accent,
             onTap: () {
               Navigator.push(
@@ -76,8 +76,8 @@ class ProfileMenuScreen extends StatelessWidget {
           ),
           _listItem(
             context,
-            icon: Icons.star_outline,
-            title: 'Left Reviews',
+            icon: Icons.rate_review_outlined,
+            title: 'Reviews Given',
             color: accent,
             onTap: () {
               Navigator.push(

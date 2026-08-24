@@ -555,7 +555,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                   ),
                 ),
                 child: const Text(
-                  'PROCEED →',
+                  'PROCEED',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),

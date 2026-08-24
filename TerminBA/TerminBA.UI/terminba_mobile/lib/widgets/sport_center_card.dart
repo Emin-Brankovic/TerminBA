@@ -29,18 +29,24 @@ class SportCenterCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Card(
+        color: Colors.white,
         margin: const EdgeInsets.only(bottom: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shadowColor: Colors.black.withOpacity(0.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        elevation: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
-              aspectRatio: 16 / 9,
+              aspectRatio: 21 / 9,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
+                  top: Radius.circular(16),
                 ),
                 child: imageUrl == null
                     ? Container(
