@@ -26,6 +26,9 @@ class NotificationService {
   final _joinRequestCancelledController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get onJoinRequestCancelled => _joinRequestCancelledController.stream;
 
+  final _reservationCanceledController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get onReservationCanceled => _reservationCanceledController.stream;
+
   Future<void> init() async {
     final token = await _storage.read(key: _tokenKey);
     if (token == null) return;
@@ -67,6 +70,17 @@ class NotificationService {
           _joinRequestCancelledController.add(payload);
         } else if (payload is Map) {
           _joinRequestCancelledController.add(Map<String, dynamic>.from(payload));
+        }
+      }
+    });
+
+    _hubConnection?.on('reservation_canceled', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final payload = arguments.first;
+        if (payload is Map<String, dynamic>) {
+          _reservationCanceledController.add(payload);
+        } else if (payload is Map) {
+          _reservationCanceledController.add(Map<String, dynamic>.from(payload));
         }
       }
     });

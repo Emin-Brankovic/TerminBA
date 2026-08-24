@@ -35,12 +35,11 @@ namespace TerminBA.Services.PostStateMachine
             if (entity == null)
                 throw new UserException("Post was not found");
 
-            if(request.NumberOfPlayersWanted>entity.NumberOfPlayersWanted)
+            if(request.NumberOfPlayersWanted > entity.NumberOfPlayersWanted)
                 entity.PostState=nameof(PlayerSearchPostState);
 
-            if (request.NumberOfPlayersWanted < entity.NumberOfPlayersWanted
-                && entity.NumberOfPlayersFound > request.NumberOfPlayersWanted)
-                throw new UserException("Can't decrease number of wanted players, remove an accepted");
+            if (request.NumberOfPlayersWanted < entity.NumberOfPlayersWanted)
+                throw new UserException("You can only increase the number of players.");
 
             _mapper.Map(request, entity);
 

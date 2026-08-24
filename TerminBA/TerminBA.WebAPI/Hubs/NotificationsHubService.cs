@@ -26,5 +26,10 @@ namespace TerminBA.WebAPI.Hubs
         {
             await _hubContext.Clients.User(postOwnerUserId.ToString()).SendAsync("join_request_cancelled", payload);
         }
+
+        public async Task SendReservationCanceledNotificationAsync(int requesterUserId, object payload)
+        {
+            await _hubContext.Clients.User(requesterUserId.ToString()).SendAsync("reservation_canceled", payload);
+        }
     }
 }

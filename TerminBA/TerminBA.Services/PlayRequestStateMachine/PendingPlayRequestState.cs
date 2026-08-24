@@ -28,6 +28,10 @@ namespace TerminBA.Services.PlayRequestStateMachine
             if (playRequest == null)
                 throw new UserException("The request does not exist");
 
+            var postState = playRequest.Post?.PostState;
+            if (postState == nameof(ClosedPostState) || postState == nameof(FinishedPostState) || postState == nameof(CanceledReservationPostState))
+                throw new UserException("Cannot respond to play requests while the post is closed, finished, or canceled.");
+
             var postOwnerId = playRequest.Post?.Reservation?.UserId;
             if (postOwnerId != currentUserId)
                 throw new UserException("You are not authorized to respond to this request.");
@@ -84,6 +88,10 @@ namespace TerminBA.Services.PlayRequestStateMachine
 
             if (playRequest == null)
                 throw new UserException("The request does not exist");
+
+            var postState = playRequest.Post?.PostState;
+            if (postState == nameof(ClosedPostState) || postState == nameof(FinishedPostState) || postState == nameof(CanceledReservationPostState))
+                throw new UserException("Cannot respond to play requests while the post is closed, finished, or canceled.");
 
             var postOwnerId = playRequest.Post?.Reservation?.UserId;
             if (postOwnerId != currentUserId)

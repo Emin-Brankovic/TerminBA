@@ -26,5 +26,13 @@ namespace TerminBA.WebAPI.Controllers
 
             return post;
         }
+
+        [HttpPut("reopenPost/{id}")]
+        public async Task<PostResponse> ReopenPost(int id)
+        {
+            var post = await _postService.ReopenPost(id);
+
+            return post;
+        }
     }
 }

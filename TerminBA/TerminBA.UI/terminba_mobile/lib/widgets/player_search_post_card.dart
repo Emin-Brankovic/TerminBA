@@ -8,6 +8,7 @@ class PlayerSearchPostCard extends StatelessWidget {
   final String? requestStatus;
   final VoidCallback? onSendRequest;
   final VoidCallback? onClosePost;
+  final VoidCallback? onReopenPost;
   final VoidCallback? onEditPost;
 
   const PlayerSearchPostCard({
@@ -17,6 +18,7 @@ class PlayerSearchPostCard extends StatelessWidget {
     this.requestStatus,
     this.onSendRequest,
     this.onClosePost,
+    this.onReopenPost,
     this.onEditPost,
   });
 
@@ -202,7 +204,7 @@ class PlayerSearchPostCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: isOwner
-                  ? (post.isClosed
+                  ? (post.isFinished || post.isCanceled
                       ? Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -212,11 +214,28 @@ class PlayerSearchPostCard extends StatelessWidget {
                             border: Border.all(color: Colors.grey),
                           ),
                           alignment: Alignment.center,
-                          child: const Text(
-                            'Closed',
-                            style: TextStyle(
+                          child: Text(
+                            post.isFinished ? 'Finished' : 'Canceled',
+                            style: const TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : post.isClosed
+                      ? Container(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: onReopenPost,
+                            icon: const Icon(Icons.refresh, size: 16),
+                            label: const Text('Reopen Post'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.green.shade600,
+                              side: BorderSide(color: Colors.green.shade300),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
                         )

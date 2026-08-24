@@ -147,7 +147,7 @@ namespace TerminBA.Services.Service
                 {
                     reservation.Status = nameof(ActiveReservationState);
 
-                    await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
+                    //await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
                 }
                 await _context.SaveChangesAsync();
             }

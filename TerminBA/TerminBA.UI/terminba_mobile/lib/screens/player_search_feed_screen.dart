@@ -279,6 +279,50 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
     }
   }
 
+  Future<void> _onReopenPost(PostResponse post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reopen Post?'),
+        content: const Text(
+          'This will reopen the post, making it visible again and allowing new players to join.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Reopen Post'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await context.read<PostProvider>().reopenPost(post.id);
+        _pagingController.refresh();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post reopened successfully.')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -367,6 +411,7 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
                         requestStatus: _postRequestStatus[post.id],
                         onSendRequest: () => _onSendRequest(post),
                         onClosePost: () => _onClosePost(post),
+                        onReopenPost: post.isClosed ? () => _onReopenPost(post) : null,
                       );
                     },
                     firstPageProgressIndicatorBuilder: (_) =>

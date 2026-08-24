@@ -44,7 +44,7 @@ namespace TerminBA.Services.PlayRequestStateMachine
             if (post!.NumberOfPlayersFound > 0)
                 post!.NumberOfPlayersFound--;
 
-            if (post.NumberOfPlayersFound < post.NumberOfPlayersWanted)
+            if (post.NumberOfPlayersFound < post.NumberOfPlayersWanted && post.PostState != nameof(ClosedPostState))
             {
                 post.PostState = nameof(PlayerSearchPostState);
             }

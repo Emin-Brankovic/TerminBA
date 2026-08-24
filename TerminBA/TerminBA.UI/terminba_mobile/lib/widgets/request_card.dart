@@ -53,7 +53,9 @@ class ReceivedRequestCard extends StatelessWidget {
 
     final bool alreadyResponded = request.isAccepted != null;
     final bool isPostClosed = request.post?.isClosed == true;
-    final bool canRespond = !alreadyResponded && !isPostClosed;
+    final bool isExpired = request.playRequestState == 'ExpiredPlayRequestState';
+    final bool isFinishedOrCanceled = request.post?.isFinished == true || request.post?.isCanceled == true;
+    final bool canRespond = !alreadyResponded && !isPostClosed && !isExpired && !isFinishedOrCanceled;
 
     final post = request.post;
     final facility = post?.reservation?.facility;
@@ -143,7 +145,12 @@ class ReceivedRequestCard extends StatelessWidget {
                       ),
                     if (isPostClosed)
                       _StatusChip(
-                        label: 'Finished',
+                        label: 'Closed',
+                        color: Colors.grey.shade600,
+                      ),
+                    if (isFinishedOrCanceled)
+                      _StatusChip(
+                        label: request.post?.isFinished == true ? 'Finished' : 'Canceled',
                         color: Colors.grey.shade600,
                       ),
                   ],
@@ -235,20 +242,22 @@ class ReceivedRequestCard extends StatelessWidget {
               const SizedBox(height: 14),
               Row(
                 children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: onAccept,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C875),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  if (request.post?.postState != 'PlayerFoundPostState') ...[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: onAccept,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00C875),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
+                        child: const Text('Accept'),
                       ),
-                      child: const Text('Accept'),
                     ),
-                  ),
-                  const SizedBox(width: 10),
+                    const SizedBox(width: 10),
+                  ],
                   Expanded(
                     child: OutlinedButton(
                       onPressed: onDeny,
@@ -357,11 +366,19 @@ class SentRequestCard extends StatelessWidget {
                       label: request.statusLabel,
                       color: _statusColor(request.isAccepted),
                     ),
-                    if (request.post?.isClosed == true)
+                    if (request.post?.isFinished == true || request.post?.isCanceled == true)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: _StatusChip(
-                          label: 'Finished',
+                          label: request.post?.isFinished == true ? 'Finished' : 'Canceled',
+                          color: Colors.grey.shade600,
+                        ),
+                      )
+                    else if (request.post?.isClosed == true)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: _StatusChip(
+                          label: 'Closed',
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -419,7 +436,7 @@ class SentRequestCard extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
 
-            if ((request.playRequestState == 'PendingPlayRequestState' || request.playRequestState == 'AcceptedPlayRequestState') && request.post?.isClosed != true) ...[
+            if ((request.playRequestState == 'PendingPlayRequestState' || request.playRequestState == 'AcceptedPlayRequestState') && request.post?.isFinished != true && request.post?.isCanceled != true) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,

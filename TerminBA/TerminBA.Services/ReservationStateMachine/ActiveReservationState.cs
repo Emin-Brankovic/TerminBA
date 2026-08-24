@@ -8,6 +8,8 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
+using TerminBA.Services.PlayRequestStateMachine;
+using TerminBA.Services.PostStateMachine;
 
 namespace TerminBA.Services.ReservationStateMachine
 {
@@ -102,6 +104,43 @@ namespace TerminBA.Services.ReservationStateMachine
                 }
 
                 entity.CanceledAt = DateTime.UtcNow;
+
+                var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
+                if (post != null)
+                {
+                    post.PostState = nameof(CanceledReservationPostState);
+
+                    var pendingRequests = await _context.PlayRequests
+                        .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(PendingPlayRequestState))
+                        .ToListAsync();
+
+                    foreach (var pr in pendingRequests)
+                    {
+                        pr.PlayRequestState = nameof(ExpiredPlayRequestState);
+                        pr.Reason = "The reservation was canceled before the post owner evaluated your request.";
+                    }
+
+                    var acceptedRequests = await _context.PlayRequests
+                        .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
+                        .ToListAsync();
+
+                    var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
+                    if (notificationHubService != null && acceptedRequests.Any())
+                    {
+                        foreach (var ar in acceptedRequests)
+                        {
+                            var payload = new
+                            {
+                                type = "reservation_canceled",
+                                postId = post.Id,
+                                reservationId = id,
+                                canceledAt = DateTime.UtcNow.ToString("o")
+                            };
+                            await notificationHubService.SendReservationCanceledNotificationAsync(ar.RequesterId, payload);
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -165,7 +204,9 @@ namespace TerminBA.Services.ReservationStateMachine
         {
             ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
 
-            var allSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
+            var targetFacilityId = request.FacilityId ?? entity.FacilityId;
+
+            var allSlots = await TimeSlotHelper.GenerateTimeSlots(targetFacilityId, request.ReservationDate, _context);
             var slot = allSlots.FirstOrDefault(t =>
                 t.Start == request.StartTime.ToTimeSpan() &&
                 t.End == request.EndTime.ToTimeSpan());
@@ -174,7 +215,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 throw new UserException("Can't pick a non existing time slot.");
 
             var hasConflict = await _context.Reservations
-                .AnyAsync(r => r.FacilityId == request.FacilityId
+                .AnyAsync(r => r.FacilityId == targetFacilityId
                                && r.ReservationDate == request.ReservationDate
                                && r.Id != entity.Id
                                && request.StartTime < r.EndTime
@@ -186,7 +227,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
             var facility = await _context.Facilities
                 .Include(f => f.DynamicPrices)
-                .FirstOrDefaultAsync(f => f.Id == request.FacilityId);
+                .FirstOrDefaultAsync(f => f.Id == targetFacilityId);
 
             if (facility == null)
                 throw new UserException("Facility not found.");

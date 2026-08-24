@@ -113,7 +113,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Close Post?'),
         content: const Text(
-          'This will mark the post as closed. It will no longer appear in the public feed and will stop accepting new requests.',
+          'This will mark the post as closed. It will no longer appear in the public feed and will stop accepting new requests. It can be reopened before the reservation starts.',
         ),
         actions: [
           TextButton(
@@ -145,6 +145,50 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to close post: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _onReopenPost(PostResponse post) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reopen Post?'),
+        content: const Text(
+          'This will reopen the post, making it visible again and allowing new players to join.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Reopen Post'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await context.read<PostProvider>().reopenPost(post.id);
+        _pagingController.refresh();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post reopened successfully.')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to reopen post: $e')),
           );
         }
       }
@@ -231,8 +275,9 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
                   itemBuilder: (ctx, post, _) => PlayerSearchPostCard(
                     post: post,
                     isOwner: true,
-                    onClosePost: post.isActive ? () => _onClosePost(post) : null,
-                    onEditPost: post.isActive ? () => _onEditPost(post) : null,
+                    onClosePost: (post.isActive || post.postState == 'PlayerFoundPostState') ? () => _onClosePost(post) : null,
+                    onReopenPost: post.isClosed ? () => _onReopenPost(post) : null,
+                    onEditPost: (post.isActive || post.postState == 'PlayerFoundPostState') ? () => _onEditPost(post) : null,
                   ),
                   firstPageProgressIndicatorBuilder: (_) =>
                       const Center(child: CircularProgressIndicator()),

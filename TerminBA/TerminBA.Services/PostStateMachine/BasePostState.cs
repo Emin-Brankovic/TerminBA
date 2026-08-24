@@ -61,6 +61,11 @@ namespace TerminBA.Services.PostStateMachine
 
 
 
+        public virtual Task<PostResponse> ReopenAsync(int id)
+        {
+            throw new UserException("Method not allowed");
+        }
+
         public BasePostState GetPostState(string CurrentPostStateName)
         {
             switch (CurrentPostStateName)
@@ -73,6 +78,10 @@ namespace TerminBA.Services.PostStateMachine
                     return _serviceProvider.GetService<PlayerFoundPostState>()!;
                 case nameof(ClosedPostState):
                     return _serviceProvider.GetService<ClosedPostState>()!;
+                case nameof(FinishedPostState):
+                    return _serviceProvider.GetService<FinishedPostState>()!;
+                case nameof(CanceledReservationPostState):
+                    return _serviceProvider.GetService<CanceledReservationPostState>()!;
                 default:
                     throw new UserException($"State {CurrentPostStateName} is not defined");
             }

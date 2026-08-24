@@ -26,8 +26,9 @@ class PostResponse {
   });
 
   bool get isActive => postState == 'PlayerSearchPostState';
-  bool get isClosed =>
-      postState == 'ClosedPostState' || postState == 'PlayerFoundPostState';
+  bool get isClosed => postState == 'ClosedPostState';
+  bool get isFinished => postState == 'FinishedPostState';
+  bool get isCanceled => postState == 'CanceledReservationPostState';
 
   factory PostResponse.fromJson(Map<String, dynamic> json) =>
       _$PostResponseFromJson(json);

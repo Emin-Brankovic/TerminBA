@@ -66,7 +66,7 @@ namespace TerminBA.Services.Database
             }
 
             CreateConfiguration(modelBuilder);
-            CreateSeed(modelBuilder);
+            //CreateSeed(modelBuilder);
 
         }
     }

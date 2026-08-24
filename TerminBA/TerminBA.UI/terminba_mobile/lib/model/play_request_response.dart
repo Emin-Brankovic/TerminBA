@@ -20,6 +20,7 @@ class PlayRequestResponse {
 
   bool? get isAccepted {
     if (playRequestState == 'PendingPlayRequestState') return null;
+    if (playRequestState == 'ExpiredPlayRequestState') return null;
     if (playRequestState == 'AcceptedPlayRequestState') return true;
     return false;
   }
@@ -51,6 +52,7 @@ class PlayRequestResponse {
 
   /// Returns a human-readable status string.
   String get statusLabel {
+    if (playRequestState == 'ExpiredPlayRequestState') return 'Expired';
     if (isAccepted == null) return 'Pending';
     if (isAccepted == true) return 'Accepted';
     return 'Denied';

@@ -191,5 +191,14 @@ namespace TerminBA.Services.Service
 
             return await baseState.ClosePost(entity);
         }
+
+        public async Task<PostResponse> ReopenPost(int id)
+        {
+            var entity = await _context.Posts.FindAsync(id);
+
+            var baseState = _basePostState.GetPostState(entity!.PostState);
+
+            return await baseState.ReopenAsync(id);
+        }
     }
 }

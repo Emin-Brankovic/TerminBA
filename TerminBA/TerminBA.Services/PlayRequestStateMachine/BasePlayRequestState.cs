@@ -52,6 +52,8 @@ namespace TerminBA.Services.PlayRequestStateMachine
                     return _serviceProvider.GetService<RejectedPlayRequestState>()!;
                 case nameof(CanceledPlayRequestState):
                     return _serviceProvider.GetService<CanceledPlayRequestState>()!;
+                case nameof(ExpiredPlayRequestState):
+                    return _serviceProvider.GetService<ExpiredPlayRequestState>()!;
                 default:
                     throw new UserException($"State {currentStateName} is not defined");
             }

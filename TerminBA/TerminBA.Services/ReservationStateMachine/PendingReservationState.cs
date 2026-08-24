@@ -8,6 +8,8 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
 using TerminBA.Services.Helpers;
+using TerminBA.Services.PlayRequestStateMachine;
+using TerminBA.Services.PostStateMachine;
 
 namespace TerminBA.Services.ReservationStateMachine
 {
@@ -49,7 +51,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.Status = nameof(ActiveReservationState);
                 await _context.SaveChangesAsync();
                 var userId=entity.UserId ?? throw new UserException("UserId is null");
-                await SendEmailAsync(entity.Id);
+                //await SendEmailAsync(entity.Id);
                 return _mapper.Map<ReservationResponse>(entity);
             }
 
@@ -66,6 +68,42 @@ namespace TerminBA.Services.ReservationStateMachine
 
             entity.Status = nameof(CanceledWithoutRefundReservationState);
             entity.CanceledAt = DateTime.UtcNow;
+
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
+            if (post != null)
+            {
+                post.PostState = nameof(CanceledReservationPostState);
+
+                var pendingRequests = await _context.PlayRequests
+                    .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(PendingPlayRequestState))
+                    .ToListAsync();
+
+                foreach (var pr in pendingRequests)
+                {
+                    pr.PlayRequestState = nameof(ExpiredPlayRequestState);
+                    pr.Reason = "The reservation was canceled before the post owner evaluated your request.";
+                }
+
+                var acceptedRequests = await _context.PlayRequests
+                    .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
+                    .ToListAsync();
+
+                var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
+                if (notificationHubService != null && acceptedRequests.Any())
+                {
+                    foreach (var ar in acceptedRequests)
+                    {
+                        var payload = new
+                        {
+                            type = "reservation_canceled",
+                            postId = post.Id,
+                            reservationId = id,
+                            canceledAt = DateTime.UtcNow.ToString("o")
+                        };
+                        await notificationHubService.SendReservationCanceledNotificationAsync(ar.RequesterId, payload);
+                    }
+                }
+            }
 
             await _context.SaveChangesAsync();
 

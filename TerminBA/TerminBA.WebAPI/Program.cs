@@ -41,17 +41,22 @@ builder.Services.AddScoped<IPlayRequestService, PlayRequestService>();
 builder.Services.AddScoped<ICancelationNotificationService, CancelationNotificationService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddScoped<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
+//Post states
 builder.Services.AddScoped<BasePostState>();
 builder.Services.AddScoped<DraftPostState>();
 builder.Services.AddScoped<PlayerSearchPostState>();
 builder.Services.AddScoped<PlayerFoundPostState>();
 builder.Services.AddScoped<ClosedPostState>();
+builder.Services.AddScoped<FinishedPostState>();
+builder.Services.AddScoped<CanceledReservationPostState>();
+//Reservation states
 builder.Services.AddScoped<BaseReservationState>();
 builder.Services.AddScoped<ActiveReservationState>();
 builder.Services.AddScoped<CanceledReservationState>();
 builder.Services.AddScoped<PendingReservationState>();
 builder.Services.AddScoped<CanceledWithRefundReservationState>();
 builder.Services.AddScoped<CanceledWithoutRefundReservationState>();
+
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<IReportService,ReportService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
@@ -68,6 +73,7 @@ builder.Services.AddScoped<PendingPlayRequestState>();
 builder.Services.AddScoped<AcceptedPlayRequestState>();
 builder.Services.AddScoped<RejectedPlayRequestState>();
 builder.Services.AddScoped<CanceledPlayRequestState>();
+builder.Services.AddScoped<ExpiredPlayRequestState>();
 
 // Stripe payment service (reads StripeSecretKey from env, secret stays server-side)
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
