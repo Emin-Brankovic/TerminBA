@@ -220,7 +220,7 @@ class _SportCenterProfileScreenState extends State<SportCenterProfileScreen> {
 			crossAxisAlignment: CrossAxisAlignment.start,
 			children: [
 				Text(
-					sportCenter.username,
+					sportCenter.displayName ?? "N/A",
 					style: textTheme.headlineSmall?.copyWith(
 						fontWeight: FontWeight.w700,
 					),

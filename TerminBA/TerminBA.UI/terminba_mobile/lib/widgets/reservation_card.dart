@@ -59,6 +59,17 @@ class ReservationCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
+                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                    const SizedBox(width: 6),
+                    Text(
+                      reservation.facility?.sportCenter?.displayName ?? '',
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
                     const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                     const SizedBox(width: 6),
                     Text(

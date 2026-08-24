@@ -15,7 +15,7 @@ import 'package:terminba_sport_center_desktop/model/sport.dart';
 import 'package:terminba_sport_center_desktop/model/turf_type.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
+import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart';
 
 class FacilityInsertScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   final _minutesController = TextEditingController();
 
   late FacilityProvider _facilityProvider;
-  late SportProvider _sportProvider;
+  late SportCenterProvider _sportCenterProvider;
   late TurfTypeProvider _turfTypeProvider;
   late AuthProvider _authProvider;
 
@@ -67,7 +67,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
 
     _initialized = true;
     _facilityProvider = context.read<FacilityProvider>();
-    _sportProvider = context.read<SportProvider>();
+    _sportCenterProvider = context.read<SportCenterProvider>();
     _turfTypeProvider = context.read<TurfTypeProvider>();
     _authProvider = context.read<AuthProvider>();
     _applyFacilityDefaults();
@@ -107,22 +107,21 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   Future<void> _loadReferenceData() async {
     setState(() => _isLoading = true);
     try {
+      final userId = await _authProvider.getCurrentUserId();
       final results = await Future.wait([
-        _sportProvider.get(),
+        if (userId != null) _sportCenterProvider.getById(userId) else Future.value(null),
         _turfTypeProvider.get(),
-        _authProvider.getCurrentUserId(),
       ]);
 
       setState(() {
+        _sportCenterId = userId;
         _sports
           ..clear()
-          ..addAll((results[0] as dynamic).items?.cast<Sport>() ?? <Sport>[]);
+          ..addAll((results[0] as dynamic)?.availableSports?.cast<Sport>() ?? <Sport>[]);
 
         _turfTypes
           ..clear()
           ..addAll((results[1] as dynamic).items?.cast<TurfType>() ?? <TurfType>[]);
-
-        _sportCenterId = results[2] as int?;
       });
     } catch (e) {
       debugPrint('Error loading facility reference data: $e');

@@ -235,10 +235,10 @@ namespace TerminBA.Services.Service
 
             if (entity.Name!.ToLower() != request.Name!.ToLower())
             {
-                var sameNameCenter = await _context.Facilities.AnyAsync(sc => sc.Name!.ToLower() == request.Name!.ToLower());
+                var sameNameCenter = await _context.Facilities.AnyAsync(sc => sc.SportCenterId == request.SportCenterId && sc.Name!.ToLower() == request.Name!.ToLower());
 
                 if (sameNameCenter)
-                    throw new UserException($"Facility with name: {request.Name} already exits.");
+                    throw new UserException($"Facility with name: {request.Name} already exits in your sport center.");
             }
 
 

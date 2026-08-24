@@ -219,7 +219,7 @@ class ReceivedRequestCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    '${facility?.sportCenter?.username != null && facility!.sportCenter!.username!.isNotEmpty ? '${facility.sportCenter!.username} - ' : ''}${facility?.name ?? ''}'
+                    '${facility?.sportCenter?.displayName != null && facility!.sportCenter!.displayName!.isNotEmpty ? '${facility.sportCenter!.displayName} - ' : ''}${facility?.name ?? ''}'
                     '${city.isNotEmpty ? ', $city' : ''}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
@@ -355,7 +355,7 @@ class SentRequestCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${facility?.sportCenter?.username != null && facility!.sportCenter!.username!.isNotEmpty ? '${facility.sportCenter!.username} - ' : ''}${facility?.name ?? 'Unknown facility'}',
+                        '${facility?.sportCenter?.displayName != null && facility!.sportCenter!.displayName!.isNotEmpty ? '${facility.sportCenter!.displayName} - ' : ''}${facility?.name ?? 'Unknown facility'}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,

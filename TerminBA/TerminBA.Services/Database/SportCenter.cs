@@ -14,6 +14,10 @@ namespace TerminBA.Services.Database
     {
 
         [Required]
+        [MaxLength(100)]
+        public string? DisplayName { get; set; }
+
+        [Required]
         public string? Address { get; set; }
 
         [Required]

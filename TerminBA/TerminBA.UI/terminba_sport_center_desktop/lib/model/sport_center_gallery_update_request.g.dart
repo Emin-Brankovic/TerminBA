@@ -9,7 +9,7 @@ part of 'sport_center_gallery_update_request.dart';
 SportCenterGalleryUpdateRequest _$SportCenterGalleryUpdateRequestFromJson(
   Map<String, dynamic> json,
 ) => SportCenterGalleryUpdateRequest(
-  photos: _bytesListFromJson(json['photos'] as List<dynamic>?),
+  photos: _bytesListFromJson(json['photos'] as List?),
   removedPhotoIds: (json['removedPhotoIds'] as List<dynamic>?)
       ?.map((e) => (e as num).toInt())
       .toList(),

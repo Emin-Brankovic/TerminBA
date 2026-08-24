@@ -31,20 +31,20 @@ ReservationResponse _$ReservationResponseFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ReservationResponseToJson(
-        ReservationResponse instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'userId': instance.userId,
-      'user': instance.user?.toJson(),
-      'facilityId': instance.facilityId,
-      'facility': instance.facility?.toJson(),
-      'reservationDate': instance.reservationDate,
-      'startTime': instance.startTime,
-      'endTime': instance.endTime,
-      'status': instance.status,
-      'price': instance.price,
-      'chosenSportId': instance.chosenSportId,
-      'chosenSport': instance.chosenSport?.toJson(),
-      'isPaid': instance.isPaid,
-      'hasActivePost': instance.hasActivePost,
-    };
+  ReservationResponse instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'userId': instance.userId,
+  'user': instance.user?.toJson(),
+  'facilityId': instance.facilityId,
+  'facility': instance.facility?.toJson(),
+  'reservationDate': instance.reservationDate,
+  'startTime': instance.startTime,
+  'endTime': instance.endTime,
+  'status': instance.status,
+  'price': instance.price,
+  'chosenSportId': instance.chosenSportId,
+  'chosenSport': instance.chosenSport?.toJson(),
+  'isPaid': instance.isPaid,
+  'hasActivePost': instance.hasActivePost,
+};

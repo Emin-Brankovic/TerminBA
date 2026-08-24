@@ -16,7 +16,7 @@ UserInsertRequest _$UserInsertRequestFromJson(Map<String, dynamic> json) =>
       instagramAccount: json['instagramAccount'] as String?,
       password: json['password'] as String,
       birthDate: _dateOnlyFromJson(json['birthDate'] as String),
-      cityId: (json['cityId'] as num).toInt()
+      cityId: (json['cityId'] as num).toInt(),
     );
 
 Map<String, dynamic> _$UserInsertRequestToJson(UserInsertRequest instance) =>
@@ -29,5 +29,5 @@ Map<String, dynamic> _$UserInsertRequestToJson(UserInsertRequest instance) =>
       'instagramAccount': instance.instagramAccount,
       'password': instance.password,
       'birthDate': _dateOnlyToJson(instance.birthDate),
-      'cityId': instance.cityId
+      'cityId': instance.cityId,
     };

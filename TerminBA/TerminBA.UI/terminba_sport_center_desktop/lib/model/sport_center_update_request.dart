@@ -6,6 +6,7 @@ part 'sport_center_update_request.g.dart';
 @JsonSerializable()
 class SportCenterUpdateRequest {
 	String username;
+	String? displayName;
 	String phoneNumber;
 	String? contactEmail;
 	int cityId;
@@ -19,7 +20,7 @@ class SportCenterUpdateRequest {
   double? longitude;
   int cancellationDeadlineHours;
 
-	SportCenterUpdateRequest(this.username,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.sportIds,this.amenityIds,this.workingHours,{this.latitude,this.longitude, required this.cancellationDeadlineHours});
+	SportCenterUpdateRequest(this.username,this.displayName,this.phoneNumber,this.contactEmail,this.cityId,this.address,this.isEquipmentProvided,this.description,this.sportIds,this.amenityIds,this.workingHours,{this.latitude,this.longitude, required this.cancellationDeadlineHours});
 
 	factory SportCenterUpdateRequest.fromJson(Map<String, dynamic> json) => _$SportCenterUpdateRequestFromJson(json);
 

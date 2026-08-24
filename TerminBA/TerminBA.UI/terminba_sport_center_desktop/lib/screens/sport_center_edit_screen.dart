@@ -216,6 +216,7 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
 
     final request = SportCenterUpdateRequest(
       values['username'] as String,
+      values['displayName'] as String,
       values['phoneNumber'] as String,
       values['contactEmail'] as String?,
       values['cityId'] as int,
@@ -560,10 +561,27 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             FormBuilderTextField(
+                              name: 'displayName',
+                              initialValue: widget.sportCenter.displayName ?? '',
+                              decoration: const InputDecoration(
+                                labelText: 'Display Name*',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: FormBuilderValidators.required(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  final generatedUsername = val.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+                                  _formKey.currentState?.fields['username']?.didChange(generatedUsername);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            FormBuilderTextField(
                               name: 'username',
+                              enabled: false,
                               initialValue: widget.sportCenter.username,
                               decoration: const InputDecoration(
-                                labelText: 'Name*',
+                                labelText: 'Username (Generated)',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.required(),

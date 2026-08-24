@@ -9,16 +9,15 @@ part of 'sport_center.dart';
 SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['id'] as num).toInt(),
   json['username'] as String,
+  json['displayName'] as String?,
   json['phoneNumber'] as String,
   json['contactEmail'] as String?,
   (json['cityId'] as num).toInt(),
   json['address'] as String,
   json['isEquipmentProvided'] as bool,
   json['description'] as String,
-  DateTime.parse(json['createdAt'] as String).toLocal(),
-  json['updatedAt'] == null
-      ? null
-      : DateTime.parse(json['updatedAt'] as String).toLocal(),
+  _utcDateTimeFromJson(json['createdAt'] as String),
+  _nullableUtcDateTimeFromJson(json['updatedAt'] as String?),
   (json['roleId'] as num).toInt(),
   (json['availableSports'] as List<dynamic>)
       .map((e) => Sport.fromJson(e as Map<String, dynamic>))
@@ -35,22 +34,21 @@ SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['workingHours'] as List<dynamic>)
       .map((e) => WorkingHours.fromJson(e as Map<String, dynamic>))
       .toList(),
-    (json['photos'] as List<dynamic>?)
-                    ?.map(
-                        (e) => SportCenterPhotoResponse.fromJson(e as Map<String, dynamic>),
-                    )
-                    .toList() ??
-            [],
+  (json['photos'] as List<dynamic>)
+      .map((e) => SportCenterPhotoResponse.fromJson(e as Map<String, dynamic>))
+      .toList(),
   _bytesFromJson(json['credentialsReport']),
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
-  cancellationDeadlineHours: (json['cancellationDeadlineHours'] as num?)?.toInt() ?? 24,
+  cancellationDeadlineHours:
+      (json['cancellationDeadlineHours'] as num?)?.toInt() ?? 24,
 );
 
 Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
     <String, dynamic>{
       'id': instance.id,
       'username': instance.username,
+      'displayName': instance.displayName,
       'phoneNumber': instance.phoneNumber,
       'contactEmail': instance.contactEmail,
       'cityId': instance.cityId,
@@ -58,15 +56,15 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
       'address': instance.address,
       'isEquipmentProvided': instance.isEquipmentProvided,
       'description': instance.description,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'createdAt': _utcDateTimeToJson(instance.createdAt),
+      'updatedAt': _nullableUtcDateTimeToJson(instance.updatedAt),
       'roleId': instance.roleId,
       'role': instance.role,
       'credentialsReport': _bytesToJson(instance.credentialsReport),
       'availableSports': instance.availableSports,
       'availableAmenities': instance.availableAmenities,
       'workingHours': instance.workingHours,
-            'photos': instance.photos,
+      'photos': instance.photos,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
       'cancellationDeadlineHours': instance.cancellationDeadlineHours,

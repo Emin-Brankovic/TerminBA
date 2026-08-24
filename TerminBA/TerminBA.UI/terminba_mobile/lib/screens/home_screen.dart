@@ -396,7 +396,7 @@ class _RecommendationCard extends StatelessWidget {
 
       final initialState = BookingFlowState(
         sportCenterId: facility.sportCenterId,
-        sportCenterName: facility.sportCenter?.username ?? recommendation.sportCenterName,
+        sportCenterName: facility.sportCenter?.displayName ?? recommendation.sportCenterName,
         sportCenterAddress: facility.sportCenter?.address ?? '',
         sport: sport,
         initialDate: start,

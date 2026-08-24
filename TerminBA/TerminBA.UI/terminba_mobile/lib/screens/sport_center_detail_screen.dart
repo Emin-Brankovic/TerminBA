@@ -65,7 +65,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
           final state = notifier.state;
           return Scaffold(
             appBar: AppBar(
-              title: Text(state.sportCenter?.username ?? 'Sport Center'),
+              title: Text(state.sportCenter?.displayName ?? 'Sport Center'),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
@@ -140,7 +140,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
             children: [
               Expanded(
                 child: Text(
-                  center.username,
+                  center.displayName,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -193,7 +193,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
                     MaterialPageRoute(
                       builder: (_) => FacilityReviewsScreen(
                         sportCenterId: center.id,
-                        sportCenterName: center.username,
+                        sportCenterName: center.displayName,
                         averageRating: state.averageRating,
                       ),
                     ),
@@ -267,7 +267,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
 
     if (photoUrls.length == 1) {
       return _imageContainer(
-        child: _buildPhotoImage(photoUrls.first, center.username),
+        child: _buildPhotoImage(photoUrls.first, center.displayName),
       );
     }
 
@@ -283,7 +283,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
           },
           itemBuilder: (context, index) {
             return _imageContainer(
-              child: _buildPhotoImage(photoUrls[index], center.username),
+              child: _buildPhotoImage(photoUrls[index], center.displayName),
             );
           },
         ),
@@ -534,7 +534,7 @@ class _SportCenterDetailScreenState extends State<SportCenterDetailScreen> {
                       MaterialPageRoute(
                         builder: (_) => CourtSelectionScreen(
                           sportCenterId: widget.sportCenterId,
-                          sportCenterName: center?.username ?? 'Facility',
+                          sportCenterName: center?.displayName ?? 'Facility',
                           sportCenterAddress: center?.address ?? '',
                           sport: selectedSport,
                           selectedDate: widget.selectedDate,

@@ -15,6 +15,7 @@ part 'sport_center.g.dart';
 class SportCenter {
   int id;
   String username;
+  String displayName;
   String phoneNumber;
   String? contactEmail;
   int cityId;
@@ -40,6 +41,7 @@ class SportCenter {
   SportCenter(
     this.id,
     this.username,
+    this.displayName,
     this.phoneNumber,
     this.contactEmail,
     this.cityId,

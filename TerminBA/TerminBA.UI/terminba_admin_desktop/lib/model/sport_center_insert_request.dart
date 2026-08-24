@@ -6,6 +6,7 @@ part 'sport_center_insert_request.g.dart';
 @JsonSerializable()
 class SportCenterInsertRequest {
 	String username;
+	String displayName;
 	String phoneNumber;
 	String? contactEmail;
 	int cityId;
@@ -18,6 +19,7 @@ class SportCenterInsertRequest {
 
   SportCenterInsertRequest(
     this.username,
+    this.displayName,
     this.phoneNumber,
     this.contactEmail,
     this.cityId,

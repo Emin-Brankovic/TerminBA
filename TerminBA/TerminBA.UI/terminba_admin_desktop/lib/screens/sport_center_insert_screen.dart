@@ -120,6 +120,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
       if (_isEditing) {
         final updateRequest = SportCenterUpdateRequest(
           values['username'] as String,
+          values['displayName'] as String,
           values['phoneNumber'] as String,
           values['contactEmail'] as String?,
           values['cityId'] as int,
@@ -137,6 +138,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
       } else {
         final insertRequest = SportCenterInsertRequest(
           values['username'] as String,
+          values['displayName'] as String,
           values['phoneNumber'] as String,
           values['contactEmail'] as String?,
           values['cityId'] as int,
@@ -417,16 +419,37 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Display Name
+                            FormBuilderTextField(
+                              name: 'displayName',
+                              initialValue: widget.sportCenter?.displayName,
+                              decoration: const InputDecoration(
+                                labelText: 'Display Name*',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(errorText: 'Display Name is required'),
+                              ]),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  final newUsername = val.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+                                  _formKey.currentState?.fields['username']?.didChange(newUsername);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
                             // Username
                             FormBuilderTextField(
                               name: 'username',
                               initialValue: widget.sportCenter?.username,
+                              enabled: false,
                               decoration: const InputDecoration(
-                                labelText: 'Name*',
+                                labelText: 'Username*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(errorText: 'Name is required'),
+                                FormBuilderValidators.required(errorText: 'Username is required'),
                               ]),
                             ),
                             const SizedBox(height: 16),

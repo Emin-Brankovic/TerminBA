@@ -56,7 +56,7 @@ namespace TerminBA.Services.Service
         public override IQueryable<SportCenter> ApplyFilter(IQueryable<SportCenter> query, SportCenterSearchObject search)
         {
             if (!string.IsNullOrEmpty(search.Name))
-                query = query.Where(sc => sc.Username!.ToLower().Contains(search.Name.ToLower()));
+                query = query.Where(sc => sc.DisplayName!.ToLower().Contains(search.Name.ToLower()));
 
             if (search.CityId.HasValue)
                 query = query.Where(sc => sc.CityId == search.CityId.Value);

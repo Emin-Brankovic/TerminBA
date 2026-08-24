@@ -14,6 +14,8 @@ namespace TerminBA.Models.Model
 
         public string? Username { get; set; }
 
+        public string? DisplayName { get; set; }
+
         public string? PhoneNumber { get; set; }
 
         public string? ContactEmail { get; set; }

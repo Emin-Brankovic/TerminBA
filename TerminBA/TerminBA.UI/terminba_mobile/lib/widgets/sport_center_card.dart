@@ -54,7 +54,7 @@ class SportCenterCard extends StatelessWidget {
                         child: const Icon(Icons.image_not_supported_outlined),
                       )
                     : Semantics(
-                        label: sportCenter.username,
+                        label: sportCenter.displayName,
                         image: true,
                         child: CachedNetworkImage(
                           imageUrl: imageUrl,
@@ -79,7 +79,7 @@ class SportCenterCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sportCenter.username,
+                    sportCenter.displayName,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

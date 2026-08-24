@@ -9,6 +9,7 @@ part of 'sport_center.dart';
 SportCenter _$SportCenterFromJson(Map<String, dynamic> json) => SportCenter(
   (json['id'] as num).toInt(),
   json['username'] as String,
+  json['displayName'] as String,
   json['phoneNumber'] as String,
   json['contactEmail'] as String?,
   (json['cityId'] as num).toInt(),
@@ -45,6 +46,7 @@ Map<String, dynamic> _$SportCenterToJson(SportCenter instance) =>
     <String, dynamic>{
       'id': instance.id,
       'username': instance.username,
+      'displayName': instance.displayName,
       'phoneNumber': instance.phoneNumber,
       'contactEmail': instance.contactEmail,
       'cityId': instance.cityId,

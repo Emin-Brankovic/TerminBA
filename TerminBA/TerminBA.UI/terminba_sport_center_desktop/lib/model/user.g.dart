@@ -19,10 +19,8 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   json['city'] == null
       ? null
       : City.fromJson(json['city'] as Map<String, dynamic>),
-  DateTime.parse(json['createdAt'] as String).toLocal(),
-  json['updatedAt'] == null
-      ? null
-      : DateTime.parse(json['updatedAt'] as String).toLocal(),
+  _utcDateTimeFromJson(json['createdAt'] as String),
+  _nullableUtcDateTimeFromJson(json['updatedAt'] as String?),
 );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -36,6 +34,6 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'birthDate': _dateOnlyToJson(instance.birthDate),
   'cityId': instance.cityId,
   'city': instance.city,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt?.toIso8601String(),
+  'createdAt': _utcDateTimeToJson(instance.createdAt),
+  'updatedAt': _nullableUtcDateTimeToJson(instance.updatedAt),
 };

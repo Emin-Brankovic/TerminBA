@@ -67,7 +67,7 @@ class _SportCenterCardState extends State<SportCenterCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.sportCenter.username,
+                          widget.sportCenter.displayName,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

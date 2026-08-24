@@ -39,7 +39,7 @@ namespace TerminBA.Services.Database
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, Name = "User",             RoleDescription = "Regular user who can make reservations" },
                 new Role { Id = 2, Name = "Sport center",     RoleDescription = "Owner of a sport center" },
-                new Role { Id = 3, Name = "Admin",            RoleDescription = "Administrator with full system access" }
+                new Role { Id = 3, Name = "Administrator",    RoleDescription = "Administrator with full system access" }
             );
         }
 

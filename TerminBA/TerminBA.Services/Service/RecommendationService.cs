@@ -289,7 +289,7 @@ namespace TerminBA.Services.Service
                                 {
                                     FacilityId = facility.Id,
                                     FacilityName = facility.Name ?? string.Empty,
-                                    SportCenterName = facility.SportCenter?.Username ?? string.Empty,
+                                    SportCenterName = facility.SportCenter?.DisplayName ?? string.Empty,
                                     SportIds = facility.AvailableSports.Select(s => s.Id).ToList(),
                                     StartTime = slotStart,
                                     EndTime = slotEnd,

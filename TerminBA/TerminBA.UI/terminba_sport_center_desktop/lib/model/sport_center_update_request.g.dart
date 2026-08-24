@@ -10,6 +10,7 @@ SportCenterUpdateRequest _$SportCenterUpdateRequestFromJson(
   Map<String, dynamic> json,
 ) => SportCenterUpdateRequest(
   json['username'] as String,
+  json['displayName'] as String?,
   json['phoneNumber'] as String,
   json['contactEmail'] as String?,
   (json['cityId'] as num).toInt(),
@@ -23,13 +24,14 @@ SportCenterUpdateRequest _$SportCenterUpdateRequestFromJson(
       .toList(),
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
-  cancellationDeadlineHours: (json['cancellationDeadlineHours'] as num?)?.toInt() ?? 24,
+  cancellationDeadlineHours: (json['cancellationDeadlineHours'] as num).toInt(),
 );
 
 Map<String, dynamic> _$SportCenterUpdateRequestToJson(
   SportCenterUpdateRequest instance,
 ) => <String, dynamic>{
   'username': instance.username,
+  'displayName': instance.displayName,
   'phoneNumber': instance.phoneNumber,
   'contactEmail': instance.contactEmail,
   'cityId': instance.cityId,
