@@ -331,13 +331,13 @@ class _RecommendationCard extends StatelessWidget {
                       label: '$startStr – $endStr',
                     ),
                     const SizedBox(width: 8),
-                    _InfoChip(
-                      icon: Icons.payments_outlined,
-                      label: r.price > 0
-                          ? '${r.price.toStringAsFixed(0)} BAM'
-                          : 'N/A',
-                      highlight: true,
-                    ),
+                    // _InfoChip(
+                    //   icon: Icons.payments_outlined,
+                    //   label: r.price > 0
+                    //       ? '${r.price.toStringAsFixed(0)} BAM'
+                    //       : 'N/A',
+                    //   highlight: true,
+                    // ),
                   ],
                 ),
 

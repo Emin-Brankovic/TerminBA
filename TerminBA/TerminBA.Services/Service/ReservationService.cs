@@ -128,6 +128,10 @@ namespace TerminBA.Services.Service
                     ? query.OrderByDescending(r => r.ReservationDate).ThenByDescending(r => r.StartTime)
                     : query.OrderBy(r => r.ReservationDate).ThenBy(r => r.StartTime);
             }
+            else
+            {
+                query = query.OrderByDescending(r => r.Id);
+            }
 
             return query;
         }

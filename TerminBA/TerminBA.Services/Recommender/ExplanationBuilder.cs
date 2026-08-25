@@ -10,9 +10,7 @@ namespace TerminBA.Services.Recommender
         {
             var reasons = new List<string>();
 
-            reasons.Add(
-                $"The slot is available during your usual playing time " +
-                $"({window.PreferredStart:hh\\:mm}–{window.PreferredEnd:hh\\:mm}).");
+            reasons.Add($"The slot is available during your usual playing time.");
 
             if (input.PreviouslyBookedFacility >= 1f)
                 reasons.Add($"You previously booked a court at {slot.FacilityName}.");

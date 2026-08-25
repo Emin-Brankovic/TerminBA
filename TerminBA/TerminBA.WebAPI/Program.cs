@@ -64,6 +64,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
 builder.Services.AddHostedService<RevokedTokenCleanupService>();
+builder.Services.AddHostedService<RecommendationTrainingHostedService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 

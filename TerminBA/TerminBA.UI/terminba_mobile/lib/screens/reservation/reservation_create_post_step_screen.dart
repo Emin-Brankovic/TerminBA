@@ -249,7 +249,7 @@ class _ReservationCreatePostStepScreenState
                       ),
                     ),
                     child: const Text(
-                      'Next',
+                      'Create Post & Continue',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

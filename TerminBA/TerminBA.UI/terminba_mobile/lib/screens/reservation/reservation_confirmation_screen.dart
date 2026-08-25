@@ -111,7 +111,6 @@ class _TicketCard extends StatelessWidget {
     final userName = user != null
         ? '${user.firstName} ${user.lastName}'.trim()
         : state.sportCenterName; // fallback
-    final phone = user?.phoneNumber ?? '-';
     final sportName = state.sport?.name ?? '-';
     final courtName = state.selectedCourt?.name ?? '-';
     final address = state.sportCenterAddress;
@@ -150,7 +149,6 @@ class _TicketCard extends StatelessWidget {
             // Grid of info cells
             _InfoGrid(cells: [
               _InfoCell(label: 'NAME', value: userName),
-              _InfoCell(label: 'MOBILE', value: phone),
               _InfoCell(label: 'SPORT NAME', value: sportName),
               _InfoCell(label: 'COURT NAME', value: courtName),
               _InfoCell(label: 'ADDRESS', value: address),
