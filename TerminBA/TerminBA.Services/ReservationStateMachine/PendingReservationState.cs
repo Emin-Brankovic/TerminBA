@@ -56,6 +56,13 @@ namespace TerminBA.Services.ReservationStateMachine
             }
 
             _mapper.Map(request, entity);
+            
+            var fac = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+            var hours = fac?.SportCenter?.CancellationDeadlineHours ?? 24;
+            var reservationStart = entity.ReservationDate.ToDateTime(entity.StartTime);
+            var reservationStartUtc = TimeHelper.ConvertToUtc(reservationStart);
+            entity.CancellationDeadline = reservationStartUtc.AddHours(-hours);
+
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
         }

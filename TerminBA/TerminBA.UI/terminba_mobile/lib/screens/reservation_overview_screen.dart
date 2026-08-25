@@ -20,6 +20,7 @@ import 'package:terminba_mobile/screens/facility_reviews_screen.dart';
 import 'package:terminba_mobile/screens/create_player_search_post_screen.dart';
 import 'package:terminba_mobile/model/play_request_response.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
+import 'package:terminba_mobile/screens/reservation/reservation_edit_screen.dart';
 
 class ReservationOverviewScreen extends StatefulWidget {
   final int reservationId;
@@ -404,6 +405,34 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                                       : const Color(0xFF00C875),
                                   width: 1.5,
                                 ),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ReservationEditScreen(
+                                      reservation: _details!,
+                                    ),
+                                  ),
+                                ).then((result) {
+                                  if (result == true) {
+                                    _fetchDetails(); // Refresh after edit
+                                  }
+                                });
+                              },
+                              icon: const Icon(Icons.edit, color: Colors.white),
+                              label: const Text(
+                                'Edit Reservation',
+                                style: TextStyle(fontSize: 16, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2196F3),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

@@ -65,6 +65,30 @@ namespace TerminBA.Services.Service
                 throw new UserException("Amount mismatch between request and calculated price.");
             }
 
+            Stripe.Customer customer = null;
+            if (request.UserId.HasValue)
+            {
+                var user = await _context.Users.FindAsync(request.UserId.Value);
+                if (user != null && !string.IsNullOrEmpty(user.Email))
+                {
+                    var customerService = new CustomerService();
+                    var existingCustomers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email, Limit = 1 });
+                    if (existingCustomers.Any())
+                    {
+                        customer = existingCustomers.First();
+                    }
+                    else
+                    {
+                        customer = await customerService.CreateAsync(new CustomerCreateOptions
+                        {
+                            Email = user.Email,
+                            Name = $"{user.FirstName} {user.LastName}",
+                            Metadata = new Dictionary<string, string> { { "userId", user.Id.ToString() } }
+                        });
+                    }
+                }
+            }
+
             var options = new PaymentIntentCreateOptions
             {
                 Amount = request.Amount,
@@ -78,6 +102,12 @@ namespace TerminBA.Services.Service
                     { "source",     "TerminBA-Mobile" },
                 },
             };
+
+            if (customer != null)
+            {
+                options.Customer = customer.Id;
+                options.SetupFutureUsage = "off_session";
+            }
 
             var service = new PaymentIntentService();
 

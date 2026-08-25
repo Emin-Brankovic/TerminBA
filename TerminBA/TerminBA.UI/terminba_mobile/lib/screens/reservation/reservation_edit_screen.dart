@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:terminba_sport_center_desktop/model/dynamic_price_date_request.dart';
-import 'package:terminba_sport_center_desktop/model/facility.dart';
-import 'package:terminba_sport_center_desktop/model/facility_time_slot.dart';
-import 'package:terminba_sport_center_desktop/model/reservation_response.dart';
-import 'package:terminba_sport_center_desktop/model/reservation_update_request.dart';
-import 'package:terminba_sport_center_desktop/model/sport.dart';
-import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/facility_dynamic_price_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/facility_time_slot_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
+import 'package:terminba_mobile/enums/day_of_week_enum.dart';
+import 'package:terminba_mobile/model/facility.dart';
+import 'package:terminba_mobile/model/facility_time_slot.dart';
+import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/model/reservation_update_request.dart';
+import 'package:terminba_mobile/model/sport.dart';
+import 'package:terminba_mobile/providers/auth_provider.dart';
+import 'package:terminba_mobile/providers/facility_provider.dart';
+import 'package:terminba_mobile/providers/reservation_provider.dart';
 
 class ReservationEditScreen extends StatefulWidget {
   final ReservationResponse reservation;
@@ -29,9 +27,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
 
   late ReservationProvider _reservationProvider;
   late FacilityProvider _facilityProvider;
-  late AuthProvider _authProvider;
-  late FacilityTimeSlotProvider _facilityTimeSlotProvider;
-  late FacilityDynamicPriceProvider _facilityDynamicPriceProvider;
 
   bool _initialized = false;
   bool _isLoading = true;
@@ -60,10 +55,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     _initialized = true;
     _reservationProvider = context.read<ReservationProvider>();
     _facilityProvider = context.read<FacilityProvider>();
-    _authProvider = context.read<AuthProvider>();
-    _facilityTimeSlotProvider = context.read<FacilityTimeSlotProvider>();
-    _facilityDynamicPriceProvider = context
-        .read<FacilityDynamicPriceProvider>();
     _initializeData();
   }
 
@@ -78,30 +69,29 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
 
     try {
       final reservation = widget.reservation;
-      _sportCenterId = _authProvider.isLoggedIn
-          ? await _authProvider.getCurrentUserId()
-          : null;
+      _sportCenterId = reservation.facility?.sportCenterId;
 
       _selectedFacilityId = reservation.facilityId;
       _selectedSportId = reservation.chosenSportId;
-      _selectedDate = reservation.reservationDate;
-      _startTime = _parseTimeOfDay(reservation.startTime);
-      _endTime = _parseTimeOfDay(reservation.endTime);
+      _selectedDate = reservation.reservationDate != null ? (DateTime.tryParse(reservation.reservationDate!) ?? DateTime.now()) : DateTime.now();
+      _startTime = _parseTimeOfDay(reservation.startTime ?? '00:00:00');
+      _endTime = _parseTimeOfDay(reservation.endTime ?? '00:00:00');
       _status = reservation.status ?? '';
-      _priceController.text = reservation.price.toStringAsFixed(2);
+      _priceController.text = (reservation.price ?? 0).toStringAsFixed(2);
 
       await _loadFacilities();
       _syncAvailableSportsWithSelectedFacility();
       await _loadAvailableTimeSlots();
-      await _updateDynamicPrice();
+      _updateDynamicPrice();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error loading reservation: $e')));
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -123,33 +113,105 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     }
   }
 
-  Future<void> _updateDynamicPrice() async {
+  void _updateDynamicPrice() {
     if (_selectedFacilityId == null || _startTime == null || _endTime == null) {
       return;
     }
 
     try {
-      final request = DynamicPriceForDateRequest(
-        _selectedFacilityId!,
-        _selectedDate,
-        _formatApiTime(_startTime!),
-        _formatApiTime(_endTime!),
-      );
-
-      final price = await _facilityDynamicPriceProvider.getDynamicPriceForDate(
-        request,
-      );
+      final facility = _facilities.firstWhere((f) => f.id == _selectedFacilityId);
+      final price = _getDynamicPriceFor(facility, _selectedDate, _startTime!, _endTime!);
 
       if (!mounted) return;
       setState(() {
         _priceController.text = price.toStringAsFixed(2);
       });
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching dynamic price: $e')),
-      );
+      // Ignored
     }
+  }
+
+  double _getDynamicPriceFor(Facility court, DateTime date, TimeOfDay start, TimeOfDay end) {
+    if (court.dynamicPrices.isEmpty) {
+      return court.staticPrice?.toDouble() ?? 0.0;
+    }
+
+    double parseTimeToDouble(String timeStr) {
+      final parts = timeStr.split(':');
+      if (parts.length >= 2) {
+        final hours = int.tryParse(parts[0]) ?? 0;
+        final minutes = int.tryParse(parts[1]) ?? 0;
+        final seconds = parts.length >= 3 ? (int.tryParse(parts[2].split('.')[0]) ?? 0) : 0;
+        return hours + (minutes / 60.0) + (seconds / 3600.0);
+      }
+      return 0.0;
+    }
+
+    DayOfWeek targetDay;
+    switch (date.weekday) {
+      case DateTime.monday:
+        targetDay = DayOfWeek.monday;
+        break;
+      case DateTime.tuesday:
+        targetDay = DayOfWeek.tuesday;
+        break;
+      case DateTime.wednesday:
+        targetDay = DayOfWeek.wednesday;
+        break;
+      case DateTime.thursday:
+        targetDay = DayOfWeek.thursday;
+        break;
+      case DateTime.friday:
+        targetDay = DayOfWeek.friday;
+        break;
+      case DateTime.saturday:
+        targetDay = DayOfWeek.saturday;
+        break;
+      case DateTime.sunday:
+        targetDay = DayOfWeek.sunday;
+        break;
+      default:
+        targetDay = DayOfWeek.monday;
+    }
+
+    bool isInDayRange(DayOfWeek target, DayOfWeek startD, DayOfWeek endD) {
+      final t = target.index;
+      final s = startD.index;
+      final e = endD.index;
+      if (s <= e) {
+        return t >= s && t <= e;
+      } else {
+        return t >= s || t <= e;
+      }
+    }
+
+    bool isWithinValidityPeriod(DateTime resDate, DateTime validFrom, DateTime? validTo) {
+      final rDate = DateTime(resDate.year, resDate.month, resDate.day);
+      final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
+      if (rDate.isBefore(from)) return false;
+      if (validTo != null) {
+        final to = DateTime(validTo.year, validTo.month, validTo.day);
+        if (rDate.isAfter(to)) return false;
+      }
+      return true;
+    }
+
+    final slotStart = start.hour + start.minute / 60.0;
+    final slotEnd = end.hour + end.minute / 60.0;
+
+    for (final dp in court.dynamicPrices) {
+      final dpStart = parseTimeToDouble(dp.startTime);
+      final dpEnd = parseTimeToDouble(dp.endTime);
+
+      if (isInDayRange(targetDay, dp.startDay, dp.endDay) &&
+          isWithinValidityPeriod(date, dp.validFrom, dp.validTo) &&
+          dpStart <= slotStart &&
+          dpEnd >= slotEnd) {
+        return dp.pricePerHour;
+      }
+    }
+
+    return court.staticPrice?.toDouble() ?? 0.0;
   }
 
   Future<void> _loadAvailableTimeSlots() async {
@@ -164,16 +226,16 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     }
 
     try {
-      final result = await _facilityTimeSlotProvider.getFacilityTimeSlots(
-        _selectedFacilityId!,
-        _selectedDate,
+      final result = await _facilityProvider.getTimeSlots(
+        facilityId: _selectedFacilityId!,
+        date: _selectedDate,
       );
 
       if (!mounted) return;
       setState(() {
         _availableTimeSlots
           ..clear()
-          ..addAll(result ?? []);
+          ..addAll(result);
 
         final hasSelectedSlot = _availableTimeSlots.any(
           (slot) => _isSlotSelected(slot),
@@ -189,8 +251,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
           }
         }
       });
-    print('Loaded ${_availableTimeSlots.length} time slots for facility $_selectedFacilityId on date $_selectedDate');
-      await _updateDynamicPrice();
+      _updateDynamicPrice();
     } catch (e) {
       if (!mounted) return;
 
@@ -336,13 +397,13 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
         if (widget.reservation.isPaid == true) {
           if (parsedPrice > originalPrice) {
             final diff = parsedPrice - originalPrice;
-            priceMessage = ' An extra charge of ${diff.toStringAsFixed(2)} KM will be made to the user.';
+            priceMessage = ' An extra charge of ${diff.toStringAsFixed(2)} KM will be made to the card on which you made the reservation.';
           } else if (parsedPrice < originalPrice) {
             double refundAmount = originalPrice - parsedPrice;
             if (widget.reservation.cancellationDeadline != null && widget.reservation.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
               refundAmount = refundAmount * 0.3;
             }
-            priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the user.';
+            priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the card on which you made the reservation.';
           }
         }
 
@@ -396,8 +457,9 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Error updating reservation: $e')));
     } finally {
-      if (!mounted) return;
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -415,11 +477,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     final mm = date.month.toString().padLeft(2, '0');
     final dd = date.day.toString().padLeft(2, '0');
     return '${date.year}-$mm-$dd';
-  }
-
-  bool _isFacilityPriceDynamic(int? facilityId) {
-    final facility = _facilities.where((f) => f.id == facilityId).firstOrNull;
-    return facility?.isDynamicPricing ?? false;
   }
 
   @override
@@ -450,60 +507,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF9FAFB),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFE5E7EB)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  RichText(
-                                    text: TextSpan(
-                                      text: 'Booked by: ',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF6B7280),
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: widget.reservation.user?.username ?? 'N/A',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF111827),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  RichText(
-                                    text: TextSpan(
-                                      text: 'Current status: ',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF6B7280),
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: widget.reservation.status?.split('Reservation')[0] ?? 'N/A',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF111827) 
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 8),
                             FormBuilderDropdown<int>(
                               name: 'facilityId',
                               initialValue: _selectedFacilityId,
@@ -604,7 +608,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
                                         label: Text(_formatSlotLabel(slot)),
                                         selected: _isSlotSelected(slot),
                                         onSelected: slot.isFree
-                                            ? (_) async {
+                                            ? (_) {
                                                 setState(() {
                                                   _startTime = _parseTimeOfDay(
                                                     slot.startTime,
@@ -613,11 +617,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
                                                     slot.endTime,
                                                   );
                                                 });
-                                                if (_isFacilityPriceDynamic(
-                                                  _selectedFacilityId,
-                                                )) {
-                                                  await _updateDynamicPrice();
-                                                }
+                                                _updateDynamicPrice();
                                               }
                                             : null,
                                       ),

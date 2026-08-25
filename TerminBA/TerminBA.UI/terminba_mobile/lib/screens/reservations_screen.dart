@@ -86,31 +86,41 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     _pagingController.refresh();
   }
 
-  void _cancelReservation(int id) async {
+  void _cancelReservation(ReservationResponse res) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel reservation?'),
-        content: const Text(
-            'Are you sure you want to cancel this reservation? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, cancel'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        String message = 'Are you sure you want to cancel this reservation? This action cannot be undone.';
+        if (res.isPaid == true) {
+          double refundAmount = res.price ?? 0.0;
+          if (res.cancellationDeadline != null && res.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
+            refundAmount = refundAmount * 0.3;
+          }
+          message += '\n\nA refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the card on which you made the reservation.';
+        }
+
+        return AlertDialog(
+          title: const Text('Cancel reservation?'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Yes, cancel'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirm == true) {
       try {
         final provider = context.read<ReservationProvider>();
-        final response = await provider.cancelReservationPost(id);
+        final response = await provider.cancelReservationPost(res.id);
         _pagingController.refresh();
         
         if (mounted) {
@@ -243,7 +253,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                         ),
                       ).then((_) => _pagingController.refresh());
                     },
-                    onCancel: () => _cancelReservation(res.id),
+                    onCancel: () => _cancelReservation(res),
                   ),
                   firstPageProgressIndicatorBuilder: (_) =>
                       const Center(child: CircularProgressIndicator()),

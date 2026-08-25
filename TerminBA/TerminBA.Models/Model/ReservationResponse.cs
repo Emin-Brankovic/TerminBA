@@ -38,6 +38,8 @@ namespace TerminBA.Models.Model
         public bool IsPaid { get; set; }
 
         public bool HasActivePost { get; set; }
+
+        public DateTime? CancellationDeadline { get; set; }
     }
 }
 

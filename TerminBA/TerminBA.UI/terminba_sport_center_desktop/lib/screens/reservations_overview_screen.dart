@@ -141,10 +141,20 @@ class _ReservationsOverviewScreenState
   }
 
   Future<void> _cancelReservation(int reservationId) async {
+    final reservation = _reservations.firstWhere((r) => r.id == reservationId);
+    String cancelMessage = 'Are you sure you want to cancel this reservation?';
+    if (reservation.isPaid == true) {
+      double refundAmount = reservation.price;
+      if (reservation.cancellationDeadline != null && reservation.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
+        refundAmount = refundAmount * 0.3;
+      }
+      cancelMessage += '\n\nA refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the user.';
+    }
+
     final shouldCancel = await ConfirmationDialog.show(
       context,
       title: 'Cancel reservation',
-      message: 'Are you sure you want to cancel this reservation?',
+      message: cancelMessage,
       cancelText: 'No',
       confirmText: 'Yes, cancel',
       confirmButtonColor: const Color(0xFFFF4405),

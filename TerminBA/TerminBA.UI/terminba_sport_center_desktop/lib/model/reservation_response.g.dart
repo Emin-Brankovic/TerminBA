@@ -27,6 +27,9 @@ ReservationResponse _$ReservationResponseFromJson(Map<String, dynamic> json) =>
           ? null
           : Sport.fromJson(json['chosenSport'] as Map<String, dynamic>),
       isPaid: json['isPaid'] as bool?,
+      cancellationDeadline: json['cancellationDeadline'] == null
+          ? null
+          : DateTime.parse(json['cancellationDeadline'] as String),
     );
 
 Map<String, dynamic> _$ReservationResponseToJson(
@@ -45,4 +48,5 @@ Map<String, dynamic> _$ReservationResponseToJson(
   'chosenSportId': instance.chosenSportId,
   'chosenSport': instance.chosenSport,
   'isPaid': instance.isPaid,
+  'cancellationDeadline': instance.cancellationDeadline?.toIso8601String(),
 };

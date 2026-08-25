@@ -21,6 +21,7 @@ class ReservationResponse {
   final Sport? chosenSport;
   final bool? isPaid;
   final bool? hasActivePost;
+  final DateTime? cancellationDeadline;
 
   const ReservationResponse({
     required this.id,
@@ -37,6 +38,7 @@ class ReservationResponse {
     this.chosenSport,
     this.isPaid,
     this.hasActivePost,
+    this.cancellationDeadline,
   });
 
   bool get isCancelled => status == 'Cancelled' || status == 'CanceledReservationState' || status == 'CanceledWithRefundReservationState' || status == 'CanceledWithoutRefundReservationState';

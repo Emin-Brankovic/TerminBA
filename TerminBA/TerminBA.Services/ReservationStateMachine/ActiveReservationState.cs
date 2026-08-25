@@ -1,6 +1,7 @@
 using EasyNetQ;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using Microsoft.Extensions.DependencyInjection;
 using TerminBA.Models.Execptions;
 using TerminBA.Models.Messages;
@@ -42,20 +43,145 @@ namespace TerminBA.Services.ReservationStateMachine
 
         public override async Task<ReservationResponse> UpdateAsync(int id, ReservationUpdateRequest request)
         {
-            var entity = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == id);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var entity = await _context.Reservations
+                    .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (entity == null)
-                throw new UserException("Reservation was not found");
+                if (entity == null)
+                    throw new UserException("Reservation was not found");
 
-            await ValidateReservationUpdateAsync(entity, request);
+                await ValidateReservationUpdateAsync(entity, request);
 
-            _mapper.Map(request, entity);
-            entity.Status = nameof(ActiveReservationState); 
+                var targetFacilityId = request.FacilityId ?? entity.FacilityId;
+                var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == targetFacilityId);
+                bool usesDynamicPricing = facility != null && facility.IsDynamicPricing;
 
-            await _context.SaveChangesAsync();
+                bool isStripePayment = string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase);
 
-            return _mapper.Map<ReservationResponse>(entity);
+                if (isStripePayment && usesDynamicPricing)
+                {
+                    var payments = await _context.Payments
+                        .Where(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid)
+                        .ToListAsync();
+
+                    if (payments.Any())
+                    {
+                        var latestPayment = payments.OrderByDescending(p => p.CreatedAt).First();
+                        decimal totalPaid = payments.Sum(p => p.Amount - (p.RefundAmount ?? 0));
+                        decimal newPrice = request.Price;
+
+                        if (newPrice > totalPaid)
+                        {
+                            decimal diff = newPrice - totalPaid;
+                            try
+                            {
+                                // Force initialization of Stripe API key
+                                _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
+
+                                var paymentIntentService = new PaymentIntentService();
+                                var originalIntent = await paymentIntentService.GetAsync(latestPayment.StripePaymentIntentId);
+
+                                var options = new PaymentIntentCreateOptions
+                                {
+                                    Amount = (long)(diff * 100),
+                                    Currency = originalIntent.Currency,
+                                    PaymentMethod = originalIntent.PaymentMethodId,
+                                    Customer = originalIntent.CustomerId,
+                                    Confirm = true,
+                                    OffSession = true
+                                };
+                                var newIntent = await paymentIntentService.CreateAsync(options);
+
+                                var additionalPayment = new Payment
+                                {
+                                    ReservationId = id,
+                                    UserId = latestPayment.UserId,
+                                    Provider = "stripe",
+                                    StripePaymentIntentId = newIntent.Id,
+                                    Amount = diff,
+                                    Currency = newIntent.Currency,
+                                    Status = TerminBA.Services.Enums.PaymentStatus.Paid,
+                                    CreatedAt = DateTime.UtcNow,
+                                    UpdatedAt = DateTime.UtcNow,
+                                    PaidAt = DateTime.UtcNow
+                                };
+                                _context.Payments.Add(additionalPayment);
+                            }
+                            catch (StripeException ex)
+                            {
+                                if (ex.StripeError?.Code == "payment_method_unattached" || ex.StripeError?.Message?.Contains("Customer attachment") == true)
+                                {
+                                    throw new UserException("Cannot automatically charge your card for the price difference because the original payment was not saved for future use. Please cancel and recreate the reservation.");
+                                }
+                                throw new UserException($"Payment adjustment failed: {ex.StripeError?.Message ?? ex.Message}");
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new UserException($"Payment adjustment failed: {ex.Message}");
+                            }
+                        }
+                        else if (newPrice < totalPaid)
+                        {
+                            decimal diff = totalPaid - newPrice;
+                            try
+                            {
+                                var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
+                                
+                                var refundablePayments = payments
+                                    .Where(p => (p.Amount - (p.RefundAmount ?? 0)) > 0)
+                                    .OrderByDescending(p => p.CreatedAt)
+                                    .ToList();
+
+                                decimal remainingRefund = diff;
+
+                                foreach (var p in refundablePayments)
+                                {
+                                    if (remainingRefund <= 0) break;
+
+                                    decimal availableToRefundFromPayment = p.Amount - (p.RefundAmount ?? 0);
+                                    decimal amountToRefundFromPayment = Math.Min(remainingRefund, availableToRefundFromPayment);
+
+                                    var refundId = await stripeService.CreateRefundAsync(p.StripePaymentIntentId, amountToRefundFromPayment);
+
+                                    p.StripeRefundId = refundId;
+                                    p.RefundAmount = (p.RefundAmount ?? 0) + amountToRefundFromPayment;
+                                    p.RefundRequestedAt = DateTime.UtcNow;
+                                    p.RefundedAt = DateTime.UtcNow;
+                                    _context.Payments.Update(p);
+
+                                    remainingRefund -= amountToRefundFromPayment;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new UserException($"Payment adjustment failed: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                _mapper.Map(request, entity);
+                
+                var fac = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+                var hours = fac?.SportCenter?.CancellationDeadlineHours ?? 24;
+                var reservationStart = entity.ReservationDate.ToDateTime(entity.StartTime);
+                var reservationStartUtc = TimeHelper.ConvertToUtc(reservationStart);
+                entity.CancellationDeadline = reservationStartUtc.AddHours(-hours);
+
+                entity.Status = nameof(ActiveReservationState);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return _mapper.Map<ReservationResponse>(entity);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public override async Task<CancellationResponse> CancelAsync(int id)
@@ -74,25 +200,44 @@ namespace TerminBA.Services.ReservationStateMachine
 
                 if (string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase))
                 {
-                    var payment = await _context.Payments
-                        .OrderByDescending(p => p.CreatedAt)
-                        .FirstOrDefaultAsync(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid);
+                    var payments = await _context.Payments
+                        .Where(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid)
+                        .ToListAsync();
 
-                    if (payment != null)
+                    var refundablePayments = payments
+                        .Where(p => (p.Amount - (p.RefundAmount ?? 0)) > 0)
+                        .OrderByDescending(p => p.CreatedAt)
+                        .ToList();
+
+                    if (refundablePayments.Any())
                     {
+                        decimal totalPaid = refundablePayments.Sum(p => p.Amount - (p.RefundAmount ?? 0));
                         bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.UtcNow;
-                        decimal refundAmount = missedDeadline ? Math.Round(payment.Amount * 0.3m, 2) : payment.Amount;
+                        decimal totalRefundAmount = missedDeadline ? Math.Round(totalPaid * 0.3m, 2) : totalPaid;
 
                         var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
-                        var refundId = await stripeService.CreateRefundAsync(payment.StripePaymentIntentId, refundAmount);
-                        
-                        payment.StripeRefundId = refundId;
-                        payment.RefundAmount = refundAmount;
-                        payment.RefundRequestedAt = DateTime.UtcNow;
-                        payment.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
+                        decimal remainingRefund = totalRefundAmount;
+
+                        foreach (var p in refundablePayments)
+                        {
+                            if (remainingRefund <= 0) break;
+
+                            decimal availableToRefundFromPayment = p.Amount - (p.RefundAmount ?? 0);
+                            decimal amountToRefundFromPayment = Math.Min(remainingRefund, availableToRefundFromPayment);
+
+                            var refundId = await stripeService.CreateRefundAsync(p.StripePaymentIntentId, amountToRefundFromPayment);
+
+                            p.StripeRefundId = refundId;
+                            p.RefundAmount = (p.RefundAmount ?? 0) + amountToRefundFromPayment;
+                            p.RefundRequestedAt = DateTime.UtcNow;
+                            p.Status = TerminBA.Services.Enums.PaymentStatus.RefundPending;
+                            _context.Payments.Update(p);
+
+                            remainingRefund -= amountToRefundFromPayment;
+                        }
 
                         entity.Status = nameof(CanceledWithRefundReservationState);
-                        actualRefundAmount = refundAmount;
+                        actualRefundAmount = totalRefundAmount;
                     }
                     else
                     {
