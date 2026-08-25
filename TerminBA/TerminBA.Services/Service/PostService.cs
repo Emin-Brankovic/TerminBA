@@ -49,25 +49,6 @@ namespace TerminBA.Services.Service
             }
 
             var list = await query.ToListAsync();
-            
-            foreach (var p in list)
-            {
-                if (p.Reservation != null)
-                {
-                    var today = DateOnly.FromDateTime(DateTime.UtcNow);
-                    var now = TimeOnly.FromDateTime(DateTime.UtcNow);
-
-                    bool isPastReservation =
-                        p.Reservation.ReservationDate < today ||
-                        (p.Reservation.ReservationDate == today &&
-                         p.Reservation.StartTime <= now);
-
-                    if (isPastReservation)
-                        p.PostState = nameof(ClosedPostState);
-                }
-            }
-
-            await _context.SaveChangesAsync();
 
             return new PagedResult<PostResponse>()
             {

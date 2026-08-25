@@ -484,7 +484,7 @@ namespace TerminBA.Services.Service
                 {
                     FacilityId = f.Id,
                     FacilityName = f.Name ?? string.Empty,
-                    SportCenterName = f.SportCenter?.Username ?? string.Empty,
+                    SportCenterName = f.SportCenter?.DisplayName ?? string.Empty,
                     StartTime = DateTime.UtcNow,
                     EndTime = DateTime.UtcNow.Add(f.Duration),
                     Price = f.StaticPrice ?? 0m,
@@ -508,7 +508,7 @@ namespace TerminBA.Services.Service
                 {
                     FacilityId = rating.FacilityId,
                     FacilityName = facility?.Name ?? string.Empty,
-                    SportCenterName = facility?.SportCenter?.Username ?? string.Empty,
+                    SportCenterName = facility?.SportCenter?.DisplayName ?? string.Empty,
                     StartTime = DateTime.UtcNow,
                     EndTime = DateTime.UtcNow.Add(facility?.Duration ?? TimeSpan.FromHours(1)),
                     Price = facility?.StaticPrice ?? 0m,

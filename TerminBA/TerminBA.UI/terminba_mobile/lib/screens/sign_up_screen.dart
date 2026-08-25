@@ -247,7 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 										name: 'email',
 										decoration: const InputDecoration(
 											prefixIcon: Icon(Icons.email_outlined, size: 22),
-											hintText: 'Email',
+											hintText: 'Email (e.g., example@domain.com)',
 											contentPadding:
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
@@ -262,7 +262,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 										name: 'phoneNumber',
 										decoration: const InputDecoration(
 											prefixIcon: Icon(Icons.phone_outlined, size: 22),
-											hintText: 'Contact Number',
+											hintText: 'e.g. +38761123456, 061 123 456, (061) 123-456',
 											contentPadding:
 													EdgeInsets.symmetric(horizontal: 18, vertical: 18),
 										),
