@@ -42,6 +42,8 @@ class _FavoriteSportCentersScreenState extends State<FavoriteSportCentersScreen>
 
       final result = await provider.get(filter: filter);
       
+      if (!mounted) return;
+
       final newItems = result.items ?? [];
       final isLastPage = newItems.length < _pageSize;
 
@@ -52,6 +54,7 @@ class _FavoriteSportCentersScreenState extends State<FavoriteSportCentersScreen>
         _pagingController.appendPage(newItems, nextPageKey);
       }
     } catch (error) {
+      if (!mounted) return;
       _pagingController.error = error;
     }
   }

@@ -93,6 +93,8 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         filter: filter,
       );
 
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
       final fetchedSoFar = (pageKey - 1) * _pageSize + items.length;
@@ -103,6 +105,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
         _pagingController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+      if (!mounted) return;
       _pagingController.error = e;
     }
   }

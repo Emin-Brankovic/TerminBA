@@ -54,6 +54,9 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
           'PageSize': _pageSize,
         },
       );
+      
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
       final fetched = (pageKey - 1) * _pageSize + items.length;
@@ -64,6 +67,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
         _facilityPagingController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+      if (!mounted) return;
       _facilityPagingController.error = e;
     }
   }
@@ -77,6 +81,9 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
           'PageSize': _pageSize,
         },
       );
+      
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
       final fetched = (pageKey - 1) * _pageSize + items.length;
@@ -87,6 +94,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
         _userPagingController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+      if (!mounted) return;
       _userPagingController.error = e;
     }
   }

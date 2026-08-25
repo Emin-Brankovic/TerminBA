@@ -66,6 +66,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
 
       final result = await provider.get(filter: filter);
 
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final totalCount = result.totalCount ?? 0;
       final fetchedSoFar = (pageKey - 1) * _pageSize + items.length;
@@ -76,6 +78,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
         _pagingController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+      if (!mounted) return;
       _pagingController.error = e;
     }
   }

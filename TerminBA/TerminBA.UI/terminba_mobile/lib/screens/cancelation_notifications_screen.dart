@@ -39,6 +39,8 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
         },
       );
 
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
       final fetched = (pageKey - 1) * _pageSize + items.length;
@@ -49,6 +51,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
         _pagingController.appendPage(items, pageKey + 1);
       }
     } catch (error) {
+      if (!mounted) return;
       _pagingController.error = error;
     }
   }

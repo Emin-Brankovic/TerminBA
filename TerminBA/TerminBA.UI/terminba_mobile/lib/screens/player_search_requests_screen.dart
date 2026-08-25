@@ -100,6 +100,9 @@ class _PlayerSearchRequestsScreenState
           if (_selectedPostId != null) 'PostId': _selectedPostId,
         },
       );
+      
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
       
@@ -120,7 +123,7 @@ class _PlayerSearchRequestsScreenState
         _receivedController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
-
+      if (!mounted) return;
       _receivedController.error = e;
     }
   }
@@ -140,6 +143,9 @@ class _PlayerSearchRequestsScreenState
           if (_selectedStatus != null) 'PlayRequestState': _selectedStatus,
         },
       );
+      
+      if (!mounted) return;
+
       final items = result.items ?? [];
       final total = result.totalCount ?? 0;
 
@@ -160,6 +166,7 @@ class _PlayerSearchRequestsScreenState
         _sentController.appendPage(items, pageKey + 1);
       }
     } catch (e) {
+      if (!mounted) return;
       _sentController.error = e;
     }
   }
