@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -214,26 +215,14 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
   // ─── Helpers ─────────────────────────────────────────────────────────────────
 
   Future<bool> _confirmDelete(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Review'),
-        content: const Text(
-            'Are you sure you want to delete this review? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final result = await ConfirmationDialog.show(
+      context,
+      title: 'Delete Review',
+      message: 'Are you sure you want to delete this review? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
     );
-    return result ?? false;
+    return result;
   }
 
   // ─── Build ───────────────────────────────────────────────────────────────────

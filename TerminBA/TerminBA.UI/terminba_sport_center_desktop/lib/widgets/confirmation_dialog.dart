@@ -11,8 +11,8 @@ class ConfirmationDialog extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
-    this.confirmText = 'Confirm',
-    this.cancelText = 'Cancel',
+    this.confirmText = 'Yes',
+    this.cancelText = 'No',
     this.confirmButtonColor,
   });
 
@@ -20,8 +20,8 @@ class ConfirmationDialog extends StatelessWidget {
     BuildContext context, {
     required String title,
     required String message,
-    String confirmText = 'Confirm',
-    String cancelText = 'Cancel',
+    String confirmText = 'Yes',
+    String cancelText = 'No',
     Color? confirmButtonColor,
   }) async {
     final result = await showDialog<bool>(
@@ -44,16 +44,16 @@ class ConfirmationDialog extends StatelessWidget {
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () => Navigator.of(context).pop(false),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFF4405),
+            foregroundColor: Colors.white,
+          ),
           child: Text(cancelText),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: confirmButtonColor,
-            foregroundColor: Colors.white,
-          ),
           child: Text(confirmText),
         ),
       ],

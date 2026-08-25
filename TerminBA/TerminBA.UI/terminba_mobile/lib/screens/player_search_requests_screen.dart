@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/play_request_response.dart';
@@ -233,23 +234,12 @@ class _PlayerSearchRequestsScreenState
   }
 
   Future<void> _cancel(PlayRequestResponse req) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cancel Request?'),
-        content: const Text('Are you sure you want to cancel this request?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, cancel'),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: 'Cancel Request?',
+      message: 'Are you sure you want to cancel this request?',
+      confirmText: 'Yes, cancel',
+      cancelText: 'No',
     );
 
     if (confirmed == true && mounted) {

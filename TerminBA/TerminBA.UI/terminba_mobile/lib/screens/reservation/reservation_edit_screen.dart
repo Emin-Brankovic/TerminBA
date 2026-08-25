@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
@@ -390,38 +391,26 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
 
     final originalPrice = widget.reservation.price ?? 0.0;
     
-    bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        String priceMessage = '';
-        if (widget.reservation.isPaid == true) {
-          if (parsedPrice > originalPrice) {
-            final diff = parsedPrice - originalPrice;
-            priceMessage = ' An extra charge of ${diff.toStringAsFixed(2)} KM will be made to the card on which you made the reservation.';
-          } else if (parsedPrice < originalPrice) {
-            double refundAmount = originalPrice - parsedPrice;
-            if (widget.reservation.cancellationDeadline != null && widget.reservation.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
-              refundAmount = refundAmount * 0.3;
-            }
-            priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the card on which you made the reservation.';
-          }
+    String priceMessage = '';
+    if (widget.reservation.isPaid == true) {
+      if (parsedPrice > originalPrice) {
+        final diff = parsedPrice - originalPrice;
+        priceMessage = ' An extra charge of ${diff.toStringAsFixed(2)} KM will be made to the card on which you made the reservation.';
+      } else if (parsedPrice < originalPrice) {
+        double refundAmount = originalPrice - parsedPrice;
+        if (widget.reservation.cancellationDeadline != null && widget.reservation.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
+          refundAmount = refundAmount * 0.3;
         }
+        priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the card on which you made the reservation.';
+      }
+    }
 
-        return AlertDialog(
-          title: const Text('Confirm Changes'),
-          content: Text('Are you sure you want to save these changes?$priceMessage'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Yes, save'),
-            ),
-          ],
-        );
-      },
+    bool? confirm = await ConfirmationDialog.show(
+      context,
+      title: 'Confirm Changes',
+      message: 'Are you sure you want to save these changes?$priceMessage',
+      confirmText: 'Yes, save',
+      cancelText: 'Cancel',
     );
 
     if (confirm != true) {

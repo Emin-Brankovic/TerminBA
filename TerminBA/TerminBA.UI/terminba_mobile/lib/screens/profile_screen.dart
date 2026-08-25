@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/city.dart';
 import 'package:terminba_mobile/model/user.dart';
 import 'package:terminba_mobile/model/user_update_request.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/city_provider.dart';
 import 'package:terminba_mobile/providers/user_provider.dart';
@@ -181,24 +182,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 	}
 
 	Future<bool> _confirmLogout() async {
-		final shouldLogout = await showDialog<bool>(
-			context: context,
-			builder: (context) => AlertDialog(
-				title: const Text('Log out'),
-				content: const Text('Are you sure you want to log out?'),
-				actions: [
-					TextButton(
-						onPressed: () => Navigator.pop(context, false),
-						child: const Text('Cancel'),
-					),
-					TextButton(
-						onPressed: () => Navigator.pop(context, true),
-						child: const Text('Log out'),
-					),
-				],
-			),
+		final shouldLogout = await ConfirmationDialog.show(
+			context,
+			title: 'Log out',
+			message: 'Are you sure you want to log out?',
+			confirmText: 'Log out',
+			cancelText: 'Cancel',
 		);
-		return shouldLogout ?? false;
+		return shouldLogout;
 	}
 
 	String? _optionalPhoneValidator(String? value) {

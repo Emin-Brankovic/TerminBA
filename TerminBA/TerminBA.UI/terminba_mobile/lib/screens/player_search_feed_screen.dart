@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/play_request_insert_request.dart';
@@ -240,28 +241,12 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
   }
 
   Future<void> _onClosePost(PostResponse post) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Close Post?'),
-        content: const Text(
-          'This will mark the post as closed. It will no longer appear in the feed and will stop accepting requests.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Close Post'),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: 'Close Post?',
+      message: 'This will mark the post as closed. It will no longer appear in the feed and will stop accepting requests.',
+      confirmText: 'Close Post',
+      cancelText: 'Cancel',
     );
 
     if (confirmed == true && mounted) {
@@ -284,28 +269,12 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
   }
 
   Future<void> _onReopenPost(PostResponse post) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reopen Post?'),
-        content: const Text(
-          'This will reopen the post, making it visible again and allowing new players to join.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Reopen Post'),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmationDialog.show(
+      context,
+      title: 'Reopen Post?',
+      message: 'This will reopen the post, making it visible again and allowing new players to join.',
+      confirmText: 'Reopen Post',
+      cancelText: 'Cancel',
     );
 
     if (confirmed == true && mounted) {

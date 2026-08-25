@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_summary_screen.dart';
@@ -59,28 +60,13 @@ class _ReservationCreatePostStepScreenState
   }
 
   Future<bool> _showCancelDialog(BuildContext context, BookingFlowNotifier notifier) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Cancel Reservation?'),
-          content: const Text('If you go back, your pending reservation will be canceled and the time slot will be freed up for others.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Keep Booking'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
+  final result = await ConfirmationDialog.show(
+      context,
+      title: 'Cancel your reservation?',
+      message:
+          'Going back will cancel your pending reservation. The selected time slot will become available for other users. Are you sure you want to cancel?',
+      confirmText: 'Yes',
+      cancelText: 'No',
     );
 
     if (result == true) {

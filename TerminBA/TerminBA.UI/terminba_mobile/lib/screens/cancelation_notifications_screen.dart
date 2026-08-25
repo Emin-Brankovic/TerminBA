@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/cancelation_notification_response.dart';
@@ -116,29 +117,13 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
   Future<void> _deleteSelected() async {
     if (_selectedIds.isEmpty) return;
 
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Notifications'),
-          content: const Text('Are you sure you want to delete the selected notifications? This action cannot be undone.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
+    final confirm = await ConfirmationDialog.show(
+      context,
+      title: 'Delete Notifications',
+      message: 'Are you sure you want to delete the selected notifications? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+    );
 
     if (!confirm) return;
 

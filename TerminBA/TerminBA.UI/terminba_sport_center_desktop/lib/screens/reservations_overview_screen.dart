@@ -157,7 +157,6 @@ class _ReservationsOverviewScreenState
       message: cancelMessage,
       cancelText: 'No',
       confirmText: 'Yes, cancel',
-      confirmButtonColor: const Color(0xFFFF4405),
     );
 
     if (!shouldCancel) {

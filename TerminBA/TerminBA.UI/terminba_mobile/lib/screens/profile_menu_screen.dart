@@ -9,6 +9,7 @@ import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/my_posts_screen.dart';
 import 'package:terminba_mobile/screens/public_profile_screen.dart';
 import 'package:terminba_mobile/screens/my_reviews_screen.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 
 class ProfileMenuScreen extends StatelessWidget {
   final ScrollController? scrollController;
@@ -16,25 +17,15 @@ class ProfileMenuScreen extends StatelessWidget {
   const ProfileMenuScreen({super.key, this.scrollController});
 
   Future<void> _confirmLogout(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Log out'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Log out'),
-          ),
-        ],
-      ),
+    final shouldLogout = await ConfirmationDialog.show(
+      context,
+      title: 'Log out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log out',
+      cancelText: 'Cancel',
     );
 
-    if (shouldLogout ?? false) {
+    if (shouldLogout) {
       await context.read<AuthProvider>().logout();
     }
   }
