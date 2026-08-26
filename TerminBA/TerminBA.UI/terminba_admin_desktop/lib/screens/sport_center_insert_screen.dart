@@ -424,6 +424,10 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                       padding: const EdgeInsets.all(24),
                       child: FormBuilder(
                         key: _formKey,
+                        autovalidateMode: AutovalidateMode.onUnfocus,
+                        onChanged: () {
+                          setState(() {});
+                        },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -700,7 +704,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               width: double.infinity,
                               height: 48,
                               child: ElevatedButton(
-                                onPressed: _isSaving ? null : _submit,
+                                onPressed: _isSaving || !(_formKey.currentState?.isValid ?? _isEditing) ? null : _submit,
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),

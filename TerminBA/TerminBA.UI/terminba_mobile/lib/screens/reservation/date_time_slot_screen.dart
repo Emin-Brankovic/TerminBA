@@ -372,9 +372,19 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
       );
     }
 
-    final freeSlots = state.timeSlots.where((s) => s.isFree).toList();
+    final showPrice = state.selectedCourt?.isDynamicPricing == true && state.selectedDate != null;
+    
+    final visibleSlots = state.timeSlots.where((slot) {
+      if (showPrice) {
+        final dynamicPriceVal = state.getDynamicPriceFor(state.selectedCourt!, state.selectedDate!, slot);
+        if (dynamicPriceVal == 0) return false;
+      }
+      return true;
+    }).toList();
 
-    if (state.timeSlots.isEmpty) {
+    final freeSlots = visibleSlots.where((s) => s.isFree).toList();
+
+    if (visibleSlots.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(20),
         child: Text(
@@ -404,12 +414,11 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: state.timeSlots.map((slot) {
+            children: visibleSlots.map((slot) {
               final isAvailable = slot.isFree;
               final isSelected = state.selectedTimeSlot?.startTime == slot.startTime &&
                   state.selectedTimeSlot?.endTime == slot.endTime;
 
-              final showPrice = state.selectedCourt?.isDynamicPricing == true && state.selectedDate != null;
               final dynamicPriceVal = showPrice
                   ? state.getDynamicPriceFor(state.selectedCourt!, state.selectedDate!, slot)
                   : 0.0;

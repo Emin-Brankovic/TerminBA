@@ -963,6 +963,10 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                       padding: const EdgeInsets.all(26),
                       child: FormBuilder(
                         key: _formKey,
+                        autovalidateMode: AutovalidateMode.onUnfocus,
+                        onChanged: () {
+                          setState(() {});
+                        },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -1170,7 +1174,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: _isSaving ? null : _submit,
+                                onPressed: _isSaving || !(_formKey.currentState?.isValid ?? (widget.facility != null)) ? null : _submit,
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor:
