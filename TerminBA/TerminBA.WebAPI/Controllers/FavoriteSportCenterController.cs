@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace TerminBA.WebAPI.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Roles = "User")]
     [Route("api/[controller]")]
     public class FavoriteSportCenterController : BaseCRUDController<FavoriteSportCenterResponse, FavoriteSportCenterSearchObject, FavoriteSportCenterInsertRequest, object>
     {

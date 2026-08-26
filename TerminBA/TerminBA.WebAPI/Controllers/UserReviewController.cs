@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
@@ -9,6 +10,7 @@ namespace TerminBA.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "User")]
     public class UserReviewController : BaseCRUDController<UserReviewResponse, UserReviewSearchObject, UserReviewInsertRequest, UserReviewUpdateRequest>
     {
         public UserReviewController(IUserReviewService userReviewService) : base(userReviewService)

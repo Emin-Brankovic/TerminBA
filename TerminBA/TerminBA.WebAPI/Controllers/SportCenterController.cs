@@ -20,13 +20,22 @@ namespace TerminBA.WebAPI.Controllers
             this._sportCenterService = sportCenterService;
         }
 
-
+    
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<AuthResponse> Login(SportCenterLoginRequest request)
         {
             return (await _sportCenterService.Login(request));
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Administrator")]
+        public override Task<SportCenterResponse> Create([FromBody] SportCenterInsertRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [Authorize(Roles = "Sport center")]
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -34,13 +43,14 @@ namespace TerminBA.WebAPI.Controllers
             return Ok();
         }
 
-        [Authorize]
+        [Authorize(Roles = "Sport center")]
         [HttpGet("getCurrent")]
         public async Task<SportCenterResponse> GetCurrentSportCenter()
         {
             return await _sportCenterService.GetCurrentSportCenter();
         }
 
+        [Authorize(Roles = "Sport center")]
         [HttpPut("gallery")]
         public async Task<SportCenterResponse> UpdateGallery([FromBody] SportCenterGalleryUpdateRequest request)
         {
@@ -61,7 +71,7 @@ namespace TerminBA.WebAPI.Controllers
             return await _sportCenterService.GetAverageRatingAsync(id);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Sport center")]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {

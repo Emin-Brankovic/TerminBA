@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
@@ -23,6 +24,27 @@ namespace TerminBA.WebAPI.Controllers
             var price = await _facilityDynamicPriceService.DynamicPriceForDateAsync(request);
 
             return price;
+        }
+
+        [Authorize(Roles = "Sport center")]
+        [HttpPost]
+        public override Task<FacilityDynamicPriceResponse> Create([FromBody] FacilityDynamicPriceInsertRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [Authorize(Roles = "Sport center")]
+        [HttpPut("{id}")]
+        public override Task<FacilityDynamicPriceResponse?> Update(int id, [FromBody] FacilityDynamicPriceUpdateRequest request)
+        {
+            return base.Update(id, request);
+        }
+
+        [Authorize(Roles = "Sport center")]
+        [HttpDelete("{id}")]
+        public override Task<bool> Delete(int id)
+        {
+            return base.Delete(id);
         }
 
     }

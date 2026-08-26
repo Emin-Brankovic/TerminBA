@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Interfaces;
@@ -7,6 +8,7 @@ namespace TerminBA.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BaseCRUDController<T, TSearch, TInsert, TUpdate> : BaseController<T,TSearch> where T : class where TSearch : BaseSearchObject,new() where TInsert : class where TUpdate : class
     {
         protected readonly IBaseCRUDService<T, TSearch, TInsert, TUpdate> _crudService;
@@ -17,19 +19,19 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<T> Create([FromBody] TInsert request)
+        public virtual async Task<T> Create([FromBody] TInsert request)
         {
             return await _crudService.CreateAsync(request);
         }
 
         [HttpPut("{id}")]
-        public async Task<T?> Update(int id, [FromBody] TUpdate request)
+        public virtual async Task<T?> Update(int id, [FromBody] TUpdate request)
         {
             return await _crudService.UpdateAsync(id,request);
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> Delete(int id)
+        public virtual async Task<bool> Delete(int id)
         {
             return await _crudService.DeleteAsync(id);  
         }

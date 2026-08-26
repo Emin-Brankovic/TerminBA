@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
@@ -15,6 +16,27 @@ namespace TerminBA.WebAPI.Controllers
         public CityController(ICityService cityService) : base(cityService)
         {
           
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Administrator")]
+        public override Task<CityResponse> Create([FromBody] CityInsertRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
+        public override Task<bool> Delete(int id)
+        {
+            return base.Delete(id);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Administrator")]
+        public override Task<CityResponse?> Update(int id, [FromBody] CityUpdateRequest request)
+        {
+            return base.Update(id, request);
         }
     }
 }

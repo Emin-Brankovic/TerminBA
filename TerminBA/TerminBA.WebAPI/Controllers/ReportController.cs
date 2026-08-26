@@ -53,12 +53,14 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpGet("sportCenterReservationStats")]
+        [Authorize(Roles = "Sport center")]
         public async Task<SportCenterReservationStatsResponse> SportCenterReservationData([FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate)
         {
             return await _reportService.SportCenterReservationStats(fromDate, toDate);
         }
 
         [HttpPost("generateSportCenterReservationStats")]
+        [Authorize(Roles = "Sport center")]
         public IActionResult GenerateSportCenterReservationStatsReport([FromBody] SportCenterReservationStatsReportRequest request)
         {
             byte[] pdfBytes = _reportService.SportCenterReservationStatsReport(request);
@@ -68,12 +70,14 @@ namespace TerminBA.WebAPI.Controllers
 
 
         [HttpGet("sportCenterFinanceSummary")]
+        [Authorize(Roles = "Sport center")]
         public async Task<FinanceSummaryResponse> SportCenterFinanceSummary([FromQuery] int year, [FromQuery] int month)
         {
             return await _reportService.SportCenterFinanceSummary(year, month);
         }
 
         [HttpGet("sportCenterDashboard")]
+        [Authorize(Roles = "Sport center")]
         public async Task<SportCenterDashboardResponse> SportCenterDashboard()
         {
             return await _reportService.SportCenterDashboard();

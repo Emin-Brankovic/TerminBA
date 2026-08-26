@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.Recommender;
 
 namespace TerminBA.WebAPI.Controllers
 {
+    [Authorize(Roles = "User")]
     [ApiController]
     [Route("api/recommendations")]
     public class RecommendationsController : ControllerBase
@@ -17,28 +19,6 @@ namespace TerminBA.WebAPI.Controllers
         {
             _recommendationService = recommendationService;
             _logger = logger;
-        }
-
-        [HttpPost("train")]
-        [ProducesResponseType(typeof(TrainingResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<TrainingResult>> TrainModel()
-        {
-            _logger.LogInformation("Recommendation model training triggered at {Time}", DateTime.UtcNow);
-
-            var result = await _recommendationService.TrainModelAsync();
-
-            if (!result.Success)
-            {
-                _logger.LogWarning("Training failed: {Error}", result.ErrorMessage);
-                return UnprocessableEntity(result);
-            }
-
-            _logger.LogInformation(
-                "Model trained successfully — Accuracy={Acc:F3}, AUC={Auc:F3}, F1={F1:F3}, Rows={Rows}",
-                result.Accuracy, result.AreaUnderRocCurve, result.F1Score, result.TrainingRowCount);
-
-            return Ok(result);
         }
 
         [HttpGet("{userId:int}")]
@@ -65,8 +45,7 @@ namespace TerminBA.WebAPI.Controllers
                 _logger.LogWarning("Model not trained yet: {Error}", ex.Message);
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new
                 {
-                    error = "The recommendation model has not been trained yet. " +
-                            "Call POST /api/recommendations/train first."
+                    error = "The recommendation model has not been trained yet. Please wait for the background training service to complete."
                 });
             }
 

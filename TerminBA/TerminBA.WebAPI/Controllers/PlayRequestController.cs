@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
@@ -7,6 +8,7 @@ using TerminBA.Services.Interfaces;
 
 namespace TerminBA.WebAPI.Controllers
 {
+    [Authorize(Roles = "User")]
     [Route("api/[controller]")]
     [ApiController]
     public class PlayRequestController : BaseCRUDController<PlayRequestResponse, PlayRequestSearchObject, PlayRequestInsertRequest, PlayRequestUpdateRequest>
@@ -37,7 +39,6 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpGet("received/unseen-count")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<int> GetUnseenRequestsCount()
         {
             return await _playRequestService.GetUnseenRequestsCountAsync();
@@ -45,21 +46,18 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPost("{id}/mark-seen")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<PlayRequestResponse> MarkRequestAsSeen(int id)
         {
            return await _playRequestService.MarkRequestAsSeenAsync(id);
         }
 
         [HttpGet("sent/unseen-count")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<int> GetUnseenResponsesCount()
         {
            return await _playRequestService.GetUnseenResponsesCountAsync();
         }
 
         [HttpPost("{id}/mark-response-seen")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<PlayRequestResponse> MarkResponseAsSeen(int id)
         {
             return await _playRequestService.MarkResponseAsSeenAsync(id);

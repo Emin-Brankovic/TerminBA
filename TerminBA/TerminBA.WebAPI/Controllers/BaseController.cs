@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using TerminBA.Models.Model;
@@ -9,6 +10,7 @@ namespace TerminBA.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BaseController <T,TSearch> : ControllerBase where TSearch : BaseSearchObject,new() where T : class
     {
         protected readonly IBaseService<T, TSearch> _service;

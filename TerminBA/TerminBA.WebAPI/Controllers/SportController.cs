@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
@@ -21,6 +21,27 @@ namespace TerminBA.WebAPI.Controllers
         public override async Task<PagedResult<SportResponse>> Get([FromQuery] SportSearchObject? search = null)
         {
             return await base.Get(search);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Administrator")]
+        public override Task<SportResponse> Create([FromBody] SportInserRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
+        public override Task<bool> Delete(int id)
+        {
+            return base.Delete(id);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Administrator")]
+        public override Task<SportResponse?> Update(int id, [FromBody] SportUpdateRequest request)
+        {
+            return base.Update(id, request);
         }
     }
 }

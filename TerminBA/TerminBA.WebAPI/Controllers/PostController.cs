@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
@@ -8,6 +9,7 @@ using TerminBA.Services.Service;
 
 namespace TerminBA.WebAPI.Controllers
 {
+    [Authorize(Roles = "User")]
     [Route("api/[controller]")]
     [ApiController]
     public class PostController : BaseCRUDController<PostResponse, PostSearchObject, PostInsertRequest, PostUpdateRequest>

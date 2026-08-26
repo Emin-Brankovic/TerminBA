@@ -7,6 +7,7 @@ using TerminBA.Services.Interfaces;
 
 namespace TerminBA.WebAPI.Controllers
 {
+    [Authorize(Roles = "User")]
     [Route("api/payments")]
     [ApiController]
     public class PaymentController : ControllerBase
@@ -22,7 +23,6 @@ namespace TerminBA.WebAPI.Controllers
             _context = context;
         }
 
-        [Authorize]
         [HttpPost("create-payment-intent")]
         public async Task<ActionResult<PaymentIntentResponse>> CreatePaymentIntent(
             [FromBody] PaymentIntentRequest request)
@@ -43,7 +43,6 @@ namespace TerminBA.WebAPI.Controllers
             }
         }
 
-        [Authorize]
         [HttpPost("confirm/{paymentIntentId}")]
         public async Task<IActionResult> ConfirmPaymentIntent(string paymentIntentId)
         {

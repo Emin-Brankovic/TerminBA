@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPut("{id}/mark-as-seen")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> MarkAsSeen(int id)
         {
             await _service.MarkAsSeenAsync(id);
@@ -26,12 +28,14 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpGet("unseen-count")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<int>> GetUnseenCount()
         {
             return await _service.GetUnseenCountAsync();
         }
 
         [HttpPut("mark-as-seen-multiple")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> MarkAsSeenMultiple([FromBody] List<int> ids)
         {
             await _service.MarkAsSeenMultipleAsync(ids);
@@ -39,6 +43,7 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpPost("delete-multiple")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
         {
             await _service.DeleteMultipleAsync(ids);
