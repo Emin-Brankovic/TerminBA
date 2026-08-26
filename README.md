@@ -91,7 +91,9 @@ flutter run
 - Username: `user`
 - Password: `password`
 
-*(Note: Other user roles that are seeded in the database generally also use the password `password` for testing).*
+*Note: Other users that are seeded in the database generally also use the password `password` for testing.*
+*Note: Only "user" has a valid email address (mine for university).*
+
 
 #### Testing Payments
 
