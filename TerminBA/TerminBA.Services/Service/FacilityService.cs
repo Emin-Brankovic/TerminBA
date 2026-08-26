@@ -62,10 +62,8 @@ namespace TerminBA.Services.Service
                 var minPrice = (decimal)search.MinPrice.Value;
 
                 query = query.Where(f =>
-                    // Static pricing: facilities with a static price greater or equal to min
                     (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value >= minPrice)
                     ||
-                    // Dynamic pricing: at least one dynamic price greater or equal to min
                     (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour >= minPrice))
                 );
             }
@@ -75,10 +73,8 @@ namespace TerminBA.Services.Service
                 var maxPrice = (decimal)search.MaxPrice.Value;
 
                 query = query.Where(f =>
-                    // Static pricing: facilities with a static price less or equal to max
                     (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value <= maxPrice)
                     ||
-                    // Dynamic pricing: at least one dynamic price less or equal to max
                     (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour <= maxPrice))
                 );
             }
@@ -595,21 +591,18 @@ namespace TerminBA.Services.Service
             DateOnly from1, DateOnly? to1, DayOfWeek startDay1, DayOfWeek endDay1, TimeOnly open1, TimeOnly close1,
             DateOnly from2, DateOnly? to2, DayOfWeek startDay2, DayOfWeek endDay2, TimeOnly open2, TimeOnly close2)
         {
-            // 1. Check Date Range overlap
             bool datesOverlap = true;
             if (to1.HasValue && to1.Value < from2) datesOverlap = false;
             if (to2.HasValue && to2.Value < from1) datesOverlap = false;
 
             if (!datesOverlap) return false;
 
-            // 2. Check Days overlap
             var days1 = GetDaysInRange(startDay1, endDay1);
             var days2 = GetDaysInRange(startDay2, endDay2);
             bool daysOverlap = days1.Intersect(days2).Any();
 
             if (!daysOverlap) return false;
 
-            // 3. Check Time Range overlap
             bool timesOverlap = true;
             if (open2 >= close1) timesOverlap = false;
             if (close2 <= open1) timesOverlap = false;

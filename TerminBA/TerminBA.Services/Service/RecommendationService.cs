@@ -72,7 +72,6 @@ namespace TerminBA.Services.Service
 
                 Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);
                 _mlContext.Model.Save(model, data.Schema, ModelPath);
-                // PredictionEnginePool with watchForChanges: true auto-reloads on save.
 
                 return new TrainingResult
                 {
@@ -101,7 +100,6 @@ namespace TerminBA.Services.Service
 
             if (!window.HasEnoughHistory)
             {
-                // Cold-start fallback: return top-rated facilities, clearly marked as non-personalised
                 return await GetFallbackRecommendationsAsync(topN);
             }
 
@@ -125,7 +123,6 @@ namespace TerminBA.Services.Service
                 }
                 catch
                 {
-                    // Model not yet trained — return empty list with a hint
                     return new List<RecommendationResult>();
                 }
 
@@ -157,7 +154,6 @@ namespace TerminBA.Services.Service
 
         private async Task<UserTimeWindow> DeriveUserTimeWindowAsync(int userId)
         {
-            // Only use completed reservations — these represent actual booking behaviour
             var reservations = await _db.Reservations
                 .Where(r => r.UserId == userId
                     && (r.Status == "CompletedReservationState" || r.Status == "Completed"))
@@ -166,7 +162,6 @@ namespace TerminBA.Services.Service
             if (reservations.Count < 3)
                 return new UserTimeWindow { HasEnoughHistory = false };
 
-            // Top-2 preferred days of week (derived from ReservationDate)
             var preferredDays = reservations
                 .GroupBy(r => r.ReservationDate.DayOfWeek)
                 .OrderByDescending(g => g.Count())
@@ -174,7 +169,6 @@ namespace TerminBA.Services.Service
                 .Select(g => g.Key)
                 .ToList();
 
-            // Median start/end times
             var startTimes = reservations
                 .Select(r => r.StartTime.ToTimeSpan())
                 .OrderBy(t => t)
@@ -200,7 +194,6 @@ namespace TerminBA.Services.Service
 
         private async Task<List<TimeSlotCandidate>> GetCandidateSlotsAsync(UserTimeWindow window)
         {
-            // Load all facilities with their sport centers and working hours
             var facilities = await _db.Facilities
                 .Include(f => f.SportCenter)
                     .ThenInclude(sc => sc.WorkingHours)
@@ -231,14 +224,12 @@ namespace TerminBA.Services.Service
                 })
                 .ToListAsync();
 
-            // Group by (FacilityId, Date) for O(1) per-day lookup
             var reservationLookup = activeReservations
                 .GroupBy(r => (r.FacilityId, r.ReservationDate))
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             var candidates = new List<TimeSlotCandidate>();
 
-            // For each facility, generate virtual slots over the next CandidateDaysAhead days
             foreach (var facility in facilities)
             {
                 for (int dayOffset = 1; dayOffset <= CandidateDaysAhead; dayOffset++)
@@ -246,11 +237,9 @@ namespace TerminBA.Services.Service
                     var date = today.AddDays(dayOffset);
                     var dow = date.DayOfWeek;
 
-                    // Only consider user's preferred days
                     if (!window.PreferredDays.Contains(dow))
                         continue;
 
-                    // Find working hours for this day at this sport center
                     var wh = facility.SportCenter?.WorkingHours.FirstOrDefault(w =>
                         IsInDayRange(w.StartDay, w.EndDay, dow) &&
                         (w.ValidTo == null || w.ValidTo >= DateOnly.FromDateTime(date)));
@@ -258,7 +247,6 @@ namespace TerminBA.Services.Service
                     if (wh == null)
                         continue;
 
-                    // Generate slots within working hours, stepping by facility duration
                     var slotDuration = facility.Duration;
                     var slotStart = date.Date.Add(wh.OpeningHours.ToTimeSpan());
                     var slotEnd = slotStart.Add(slotDuration);
@@ -271,13 +259,11 @@ namespace TerminBA.Services.Service
                     {
                         var startTod = slotStart.TimeOfDay;
 
-                        // Hard filter: must fall inside the user's usual window
                         if (startTod >= window.PreferredStart && startTod <= window.PreferredEnd)
                         {
                             var startOnly = TimeOnly.FromDateTime(slotStart);
                             var endOnly = TimeOnly.FromDateTime(slotEnd);
 
-                            // In-memory overlap check — no database round-trip
                             bool isOccupied = dayReservations != null &&
                                 dayReservations.Any(r => r.StartTime < endOnly && r.EndTime > startOnly);
 
@@ -309,7 +295,6 @@ namespace TerminBA.Services.Service
 
         private async Task<UserProfile> BuildUserProfileAsync(int userId)
         {
-            // All user reservations (any status except fully cancelled)
             var reservations = await _db.Reservations
                 .Where(r => r.UserId == userId &&
                     r.Status != "CanceledReservationState" &&
@@ -317,7 +302,6 @@ namespace TerminBA.Services.Service
                     r.Status != "CanceledWithoutRefundReservationState")
                 .ToListAsync();
 
-            // Most-booked sport
             int? mostBookedSportId = reservations
                 .Where(r => r.ChosenSportId.HasValue)
                 .GroupBy(r => r.ChosenSportId!.Value)
@@ -325,25 +309,21 @@ namespace TerminBA.Services.Service
                 .Select(g => (int?)g.Key)
                 .FirstOrDefault();
 
-            // Average price paid
             decimal avgPrice = reservations.Count > 0
                 ? reservations.Average(r => r.Price)
                 : 0m;
 
-            // Booking count per facility
             var bookingCount = reservations
                 .Where(r => r.FacilityId.HasValue)
                 .GroupBy(r => r.FacilityId!.Value)
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            // User's own ratings per facility
             var userRatings = await _db.FacilityReviews
                 .Where(fr => fr.UserId == userId)
                 .GroupBy(fr => fr.FacilityId!.Value)
                 .Select(g => new { FacilityId = g.Key, AvgRating = (float)g.Average(fr => fr.RatingNumber) })
                 .ToDictionaryAsync(x => x.FacilityId, x => x.AvgRating);
 
-            // Overall ratings per facility (all users)
             var overallRatings = await _db.FacilityReviews
                 .GroupBy(fr => fr.FacilityId!.Value)
                 .Select(g => new { FacilityId = g.Key, AvgRating = (float)g.Average(fr => fr.RatingNumber) })
@@ -362,19 +342,16 @@ namespace TerminBA.Services.Service
 
         private async Task<List<RecommendationInput>> BuildTrainingDatasetAsync()
         {
-            // Pull all completed reservations with their facility's sports
             var completedReservations = await _db.Reservations
                 .Include(r => r.Facility)
                     .ThenInclude(f => f!.AvailableSports)
                 .Where(r => r.Status == "CompletedReservationState" || r.Status == "Completed")
                 .ToListAsync();
 
-            // All facility reviews for reference
             var allReviews = await _db.FacilityReviews.ToListAsync();
 
             var rows = new List<RecommendationInput>();
 
-            // Group by user to build per-user profiles for the training set
             var userIds = completedReservations
                 .Where(r => r.UserId.HasValue)
                 .Select(r => r.UserId!.Value)
@@ -389,13 +366,11 @@ namespace TerminBA.Services.Service
 
                 if (userReservations.Count < 2) continue;
 
-                // Build a "leave-one-out" style: for each reservation, treat the rest as history
                 var profile = BuildProfileFromReservations(uid, userReservations, allReviews);
                 var window = DeriveWindowFromReservations(userReservations);
 
                 if (!window.HasEnoughHistory) continue;
 
-                // Positive examples: completed reservations (the user actually booked these)
                 foreach (var res in userReservations)
                 {
                     if (!res.FacilityId.HasValue) continue;
@@ -416,15 +391,12 @@ namespace TerminBA.Services.Service
 
                     var input = FeatureBuilder.Build(profile, candidate, window);
 
-                    // Positive label: booked, OR user gave rating >= 4
                     var userRating = allReviews
                         .FirstOrDefault(fr => fr.UserId == uid && fr.FacilityId == facilityId);
 
                     input.Booked = true;
                     rows.Add(input);
 
-                    // Negative examples: other facilities this user never booked
-                    // Sample up to 2 "negative" facilities to balance the dataset
                     var unvisitedFacilityIds = completedReservations
                         .Where(r => r.FacilityId.HasValue && r.FacilityId != facilityId)
                         .Select(r => r.FacilityId!.Value)
@@ -458,7 +430,6 @@ namespace TerminBA.Services.Service
         }
         private async Task<List<RecommendationResult>> GetFallbackRecommendationsAsync(int topN)
         {
-            // Return facilities ordered by their average FacilityReview rating
             var facilityRatings = await _db.FacilityReviews
                 .GroupBy(fr => fr.FacilityId!.Value)
                 .Select(g => new
@@ -474,7 +445,6 @@ namespace TerminBA.Services.Service
 
             if (!facilityRatings.Any())
             {
-                // No reviews yet — return top N facilities by ID
                 var allFacilities = await _db.Facilities
                     .Include(f => f.SportCenter)
                     .Take(topN)
@@ -543,7 +513,6 @@ namespace TerminBA.Services.Service
             if (startDay <= endDay)
                 return day >= startDay && day <= endDay;
 
-            // Wrap-around (e.g. Friday–Monday)
             return day >= startDay || day <= endDay;
         }
 

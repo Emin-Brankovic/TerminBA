@@ -272,8 +272,6 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
-  /// Builds the inline map that shows a pin at the chosen coordinates
-  /// if the address is not empty.
   Widget _buildInlineMap() {
     final addressText =
         _formKey.currentState?.fields['address']?.value?.toString() ??

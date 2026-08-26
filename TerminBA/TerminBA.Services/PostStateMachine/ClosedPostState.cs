@@ -23,8 +23,6 @@ namespace TerminBA.Services.PostStateMachine
             if (entity == null)
                 return false;
 
-            //await BeforeDelete(entity);
-
             _context.Posts.Remove(entity);
 
             await _context.SaveChangesAsync();

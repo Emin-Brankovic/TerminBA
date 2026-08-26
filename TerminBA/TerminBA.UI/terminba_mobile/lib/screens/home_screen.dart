@@ -26,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Load recommendations after the first frame so context is available
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadRecommendations());
   }
 
@@ -52,15 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: widget.scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           children: [
-            // ── Greeting ──────────────────────────────────────────────────
             _buildGreeting(auth.currentUsername),
-            // const SizedBox(height: 24),
-
-            // ── Quick stats card ──────────────────────────────────────────
-            // _buildQuickStatsCard(context),
             const SizedBox(height: 18),
-
-            // ── Recommendations section ───────────────────────────────────
             _buildSectionHeader(
               context,
               icon: Icons.auto_awesome_rounded,
@@ -75,8 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildRecommendationsSection(rec),
           ],
         ),
-      ),
-    );
+      ));
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -331,13 +322,6 @@ class _RecommendationCard extends StatelessWidget {
                       label: '$startStr – $endStr',
                     ),
                     const SizedBox(width: 8),
-                    // _InfoChip(
-                    //   icon: Icons.payments_outlined,
-                    //   label: r.price > 0
-                    //       ? '${r.price.toStringAsFixed(0)} BAM'
-                    //       : 'N/A',
-                    //   highlight: true,
-                    // ),
                   ],
                 ),
 
@@ -382,7 +366,7 @@ class _RecommendationCard extends StatelessWidget {
       }
 
       if (facility == null) {
-        rootNav.pop(); // pop loading dialog
+        rootNav.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Unable to load court details')),
         );
@@ -413,7 +397,6 @@ class _RecommendationCard extends StatelessWidget {
 
       await notifier.selectDate(start);
 
-      // Find the loaded slot that matches the recommendation time
       try {
         final recStartHHmm = '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
         final recEndHHmm = '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
@@ -435,8 +418,8 @@ class _RecommendationCard extends StatelessWidget {
       }
 
       if (context.mounted) {
-        rootNav.pop(); // Pop loading dialog here after everything is loaded
-        rootNav.push( // Use rootNav to push over the bottom navigation bar
+        rootNav.pop();
+        rootNav.push(
           MaterialPageRoute(
             builder: (_) => ChangeNotifierProvider.value(
               value: notifier,
@@ -447,7 +430,7 @@ class _RecommendationCard extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        rootNav.pop(); // pop loading dialog on error
+        rootNav.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );

@@ -21,7 +21,7 @@ class NotificationProvider with ChangeNotifier {
       _unseenCancelationCount = await _cancelationNotificationProvider.getUnseenCount();
       notifyListeners();
     } catch (e) {
-      print("Failed to fetch unseen count: $e");
+      debugPrint("Failed to fetch unseen count: $e");
     }
   }
 
@@ -66,7 +66,7 @@ class NotificationProvider with ChangeNotifier {
       await _playRequestProvider.markAsSeen(requestId);
       decrementUnseenReceivedCount();
     } catch (e) {
-      print("Failed to mark as seen: $e");
+      debugPrint("Failed to mark as seen: $e");
     }
   }
 
@@ -75,7 +75,7 @@ class NotificationProvider with ChangeNotifier {
       await _playRequestProvider.markResponseAsSeen(requestId);
       decrementUnseenSentCount();
     } catch (e) {
-      print("Failed to mark response as seen: $e");
+      debugPrint("Failed to mark response as seen: $e");
     }
   }
 
@@ -84,7 +84,7 @@ class NotificationProvider with ChangeNotifier {
       await _cancelationNotificationProvider.markAsSeen(id);
       decrementUnseenCancelationCount();
     } catch (e) {
-      print("Failed to mark cancelation as seen: $e");
+      debugPrint("Failed to mark cancelation as seen: $e");
       rethrow;
     }
   }

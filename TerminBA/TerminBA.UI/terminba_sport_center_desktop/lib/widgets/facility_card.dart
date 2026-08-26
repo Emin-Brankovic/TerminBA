@@ -4,10 +4,7 @@ import 'package:terminba_sport_center_desktop/model/facility.dart';
 import 'package:terminba_sport_center_desktop/model/facility_dynamic_price.dart';
 import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dart';
 import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
-// import 'package:terminba_admin_desktop/enums/day_of_week_enum.dart';
-// import 'package:terminba_admin_desktop/model/sport_center.dart';
-// import 'package:terminba_admin_desktop/model/working_hours.dart';
-// import 'package:terminba_admin_desktop/screens/sport_center_insert_screen.dart';
+
 
 class FacilityCard extends StatefulWidget {
   const FacilityCard({
@@ -53,14 +50,13 @@ class _FacilityCardState extends State<FacilityCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            // 1. Photo Section
+
             SizedBox(
               height: 150,
               width: double.infinity,
               child: _buildPhoto(),
             ),
 
-            // 2. Content Section
             Expanded(
               child: SingleChildScrollView(
                 child: SizedBox(
@@ -112,7 +108,6 @@ class _FacilityCardState extends State<FacilityCard> {
               ),
             ),
 
-            // 3. Action Buttons Section
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Row(
@@ -133,7 +128,7 @@ class _FacilityCardState extends State<FacilityCard> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C853), // Green
+                        backgroundColor: const Color(0xFF00C853),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -160,7 +155,7 @@ class _FacilityCardState extends State<FacilityCard> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF3D00), // Red/Orange
+                        backgroundColor: const Color(0xFFFF3D00),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -180,7 +175,6 @@ class _FacilityCardState extends State<FacilityCard> {
 
   String _dayName(DayOfWeek d) => d.name[0].toUpperCase() + d.name.substring(1);
 
-  // Trims to HH:mm:ss in case backend sends fractional seconds.
   String _timeStr(String t) => t.length >= 8 ? t.substring(0, 8) : t;
 
   bool _isActiveToday(FacilityDynamicPrice dp) {

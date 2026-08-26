@@ -127,7 +127,7 @@ namespace TerminBA.Services.Service
             if (request.NewPassword == request.CurrentPassword)
                 throw new UserException("New password cannot be the same as the current password.");
 
-            // Policy: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+            
             var hasNumber = new System.Text.RegularExpressions.Regex(@"[0-9]+");
             var hasUpperChar = new System.Text.RegularExpressions.Regex(@"[A-Z]+");
             var hasLowerChar = new System.Text.RegularExpressions.Regex(@"[a-z]+");
@@ -181,7 +181,6 @@ namespace TerminBA.Services.Service
             if (string.IsNullOrEmpty(jti))
                 return;
 
-            // Avoid duplicate revocation (token may already be in the table)
             var alreadyRevoked = await _context.RevokedTokens
                 .AnyAsync(rt => rt.Jti == jti);
 

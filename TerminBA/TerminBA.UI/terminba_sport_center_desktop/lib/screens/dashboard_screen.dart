@@ -120,8 +120,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = false;
         _errorMessage = e.toString();
       });
-      // ignore: avoid_print
-      print(e);
+      
     }
   }
 

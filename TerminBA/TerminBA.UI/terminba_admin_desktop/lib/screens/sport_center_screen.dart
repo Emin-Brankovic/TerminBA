@@ -114,7 +114,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
               _loadSportCenters(page: _currentPage);
             },
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size(100, 46), // width, height
+              minimumSize: const Size(100, 46),
               textStyle: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,

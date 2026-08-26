@@ -1,6 +1,7 @@
 using DotNetEnv;
 using EasyNetQ;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using TerminBA.Models.Messages;
 using TerminBA.Services.Service;
 
@@ -18,6 +19,15 @@ var builder = new ConfigurationBuilder()
 
 var configuration = builder.Build();
 
+using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+    loggingBuilder
+        .AddConfiguration(configuration.GetSection("Logging"))
+        .AddConsole();
+});
+
+ILogger logger = loggerFactory.CreateLogger<Program>();
+
 var from = Environment.GetEnvironmentVariable("From");
 
 var emailService = new EmailService(configuration);
@@ -31,7 +41,7 @@ var rabbitmqPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?
 var connectionString = $"host={rabbitmqHost};port={rabbitmqPort};username={rabbitmqUser};password={rabbitmqPassword}";
 var bus = RabbitHutch.CreateBus(connectionString);
 
-Console.WriteLine("Email subscriber started...");
+logger.LogInformation("Email subscriber started...");
 
 await bus.PubSub.SubscribeAsync<EmailMessage>("email_sender", async msg =>
 {
@@ -42,32 +52,31 @@ await bus.PubSub.SubscribeAsync<EmailMessage>("email_sender", async msg =>
     {
         try
         {
-            Console.WriteLine($"[Attempt {attempt}] Sending email to: {msg.RecipientEmail}");
+            logger.LogInformation("[Attempt {Attempt}] Sending email to: {RecipientEmail}", attempt, msg.RecipientEmail);
 
             if (msg.RecipientEmail != null && msg.MessageBody != null)
             {
                  await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody);
             }
 
-            Console.WriteLine($"Email sent to: {msg.RecipientEmail}");
-            break; // Success, exit retry loop
+            logger.LogInformation("Email sent to: {RecipientEmail}", msg.RecipientEmail);
+            break;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error processing email message on attempt {attempt}: {ex.Message}");
+            logger.LogWarning(ex, "Error processing email message on attempt {Attempt}", attempt);
             
             if (attempt > maxRetries)
             {
-                Console.WriteLine($"Failed to process message for {msg.RecipientEmail} after {maxRetries} retries. Error: {ex}");
-                throw; // Rethrow so EasyNetQ can move it to the error queue
+                logger.LogError(ex, "Failed to process message for {RecipientEmail} after {MaxRetries} retries.", msg.RecipientEmail, maxRetries);
+                throw;
             }
             
             await Task.Delay(delayMs);
-            delayMs *= 2; // Exponential backoff: 1s, 2s, 4s, 8s
+            delayMs *= 2;
         }
     }
 });
 
-// Keep the application running
 await Task.Delay(Timeout.Infinite);
 

@@ -5,8 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:terminba_mobile/main.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
-// import 'package:terminba_sport_center_desktop/main.dart';
-// import 'package:terminba_sport_center_desktop/screens/login_screen.dart';
 
 class AuthProvider extends ChangeNotifier {
   static String? _baseUrl;
@@ -172,7 +170,6 @@ class AuthProvider extends ChangeNotifier {
       try {
         final body = jsonDecode(response.body);
         if (body is Map && body.containsKey('errors')) {
-          print(body);
           errorMessage = body['errors']['userError']?.first?.toString() ?? errorMessage;
         } else if (body is String) {
           errorMessage = body;

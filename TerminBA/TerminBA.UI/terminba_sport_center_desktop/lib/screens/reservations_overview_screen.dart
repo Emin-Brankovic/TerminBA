@@ -86,7 +86,6 @@ class _ReservationsOverviewScreenState
         _loadReservations(),
       ]);
     } catch (e) {
-      // Errors are intentionally not surfaced in the UI on this screen.
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -133,7 +132,6 @@ class _ReservationsOverviewScreenState
         _currentPage = 1;
       });
     } catch (e) {
-      // Errors are intentionally not surfaced in the UI on this screen.
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);

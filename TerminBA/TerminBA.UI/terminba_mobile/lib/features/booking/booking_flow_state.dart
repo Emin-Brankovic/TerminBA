@@ -6,52 +6,37 @@ import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/model/payment_method.dart';
 
 class BookingFlowState {
-  // ── Facility / sport context ────────────────────────────────────────────
   final int sportCenterId;
   final String sportCenterName;
   final String sportCenterAddress;
   final Sport? sport;
   final DateTime initialDate;
 
-  // ── Selected court (= Facility) ─────────────────────────────────────────
   final Facility? selectedCourt;
 
-  // ── Selected date + time slot ────────────────────────────────────────────
   final DateTime? selectedDate;
   final FacilityTimeSlot? selectedTimeSlot;
-
-  // ── Payment ──────────────────────────────────────────────────────────────
   final PaymentMethod paymentMethod;
   final String notes;
 
-  // ── Pricing ──────────────────────────────────────────────────────────────
   final double totalPrice;
 
-  // ── Async ────────────────────────────────────────────────────────────────
   final bool isLoadingCourts;
   final bool isLoadingSlots;
   final bool isSubmitting;
   final String? error;
 
-  // ── Stripe payment ───────────────────────────────────────────────────────
-  /// True while the backend call + Payment Sheet presentation is in progress.
   final bool isProcessingPayment;
 
-  /// Stripe-specific error or cancellation message.
   final String? paymentError;
 
-  // ── Loaded data ──────────────────────────────────────────────────────────
   final List<Facility> courts;
   final List<FacilityTimeSlot> timeSlots;
 
-  // ── Availability cache (lazily populated) ───────────────────────────────
-  /// Dates ("yyyy-MM-dd") that have been checked and found fully booked.
   final Set<String> fullyBookedDates;
 
-  // ── Result after booking ─────────────────────────────────────────────────
   final ReservationResponse? bookingConfirmation;
 
-  // ── Post creation ────────────────────────────────────────────────────────
   final bool wantsToCreatePost;
   final String? postSkillLevel;
   final String? postText;

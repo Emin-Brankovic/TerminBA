@@ -74,7 +74,6 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
         _amenities = (results[2].items ?? []).cast<Amenity>();
       });
 
-      // Pre-fill working hours if editing
       if (_isEditing) {
         final fullSportCenter = results[3] as SportCenter?;
         if (fullSportCenter != null) {

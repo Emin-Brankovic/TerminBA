@@ -222,7 +222,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
         return message;
       }
     } catch (_) {
-      // Fallback to default message when response is not JSON.
     }
 
     return fallbackMessage;

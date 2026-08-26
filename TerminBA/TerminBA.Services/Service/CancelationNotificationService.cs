@@ -32,7 +32,6 @@ namespace TerminBA.Services.Service
                 query = query.Where(x => x.IsSeen == search.IsSeen);
             }
 
-            // Order by most recent first
             query = query.OrderByDescending(x => x.DateCancelled);
 
             return base.ApplyFilter(query, search);

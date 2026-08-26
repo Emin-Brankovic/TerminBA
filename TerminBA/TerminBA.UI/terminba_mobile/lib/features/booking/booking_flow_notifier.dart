@@ -208,7 +208,7 @@ class BookingFlowNotifier extends ChangeNotifier {
         endTime: endTime,
         price: _state.grandTotal,
         chosenSportId: _state.sport?.id,
-        paymentMethod: 'Stripe', // Force Stripe to ensure it starts as PendingReservationState
+        paymentMethod: 'Stripe',
       );
 
       final confirmation = await _reservationProvider.insert(request);
@@ -233,7 +233,6 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(isSubmitting: true, clearError: true));
 
     try {
-      // Send a dummy update request just to change the status to ActiveReservationState
       final updateData = {
         'status': 'ActiveReservationState',
         'price': _state.grandTotal,
@@ -258,10 +257,8 @@ class BookingFlowNotifier extends ChangeNotifier {
 
     try {
       await _reservationProvider.delete(reservationId);
-      // Clear confirmation so it's not used again
       _setState(_state.copyWith(bookingConfirmation: null));
     } catch (e) {
-      // Ignored for now, the background job could clean it up if it fails
     }
   }
 
@@ -278,7 +275,6 @@ class BookingFlowNotifier extends ChangeNotifier {
   }
 
   String _ensureSeconds(String time) {
-    // "HH:MM" → "HH:MM:00"; "HH:MM:SS" stays as-is
     final parts = time.split(':');
     if (parts.length == 2) return '$time:00';
     return time;

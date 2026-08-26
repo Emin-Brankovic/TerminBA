@@ -190,7 +190,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
           }
         }
       });
-    print('Loaded ${_availableTimeSlots.length} time slots for facility $_selectedFacilityId on date $_selectedDate');
+    debugPrint('Loaded ${_availableTimeSlots.length} time slots for facility $_selectedFacilityId on date $_selectedDate');
       await _updateDynamicPrice();
     } catch (e) {
       if (!mounted) return;

@@ -21,7 +21,7 @@ class ReferenceDataScreen extends StatefulWidget {
 }
 
 class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
-  int? _selectedIndex = 0; // Track which index is selected
+  int? _selectedIndex = 0; 
   List<String> categories = ['Turf Type', 'Amenity', 'City', 'Sport', 'Role'];
   final List<String> data = [];
   late ReferenceDataDataSource<dynamic> _referenceDataDataSource;
@@ -393,11 +393,11 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     if (_searchController.text.isNotEmpty) {
       filter = {};
       final search = _searchController.text;
-      if (index == 0) filter['name'] = search; // TurfType
-      else if (index == 1) filter['name'] = search; // Amenity
-      else if (index == 2) filter['cityName'] = search; // City
-      else if (index == 3) filter['sportName'] = search; // Sport
-      else if (index == 4) filter['roleName'] = search; // Role
+      if (index == 0) filter['name'] = search;
+      else if (index == 1) filter['name'] = search;
+      else if (index == 2) filter['cityName'] = search;
+      else if (index == 3) filter['sportName'] = search;
+      else if (index == 4) filter['roleName'] = search;
     }
 
     switch (index) {

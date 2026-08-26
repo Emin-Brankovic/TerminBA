@@ -186,7 +186,6 @@ namespace TerminBA.Services.Service
                         {
                             column.Spacing(0);
 
-                            //Company Name
                             column.Item().AlignCenter().PaddingBottom(16).Text("TerminBA")
                                 .FontSize(25)
                                 .Bold();
@@ -211,23 +210,20 @@ namespace TerminBA.Services.Service
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(120); //Username Column 
-                                    columns.ConstantColumn(120); //Password Column 
+                                    columns.ConstantColumn(120);
+                                    columns.ConstantColumn(120);
                                 });
 
-                                //Table Header
                                 table.Header(header =>
                                 {
                                     header.Cell().Background(Colors.LightBlue.Accent3).Border(1).AlignCenter().Text("Username").Bold();
                                     header.Cell().Background(Colors.LightBlue.Accent3).Border(1).AlignCenter().Text("Password").Bold();
                                 });
 
-                                //Table Rows 
                                 table.Cell().Border(1).AlignCenter().Text(username);
                                 table.Cell().Border(1).AlignCenter().Text(password);
                             });
 
-                            //Warning message
                             column.Item().PaddingTop(20).AlignCenter().Text("Note that this password is temporary and you should change it immediately after receiving this document!").FontColor(Colors.Red.Medium)
                             .FontSize(10);
                         });

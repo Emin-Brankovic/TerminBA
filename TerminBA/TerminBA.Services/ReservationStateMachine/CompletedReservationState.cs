@@ -14,7 +14,6 @@ namespace TerminBA.Services.ReservationStateMachine
         public CompletedReservationState(IServiceProvider serviceProvider, TerminBaContext context, IMapper mapper)
     : base(serviceProvider, context, mapper) { }
 
-        // Optional: allow delete if your business rules allow it
         public override async Task<bool> DeleteAsync(int id)
         {
             var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);

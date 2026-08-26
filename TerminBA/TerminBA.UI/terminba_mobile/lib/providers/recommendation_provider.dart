@@ -24,8 +24,7 @@ class RecommendationProvider extends ChangeNotifier {
     );
   }
 
-  /// Fetches personalised recommendations for [userId] from the backend.
-  /// Falls back to non-personalised top-rated facilities if history is thin.
+
   Future<void> loadRecommendations(int userId, {int topN = 5}) async {
     _isLoading = true;
     _errorMessage = null;
@@ -43,7 +42,6 @@ class RecommendationProvider extends ChangeNotifier {
         _recommendations =
             data.map((e) => RecommendationResult.fromJson(e)).toList();
       } else if (response.statusCode == 503) {
-        // Model not yet trained — silently show nothing
         _recommendations = [];
       } else {
         _recommendations = [];
@@ -51,7 +49,6 @@ class RecommendationProvider extends ChangeNotifier {
       }
     } catch (_) {
       _recommendations = [];
-      // Silently fail — home screen degrades gracefully without recommendations
     } finally {
       _isLoading = false;
       notifyListeners();

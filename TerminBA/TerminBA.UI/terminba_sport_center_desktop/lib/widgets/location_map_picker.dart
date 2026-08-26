@@ -15,7 +15,7 @@ class LocationMapPickerDialog extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
 
-  /// Convenience helper to open the dialog.
+
   static Future<LatLng?> show(
     BuildContext context, {
     double? initialLatitude,

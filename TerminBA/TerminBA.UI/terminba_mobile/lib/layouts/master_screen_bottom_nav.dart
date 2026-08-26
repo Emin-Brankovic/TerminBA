@@ -246,7 +246,6 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 								selected: false,
 								child: context.watch<NotificationProvider>().unseenCount > 0
 									? Badge(
-											// label: Text('${context.watch<NotificationProvider>().unseenCount}'),
 											child: Icon(Icons.person_outline),
 									  )
 									: Icon(Icons.person_outline),
@@ -256,7 +255,6 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 								selected: true,
 								child: context.watch<NotificationProvider>().unseenCount > 0
 									? Badge(
-											// label: Text('${context.watch<NotificationProvider>().unseenCount}'),
 											child: Icon(Icons.person_outline, color: selectedColor),
 									  )
 									: Icon(Icons.person_outline, color: selectedColor),

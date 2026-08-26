@@ -50,7 +50,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
     
     throw Exception("Unknown error");
-    // print("response: ${response.request} ${response.statusCode}, ${response.body}");
+    
   }
 
   Future<T?> insert(dynamic request) async {
@@ -223,7 +223,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
         return message;
       }
     } catch (_) {
-      // Fallback to default message when response is not JSON.
     }
 
     return fallbackMessage;

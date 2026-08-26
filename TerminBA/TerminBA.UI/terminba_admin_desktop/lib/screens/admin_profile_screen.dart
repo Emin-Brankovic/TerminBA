@@ -101,7 +101,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully.')),
         );
-        // Reload to reflect saved data
         await _loadData();
       }
     } catch (e) {

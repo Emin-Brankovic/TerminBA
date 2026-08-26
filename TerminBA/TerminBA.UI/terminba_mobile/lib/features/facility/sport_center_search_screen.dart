@@ -143,29 +143,6 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
           ),
         ),
          const SizedBox(width: 25),
-        // Text(
-        //   'Hi, $name',
-        //   style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        // ),
-        // const SizedBox(width: 10),
-        // GestureDetector(
-        //   onTap: () {
-        //     Navigator.of(context).push(
-        //       MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        //     );
-        //   },
-        //   child: CircleAvatar(
-        //     radius: 18,
-        //     backgroundColor: const Color(0xFFECFFF6),
-        //     child: Text(
-        //       initials,
-        //       style: theme.textTheme.titleMedium?.copyWith(
-        //         fontWeight: FontWeight.bold,
-        //         color: const Color(0xFF00A565),
-        //       ),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }

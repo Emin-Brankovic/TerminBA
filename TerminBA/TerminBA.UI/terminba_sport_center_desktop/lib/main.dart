@@ -93,17 +93,17 @@ class MyApp extends StatelessWidget {
 
 
 class AppTheme {
-  // Primary Colors from the Screenshots
+
   static const Color primaryGreen = Color(
     0xFF00C875,
-  ); // Action buttons & Mobile navbar
+  );
   static const Color secondaryOrange = Color(
     0xFFFF5722,
-  ); // Reviews & Delete buttons
+  );
   static const Color adminNavbarBg = Color(
     0xFFD9F2E6,
-  ); // Light mint admin header
-  static const Color backgroundGray = Color(0xFFF8F9FA); // Screen background
+  );
+  static const Color backgroundGray = Color(0xFFF8F9FA);
   static const Color cardShadow = Color(0x1A000000);
 
   static ThemeData get lightTheme {
@@ -118,7 +118,7 @@ class AppTheme {
         surface: Colors.white,
       ),
 
-      // Card Theme for Facility & User containers
+
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 0,
@@ -137,7 +137,7 @@ class AppTheme {
         toolbarHeight: 75,
       ),
 
-      // Input Decoration (Search Bars & Forms)
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
@@ -146,7 +146,7 @@ class AppTheme {
           vertical: 12,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30), // Rounded search bars
+          borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
@@ -160,7 +160,7 @@ class AppTheme {
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
       ),
 
-      // Button Themes
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryGreen,
@@ -171,7 +171,7 @@ class AppTheme {
         ),
       ),
 
-      // Navigation Bar (User Mobile App)
+
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
         indicatorColor: primaryGreen.withValues(alpha: 30),
@@ -186,7 +186,7 @@ class AppTheme {
         ),
       ),
 
-      // Custom Text Theme
+      
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 24,

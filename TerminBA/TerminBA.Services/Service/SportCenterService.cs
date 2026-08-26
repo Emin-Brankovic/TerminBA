@@ -96,7 +96,7 @@ namespace TerminBA.Services.Service
             string randomPassword = StringHelper.GenerateRandomString();
 
             entity.PasswordSalt = HashingHelper.GenerateSalt();
-            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword); // temporary solution
+            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword);
             entity.RoleId = 2;
 
             await BeforeInsert(entity,request);
@@ -168,8 +168,7 @@ namespace TerminBA.Services.Service
             if (!search.Date.HasValue)
                 throw new UserException("Date is required for availability search.");
 
-            //if (!search.SportId.HasValue)
-            //    throw new UserException("Sport is required for availability search.");
+            
 
             if (!search.CityId.HasValue && string.IsNullOrWhiteSpace(search.CityName))
                 throw new UserException("City is required for availability search.");
@@ -387,7 +386,7 @@ namespace TerminBA.Services.Service
                 await TryGeocodeAsync(entity, request.Address, request.CityId);
             }
 
-           // await UpdateGalleryAsync(entity, request.RemovedPhotoIds, request.PhotosBase64);
+            
         }
 
         private async Task UpdateGalleryAsync(SportCenter entity, List<int>? removedPhotoIds, List<string>? photosBase64)

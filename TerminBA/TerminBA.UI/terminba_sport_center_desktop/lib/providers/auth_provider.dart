@@ -60,7 +60,6 @@ class AuthProvider extends ChangeNotifier {
       if (respone.statusCode == 200) {
         final responseBody = json.decode(respone.body);
         final token = responseBody['accessToken'];
-        print(token);
         await _storage.write(key: _tokenKey, value: token);
         try {
           final claims = JwtDecoder.decode(token);
@@ -177,7 +176,6 @@ class AuthProvider extends ChangeNotifier {
             errorMessage = responseBody;
           }
         } catch (_) {
-          // If response body is not JSON or empty
           if (response.body.isNotEmpty) {
              errorMessage = response.body;
           }

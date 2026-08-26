@@ -41,7 +41,6 @@ builder.Services.AddScoped<IPlayRequestService, PlayRequestService>();
 builder.Services.AddScoped<ICancelationNotificationService, CancelationNotificationService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddScoped<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
-//Post states
 builder.Services.AddScoped<BasePostState>();
 builder.Services.AddScoped<DraftPostState>();
 builder.Services.AddScoped<PlayerSearchPostState>();
@@ -49,7 +48,6 @@ builder.Services.AddScoped<PlayerFoundPostState>();
 builder.Services.AddScoped<ClosedPostState>();
 builder.Services.AddScoped<FinishedPostState>();
 builder.Services.AddScoped<CanceledReservationPostState>();
-//Reservation states
 builder.Services.AddScoped<BaseReservationState>();
 builder.Services.AddScoped<ActiveReservationState>();
 builder.Services.AddScoped<CanceledReservationState>();
@@ -68,7 +66,6 @@ builder.Services.AddHostedService<RecommendationTrainingHostedService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 
-// PlayRequest State Machine
 builder.Services.AddScoped<BasePlayRequestState>();
 builder.Services.AddScoped<PendingPlayRequestState>();
 builder.Services.AddScoped<AcceptedPlayRequestState>();
@@ -76,7 +73,6 @@ builder.Services.AddScoped<RejectedPlayRequestState>();
 builder.Services.AddScoped<CanceledPlayRequestState>();
 builder.Services.AddScoped<ExpiredPlayRequestState>();
 
-// Stripe payment service (reads StripeSecretKey from env, secret stays server-side)
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 
 // Geocoding
@@ -86,7 +82,6 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(cli
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
-// ML.NET Recommendation — PredictionEnginePool is thread-safe and hot-reloads model.zip on save
 builder.Services.AddPredictionEnginePool<RecommendationInput, RecommendationPrediction>()
     .FromFile(modelName: "RecommenderModel", filePath: "MLModels/model.zip", watchForChanges: true);
 
@@ -139,7 +134,6 @@ builder.Services.AddSwaggerGen(c =>
 
 });
 
-// Configure Mapster mappings
 builder.Services.AddMapster();
 
 var connectionString = builder.Configuration.GetConnectionString("db");
@@ -205,8 +199,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-//app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 

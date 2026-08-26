@@ -55,7 +55,6 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
             _ErrorBanner(
               message: state.error!,
               onRetry: () {
-                // For now, clear the error or let the user click the bottom button again
               },
             ),
 
@@ -255,7 +254,6 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
       if (!mounted) return;
       
-      // Confirm with backend directly instead of relying solely on webhook
       await notifier.confirmPaymentIntent(intentResponse.paymentIntentId);
 
       if (!mounted) return;

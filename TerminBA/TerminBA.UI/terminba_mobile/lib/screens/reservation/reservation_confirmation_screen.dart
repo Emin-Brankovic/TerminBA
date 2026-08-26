@@ -96,7 +96,6 @@ class ReservationConfirmationScreen extends StatelessWidget {
 
 }
 
-// ─── Ticket Card ──────────────────────────────────────────────────────────────
 
 class _TicketCard extends StatelessWidget {
   const _TicketCard({required this.state, required this.reservationId});
@@ -110,7 +109,7 @@ class _TicketCard extends StatelessWidget {
     final user = confirmation?.user;
     final userName = user != null
         ? '${user.firstName} ${user.lastName}'.trim()
-        : state.sportCenterName; // fallback
+        : state.sportCenterName;
     final sportName = state.sport?.name ?? '-';
     final courtName = state.selectedCourt?.name ?? '-';
     final address = state.sportCenterAddress;
@@ -130,7 +129,6 @@ class _TicketCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Reservation ID
             const Text(
               'Reservation ID',
               style: TextStyle(fontSize: 12, color: Color(0xFF757575)),
@@ -146,7 +144,6 @@ class _TicketCard extends StatelessWidget {
               ),
             ),
             const Divider(height: 24),
-            // Grid of info cells
             _InfoGrid(cells: [
               _InfoCell(label: 'NAME', value: userName),
               _InfoCell(label: 'SPORT NAME', value: sportName),

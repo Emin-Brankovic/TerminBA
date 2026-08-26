@@ -20,7 +20,6 @@ namespace TerminBA.Services.Service
         {
             var from = Environment.GetEnvironmentVariable("From");
 
-            //var from = _config["EmailSettings:SenderEmail"];
 
             var emailMessage = new MimeMessage();
             emailMessage.From.Add(MailboxAddress.Parse(from));
@@ -32,12 +31,6 @@ namespace TerminBA.Services.Service
             var username = Environment.GetEnvironmentVariable("Username");
             var password = Environment.GetEnvironmentVariable("AppPassword");
             var port = int.Parse(Environment.GetEnvironmentVariable("SmtpPort"));
-
-
-            //var   smtpServer = config["EmailSettings:SmtpServer"];
-            //var  username = config["EmailSettings:Username"];
-            //var password = config["EmailSettings:AppPassword"];
-            //var port = config["EmailSettings:SmtpPort"];
 
             using var smtp = new SmtpClient();
             await smtp.ConnectAsync(smtpServer, port, SecureSocketOptions.StartTls);

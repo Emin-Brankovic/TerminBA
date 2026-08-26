@@ -139,7 +139,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
          _applyFacilityDefaults(widget.facility!);
       }
     } catch (e) {
-      debugPrint('Error loading facility reference data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading data: $e')),
@@ -193,7 +192,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     setState(() => _isSaving = true);
 
     try {
-      print(_removedPhotoIds);
       final request = FacilityInsertRequest(
         name: values['name'] as String,
         maxCapacity: values['maxCapacity'] as int,
@@ -255,7 +253,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
             ),
           ),
         );
-        print(e);
       }
     } finally {
       if (mounted) {
@@ -449,14 +446,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
             ),
           ],
         ),
-        // if (hasExisting)
-        //   Padding(
-        //     padding: const EdgeInsets.only(bottom: 8),
-        //     child: Text(
-        //       'Existing photos will be kept unless you replace them.',
-        //       style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-        //     ),
-        //   ),
+        const SizedBox(height: 16),
         if (hasExisting)
           Row(
             children: [
@@ -1012,7 +1002,6 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            // _sectionHeader('Configuration'),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(14),

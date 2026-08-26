@@ -11,7 +11,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _isObscured = true; // Hidden by default
+  bool _isObscured = true;
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -28,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text.trim();
     final int roleId = 3;
 
-    // Validate empty fields
     if (username.isEmpty || password.isEmpty) {
       showDialog(
         context: context,
@@ -59,7 +58,6 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       
       String errorMessage = e.toString();
-      // Extract meaningful error message
       if (errorMessage.contains('Exception:')) {
         errorMessage = errorMessage.replaceAll('Exception:', '').trim();
       }
@@ -102,19 +100,17 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginForm() {
-    // Use LayoutBuilder to get the parent's constraints (the screen size)
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate a dynamic width: 70% of screen width, but never more than 500px
         double dynamicWidth = constraints.maxWidth * 0.7;
         if (dynamicWidth > 600) dynamicWidth = 600;
         if (dynamicWidth < 300)
-          dynamicWidth = constraints.maxWidth * 0.9; // Narrow screens
+          dynamicWidth = constraints.maxWidth * 0.9; 
 
         double dynamicHeight = constraints.maxHeight * 0.6;
-        if (dynamicHeight > 700) dynamicHeight = 700; // Cap the max height
+        if (dynamicHeight > 700) dynamicHeight = 700; 
         if (dynamicHeight < 560)
-          dynamicHeight = 560; // Ensure it's tall enough for all fields
+          dynamicHeight = 560; 
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -147,7 +143,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 50),
 
-                      // Username
                       TextField(
                         controller: _usernameController,
                         decoration: InputDecoration(
@@ -160,7 +155,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Password
                       TextField(
                         controller: _passwordController,
                         obscureText: _isObscured,
@@ -183,10 +177,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 150),
-                      // Button that matches the dynamic width
                       SizedBox(
                         width: double
-                            .infinity, // Fills the dynamic container width
+                            .infinity, 
                         height: 50,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(

@@ -81,7 +81,7 @@ namespace TerminBA.Services.Service
             {
                 Id = entity.Id,
                 FacilityId = entity.FacilityId,
-                FacilityName = entity.Facility?.Name, // null if not included
+                FacilityName = entity.Facility?.Name,
 
                 StartDay = entity.StartDay,
                 EndDay = entity.EndDay,
@@ -91,7 +91,7 @@ namespace TerminBA.Services.Service
 
                 PricePerHour = entity.PricePerHour,
 
-                IsActive = entity.IsActive, // C# computed property
+                IsActive = entity.IsActive,
 
                 ValidFrom = entity.ValidFrom,
                 ValidTo = entity.ValidTo

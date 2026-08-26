@@ -34,7 +34,6 @@ class ProfileMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
-    //final muted = theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600);
 
     return SafeArea(
       child: ListView(
@@ -130,13 +129,6 @@ class ProfileMenuScreen extends StatelessWidget {
               );
             },
           ),
-
-          // _listItem(
-          // 	context,
-          // 	icon: Icons.lock_outline,
-          // 	title: 'Privacy and Safety',
-          // 	color: accent,
-          // ),
           const SizedBox(height: 36),
           ListTile(
             contentPadding: EdgeInsets.zero,

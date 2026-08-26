@@ -34,11 +34,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    //_reportProvider = context.read<ReportProvider>();
-    // if (!_initialized) {
-    //   _initialized = true;
-    //   _fetchDashboardData();
-    // }
   }
 
   @override

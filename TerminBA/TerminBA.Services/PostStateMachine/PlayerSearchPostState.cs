@@ -107,12 +107,11 @@ namespace TerminBA.Services.PostStateMachine
             if (post?.Reservation?.UserId == request.RequesterId)
                 throw new UserException("You cannot send a request to your own post.");
 
-            // Prevent duplicate active/pending requests
             var duplicate = await _context.PlayRequests
                 .AnyAsync(pr =>
                     pr.PostId == request.PostId &&
                     pr.RequesterId == request.RequesterId &&
-                    pr.PlayRequestState == nameof(PendingPlayRequestState)); // null = pending
+                    pr.PlayRequestState == nameof(PendingPlayRequestState));
 
             if (duplicate)
                 throw new UserException("You already have a pending request for this post.");

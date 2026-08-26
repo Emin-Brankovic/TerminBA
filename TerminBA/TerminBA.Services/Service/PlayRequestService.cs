@@ -105,10 +105,10 @@ namespace TerminBA.Services.Service
             return query;
         }
 
-        public async Task<PlayRequestResponse> CancelAsync(int playRequestId, PlayRequestCancelRequest request)
+        public async Task<PlayRequestResponse> CancelAsync(int id, PlayRequestCancelRequest request)
         {
             var entity = await _context.PlayRequests
-                .FirstOrDefaultAsync(pr => pr.Id == playRequestId);
+                .FirstOrDefaultAsync(pr => pr.Id == id);
 
             if (entity == null) throw new UserException("Request not found");
 
@@ -116,7 +116,7 @@ namespace TerminBA.Services.Service
             
             var currentUserId = int.Parse(_authService.GetUserId());
 
-            return await baseState.CancelAsync(playRequestId, request.Reason, currentUserId);
+            return await baseState.CancelAsync(id, request.Reason, currentUserId);
         }
 
         public override IQueryable<PlayRequest> ApplyIncludes(IQueryable<PlayRequest> query)

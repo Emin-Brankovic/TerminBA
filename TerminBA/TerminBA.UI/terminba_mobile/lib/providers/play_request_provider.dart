@@ -32,7 +32,7 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
 
   /// Cancels a sent request (by requester).
   Future<PlayRequestResponse?> cancelRequest(int id, {String? reason}) async {
-    final url = '$baseUrl${endpoint}/cancleRequest/$id';
+    final url = '$baseUrl${endpoint}/cancelRequest/$id';
     final uri = Uri.parse(url);
     final headers = await createHeaders();
 

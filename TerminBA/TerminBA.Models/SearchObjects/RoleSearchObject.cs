@@ -9,8 +9,6 @@ namespace TerminBA.Models.SearchObjects
     public class RoleSearchObject : BaseSearchObject
     {
         public string? RoleName { get; set; }
-
-        public string? FTS { get; set; }
     }
 }
 

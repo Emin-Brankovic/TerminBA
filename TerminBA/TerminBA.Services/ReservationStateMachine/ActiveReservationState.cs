@@ -77,7 +77,7 @@ namespace TerminBA.Services.ReservationStateMachine
                             decimal diff = newPrice - totalPaid;
                             try
                             {
-                                // Force initialization of Stripe API key
+                               
                                 _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
 
                                 var paymentIntentService = new PaymentIntentService();
@@ -416,25 +416,6 @@ namespace TerminBA.Services.ReservationStateMachine
             {
                 throw new UserException("Can't make a reservation in the past.");
             }
-        }
-
-        private async Task SendEmailAsync(ReservationInsertRequest reservation)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == reservation.UserId);
-
-            if (user == null)
-                throw new UserException("User not found");
-
-            var bus = _serviceProvider.GetService<IBus>()
-                ?? throw new UserException("Message bus is not configured");
-
-            var emailMessage = new EmailMessage
-            {
-                RecipientEmail = user.Email ?? string.Empty,
-                MessageBody = "Your reservation has been successfully created. Thank you"
-            };
-
-            await bus.PubSub.PublishAsync(emailMessage);
         }
     }
 }

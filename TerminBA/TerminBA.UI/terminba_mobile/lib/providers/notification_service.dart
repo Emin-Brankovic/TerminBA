@@ -11,7 +11,6 @@ class NotificationService {
   final _storage = const FlutterSecureStorage();
   final _tokenKey = 'jwt_token';
 
-  // Make sure this matches the base URL without /api/
   final String _baseUrl = const String.fromEnvironment(
     "baseUrl",
     defaultValue: "http://10.0.2.2:5078",
@@ -88,7 +87,6 @@ class NotificationService {
     try {
       await _hubConnection?.start();
     } catch (e) {
-      print("Error starting SignalR connection: $e");
     }
   }
 

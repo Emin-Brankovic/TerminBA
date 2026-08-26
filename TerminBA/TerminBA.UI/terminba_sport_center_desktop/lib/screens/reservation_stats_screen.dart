@@ -131,7 +131,7 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
         return;
       }
       _showSnackBar('Export failed: $e');
-      print(  'Export error: $e');
+      debugPrint(  'Export error: $e');
     } finally {
       if (mounted) {
         setState(() {

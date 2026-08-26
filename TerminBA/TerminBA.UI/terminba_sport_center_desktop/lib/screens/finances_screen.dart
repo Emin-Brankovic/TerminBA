@@ -74,7 +74,7 @@ class _FinancesScreenState extends State<FinancesScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to load finances: $e')));
-      print('Error fetching finance summary: $e');
+      debugPrint('Error fetching finance summary: $e');
     } finally {
       if (mounted) {
         setState(() {
