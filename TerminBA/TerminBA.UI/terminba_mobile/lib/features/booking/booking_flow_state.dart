@@ -184,6 +184,17 @@ class BookingFlowState {
 
   double get grandTotal => slotPrice;
 
+  bool isWithinValidityPeriod(DateTime resDate, DateTime validFrom, DateTime? validTo) {
+    final rDate = DateTime(resDate.year, resDate.month, resDate.day);
+    final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
+    if (rDate.isBefore(from)) return false;
+    if (validTo != null) {
+      final to = DateTime(validTo.year, validTo.month, validTo.day);
+      if (rDate.isAfter(to)) return false;
+    }
+    return true;
+  }
+
   double getDynamicPriceFor(Facility court, DateTime date, FacilityTimeSlot slot) {
     if (court.dynamicPrices.isEmpty) {
       return court.staticPrice?.toDouble() ?? 0.0;
@@ -236,17 +247,6 @@ class BookingFlowState {
       } else {
         return t >= s || t <= e;
       }
-    }
-
-    bool isWithinValidityPeriod(DateTime resDate, DateTime validFrom, DateTime? validTo) {
-      final rDate = DateTime(resDate.year, resDate.month, resDate.day);
-      final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
-      if (rDate.isBefore(from)) return false;
-      if (validTo != null) {
-        final to = DateTime(validTo.year, validTo.month, validTo.day);
-        if (rDate.isAfter(to)) return false;
-      }
-      return true;
     }
 
     final slotStart = parseTimeToDouble(slot.startTime);

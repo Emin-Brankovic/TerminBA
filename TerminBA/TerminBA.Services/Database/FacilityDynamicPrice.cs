@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -40,8 +40,7 @@ namespace TerminBA.Services.Database
               (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
 
         public static Expression<Func<FacilityDynamicPrice, bool>> IsActiveExpr(DateOnly today) =>
-            x => x.ValidFrom <= today &&
-            (x.ValidTo == null || x.ValidTo >= today);
+            x => x.ValidTo == null || x.ValidTo >= today;
 
         [Required]
         public DateOnly ValidFrom { get; set; }

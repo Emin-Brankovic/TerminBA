@@ -56,11 +56,16 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
   Future<void> _loadReferenceData() async {
     setState(() => _isLoading = true);
     try {
-      final results = await Future.wait([
+      final futures = <Future>[
         _cityProvider.get(),
         _sportProvider.get(),
         _amenityProvider.get(),
-      ]);
+      ];
+      if (_isEditing) {
+        futures.add(_sportCenterProvider.getById(widget.sportCenter!.id, queryParameters: {'includeInactiveWorkingHours': true}));
+      }
+
+      final results = await Future.wait(futures);
 
       setState(() {
         _cities = (results[0].items ?? []).cast<City>();
@@ -70,24 +75,27 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
 
       // Pre-fill working hours if editing
       if (_isEditing) {
-        _workingHoursList = widget.sportCenter!.workingHours.map((wh) {
-          TimeOfDay _parseTime(String t) {
-            final parts = t.split(':');
-            return TimeOfDay(
-              hour: int.parse(parts[0]),
-              minute: int.parse(parts[1]),
-            );
-          }
+        final fullSportCenter = results[3] as SportCenter?;
+        if (fullSportCenter != null) {
+          _workingHoursList = fullSportCenter.workingHours.map((wh) {
+            TimeOfDay _parseTime(String t) {
+              final parts = t.split(':');
+              return TimeOfDay(
+                hour: int.parse(parts[0]),
+                minute: int.parse(parts[1]),
+              );
+            }
 
-          return _WorkingHoursEntry(
-            startDay: wh.startDay,
-            endDay: wh.endDay,
-            openingTime: _parseTime(wh.openingHours),
-            closingTime: _parseTime(wh.closeingHours),
-            validFrom: wh.validFrom,
-            validTo: wh.validTo,
-          );
-        }).toList();
+            return _WorkingHoursEntry(
+              startDay: wh.startDay,
+              endDay: wh.endDay,
+              openingTime: _parseTime(wh.openingHours),
+              closingTime: _parseTime(wh.closeingHours),
+              validFrom: wh.validFrom,
+              validTo: wh.validTo,
+            );
+          }).toList();
+        }
       }
     } catch (e) {
       debugPrint('Error loading reference data: $e');
@@ -203,7 +211,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.grey.shade50,
+      color: wh.isActive ? Colors.grey.shade50 : Colors.grey.shade300,
       child: Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
         child: Column(
@@ -734,6 +742,18 @@ class _WorkingHoursEntry {
   TimeOfDay closingTime;
   DateTime validFrom;
   DateTime? validTo;
+
+  bool get isActive {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
+    if (from.isAfter(today)) return false;
+    if (validTo != null) {
+      final to = DateTime(validTo!.year, validTo!.month, validTo!.day);
+      if (to.isBefore(today)) return false;
+    }
+    return true;
+  }
 
   _WorkingHoursEntry({
     this.startDay = DayOfWeek.monday,

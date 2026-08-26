@@ -97,8 +97,11 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return null;
   }
 
-  Future<T?> getById(int id) async {
+  Future<T?> getById(int id, {Map<String, dynamic>? queryParameters}) async {
     var url = "$_baseUrl$_endpoint/$id";
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      url += "?${getQueryString(queryParameters)}";
+    }
     var uri = Uri.parse(url);
     var headers = await createHeaders();
 

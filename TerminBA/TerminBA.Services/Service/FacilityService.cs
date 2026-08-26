@@ -18,11 +18,13 @@ namespace TerminBA.Services.Service
     {
         private readonly IFacilityDynamicPriceService _facilityDynamicPriceService;
         private readonly IPhotoService _photoService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService,IPhotoService photoService) : base(context, mapper)
+        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService,IPhotoService photoService, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
         {
             _facilityDynamicPriceService = facilityDynamicPriceService;
             this._photoService = photoService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public override IQueryable<Facility> ApplyFilter(IQueryable<Facility> query, FacilitySearchObject search)
@@ -87,9 +89,24 @@ namespace TerminBA.Services.Service
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
             var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
-            var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
+            bool includeInactive = false;
+
+            if (_httpContextAccessor.HttpContext?.Request.Query.ContainsKey("includeInactiveDynamicPrices") == true)
+            {
+                bool.TryParse(_httpContextAccessor.HttpContext.Request.Query["includeInactiveDynamicPrices"], out includeInactive);
+            }
+
+            if (includeInactive)
+            {
+                query = query.Include(f => f.DynamicPrices);
+            }
+            else
+            {
+                var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
+                query = query.Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr));
+            }
+
             query = query
-                .Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr))
                 .Include(f => f.TurfType)
                 .Include(f => f.AvailableSports)
                 .Include(f => f.Photos);
@@ -225,7 +242,7 @@ namespace TerminBA.Services.Service
 
             await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
-            await ValidateDynamicPricesRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
+            await ValidateDynamicPricesInsertRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
 
         }
 
@@ -243,6 +260,7 @@ namespace TerminBA.Services.Service
 
 
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
+            await ValidateDynamicPricesUpdateRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
 
             _context.Entry(entity).Collection(f => f.AvailableSports).Load();
 
@@ -384,7 +402,7 @@ namespace TerminBA.Services.Service
             }
         }
 
-        private async Task ValidateDynamicPricesRequest(bool isDynamicPricing, int sportCenterId, List<FacilityDynamicPriceInsertRequest>? dynamicPrices)
+        private async Task ValidateDynamicPricesInsertRequest(bool isDynamicPricing, int sportCenterId, List<FacilityDynamicPriceInsertRequest>? dynamicPrices)
         {
             if (!isDynamicPricing && dynamicPrices != null && dynamicPrices.Any())
             {
@@ -405,8 +423,15 @@ namespace TerminBA.Services.Service
                 throw new UserException("Sport center does not have configured working hours.");
             }
 
-            foreach (var dynamicPrice in dynamicPrices)
+            for (int i = 0; i < dynamicPrices.Count; i++)
             {
+                var dynamicPrice = dynamicPrices[i];
+
+                if (dynamicPrice.PricePerHour <= 0)
+                {
+                    throw new UserException("Price per hour must be a positive value.");
+                }
+
                 if (dynamicPrice.StartTime >= dynamicPrice.EndTime)
                 {
                     throw new UserException("Start time must be before end time.");
@@ -415,6 +440,89 @@ namespace TerminBA.Services.Service
                 if (dynamicPrice.ValidTo.HasValue && dynamicPrice.ValidFrom > dynamicPrice.ValidTo.Value)
                 {
                     throw new UserException("ValidFrom date must be before or equal to ValidTo date.");
+                }
+
+                for (int j = i + 1; j < dynamicPrices.Count; j++)
+                {
+                    var price2 = dynamicPrices[j];
+                    if (AreDynamicPricesConflicting(
+                        dynamicPrice.ValidFrom, dynamicPrice.ValidTo, dynamicPrice.StartDay, dynamicPrice.EndDay, dynamicPrice.StartTime, dynamicPrice.EndTime,
+                        price2.ValidFrom, price2.ValidTo, price2.StartDay, price2.EndDay, price2.StartTime, price2.EndTime))
+                    {
+                        throw new UserException("Overlapping dynamic prices are not allowed. Check validity dates, days of the week, and time ranges.");
+                    }
+                }
+
+                foreach (var day in GetDaysInRange(dynamicPrice.StartDay, dynamicPrice.EndDay))
+                {
+                    var matchingWorkingHours = workingHours.Where(wh =>
+                        TimeSlotHelper.IsInDayRange(day, wh.StartDay, wh.EndDay)
+                        && wh.OpeningHours <= dynamicPrice.StartTime
+                        && wh.CloseingHours >= dynamicPrice.EndTime);
+
+                    var hasMatchingWorkingHours = IsDateRangeCoveredByWorkingHours(
+                        dynamicPrice.ValidFrom,
+                        dynamicPrice.ValidTo,
+                        matchingWorkingHours);
+
+                    if (!hasMatchingWorkingHours)
+                    {
+                        throw new UserException(
+                            $"Dynamic price time range {dynamicPrice.StartTime:HH\\:mm}-{dynamicPrice.EndTime:HH\\:mm} is outside active working hours for the selected date range.");
+                    }
+                }
+            }
+        }
+
+        private async Task ValidateDynamicPricesUpdateRequest(bool isDynamicPricing, int sportCenterId, List<FacilityDynamicPriceUpdateRequest>? dynamicPrices)
+        {
+            if (!isDynamicPricing && dynamicPrices != null && dynamicPrices.Any())
+            {
+                throw new UserException("Dynamic prices cannot be provided when dynamic pricing is disabled.");
+            }
+
+            if (!isDynamicPricing || dynamicPrices == null || !dynamicPrices.Any())
+            {
+                return;
+            }
+
+            var workingHours = await _context.WorkingHours
+                .Where(wh => wh.SportCenterId == sportCenterId)
+                .ToListAsync();
+
+            if (!workingHours.Any())
+            {
+                throw new UserException("Sport center does not have configured working hours.");
+            }
+
+            for (int i = 0; i < dynamicPrices.Count; i++)
+            {
+                var dynamicPrice = dynamicPrices[i];
+
+                if (dynamicPrice.PricePerHour <= 0)
+                {
+                    throw new UserException("Price per hour must be a positive value.");
+                }
+
+                if (dynamicPrice.StartTime >= dynamicPrice.EndTime)
+                {
+                    throw new UserException("Start time must be before end time.");
+                }
+
+                if (dynamicPrice.ValidTo.HasValue && dynamicPrice.ValidFrom > dynamicPrice.ValidTo.Value)
+                {
+                    throw new UserException("ValidFrom date must be before or equal to ValidTo date.");
+                }
+
+                for (int j = i + 1; j < dynamicPrices.Count; j++)
+                {
+                    var price2 = dynamicPrices[j];
+                    if (AreDynamicPricesConflicting(
+                        dynamicPrice.ValidFrom, dynamicPrice.ValidTo, dynamicPrice.StartDay, dynamicPrice.EndDay, dynamicPrice.StartTime, dynamicPrice.EndTime,
+                        price2.ValidFrom, price2.ValidTo, price2.StartDay, price2.EndDay, price2.StartTime, price2.EndTime))
+                    {
+                        throw new UserException("Overlapping dynamic prices are not allowed. Check validity dates, days of the week, and time ranges.");
+                    }
                 }
 
                 foreach (var day in GetDaysInRange(dynamicPrice.StartDay, dynamicPrice.EndDay))
@@ -481,6 +589,32 @@ namespace TerminBA.Services.Service
             }
 
             return false;
+        }
+
+        private static bool AreDynamicPricesConflicting(
+            DateOnly from1, DateOnly? to1, DayOfWeek startDay1, DayOfWeek endDay1, TimeOnly open1, TimeOnly close1,
+            DateOnly from2, DateOnly? to2, DayOfWeek startDay2, DayOfWeek endDay2, TimeOnly open2, TimeOnly close2)
+        {
+            // 1. Check Date Range overlap
+            bool datesOverlap = true;
+            if (to1.HasValue && to1.Value < from2) datesOverlap = false;
+            if (to2.HasValue && to2.Value < from1) datesOverlap = false;
+
+            if (!datesOverlap) return false;
+
+            // 2. Check Days overlap
+            var days1 = GetDaysInRange(startDay1, endDay1);
+            var days2 = GetDaysInRange(startDay2, endDay2);
+            bool daysOverlap = days1.Intersect(days2).Any();
+
+            if (!daysOverlap) return false;
+
+            // 3. Check Time Range overlap
+            bool timesOverlap = true;
+            if (open2 >= close1) timesOverlap = false;
+            if (close2 <= open1) timesOverlap = false;
+
+            return timesOverlap;
         }
 
         private static IEnumerable<DayOfWeek> GetDaysInRange(DayOfWeek startDay, DayOfWeek endDay)

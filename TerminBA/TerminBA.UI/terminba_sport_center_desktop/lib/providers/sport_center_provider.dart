@@ -8,8 +8,11 @@ import 'package:terminba_sport_center_desktop/providers/base_provider.dart';
 class SportCenterProvider extends BaseProvider<SportCenter> {
   SportCenterProvider() : super("SportCenter");
 
-  Future<SportCenter?> getCurrentSportCenter(int id) async {
+  Future<SportCenter?> getCurrentSportCenter(int id, {bool includeInactiveWorkingHours = false}) async {
     var url = "$baseUrl$endpoint/getCurrent";
+    if (includeInactiveWorkingHours) {
+      url += "?includeInactiveWorkingHours=true";
+    }
     var uri = Uri.parse(url);
     var headers = await createHeaders();
 

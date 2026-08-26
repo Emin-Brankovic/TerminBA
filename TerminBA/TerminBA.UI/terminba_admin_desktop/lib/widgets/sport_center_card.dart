@@ -130,7 +130,7 @@ class _SportCenterCardState extends State<SportCenterCard> {
                             ),
                           ),
                         );
-                        //onRefresh();
+                        widget.onRefresh();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00C853), // Green

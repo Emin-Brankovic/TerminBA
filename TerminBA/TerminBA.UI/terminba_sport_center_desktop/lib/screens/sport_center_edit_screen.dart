@@ -128,11 +128,10 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     _pickedLatitude = widget.sportCenter.latitude;
     _pickedLongitude = widget.sportCenter.longitude;
 
-    _applyWorkingHoursDefaults();
     _loadReferenceData();
   }
 
-  void _applyWorkingHoursDefaults() {
+  void _applyWorkingHoursDefaults(SportCenter fullSportCenter) {
     if (_prefilled) {
       return;
     }
@@ -140,7 +139,7 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     _workingHoursList
       ..clear()
       ..addAll(
-        widget.sportCenter.workingHours.map(
+        fullSportCenter.workingHours.map(
           (wh) => _WorkingHoursEntry(
             startDay: wh.startDay,
             endDay: wh.endDay,
@@ -162,6 +161,7 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
         _cityProvider.get(),
         _sportProvider.get(),
         _amenityProvider.get(),
+        _sportCenterProvider.getCurrentSportCenter(widget.sportCenter.id, includeInactiveWorkingHours: true),
       ]);
 
       setState(() {
@@ -175,6 +175,11 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
           ..clear()
           ..addAll((results[2] as dynamic).items?.cast<Amenity>() ?? <Amenity>[]);
       });
+
+      final fullSportCenter = results[3] as SportCenter?;
+      if (fullSportCenter != null) {
+        _applyWorkingHoursDefaults(fullSportCenter);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -355,7 +360,7 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.grey.shade50,
+      color: wh.isActive ? Colors.grey.shade50 : Colors.grey.shade300,
       child: Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
         child: Column(
@@ -866,6 +871,18 @@ class _WorkingHoursEntry {
   TimeOfDay closingTime;
   DateTime validFrom;
   DateTime? validTo;
+
+  bool get isActive {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
+    if (from.isAfter(today)) return false;
+    if (validTo != null) {
+      final to = DateTime(validTo!.year, validTo!.month, validTo!.day);
+      if (to.isBefore(today)) return false;
+    }
+    return true;
+  }
 
   _WorkingHoursEntry({
     this.startDay = DayOfWeek.monday,

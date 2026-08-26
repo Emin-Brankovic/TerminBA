@@ -183,7 +183,22 @@ class _FacilityCardState extends State<FacilityCard> {
   // Trims to HH:mm:ss in case backend sends fractional seconds.
   String _timeStr(String t) => t.length >= 8 ? t.substring(0, 8) : t;
 
+  bool _isActiveToday(FacilityDynamicPrice dp) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final from = DateTime(dp.validFrom.year, dp.validFrom.month, dp.validFrom.day);
+    if (from.isAfter(today)) return false;
+    if (dp.validTo != null) {
+      final to = DateTime(dp.validTo!.year, dp.validTo!.month, dp.validTo!.day);
+      if (to.isBefore(today)) return false;
+    }
+    return true;
+  }
+
   List<Widget> _buildDynamicPrices(List<FacilityDynamicPrice> prices) {
+    final activePrices = prices.where(_isActiveToday).toList();
+    if (activePrices.isEmpty) return [];
+
     return [
       const Text(
         'Price:',
@@ -194,7 +209,7 @@ class _FacilityCardState extends State<FacilityCard> {
         ),
       ),
       const SizedBox(height: 2),
-      ...prices.map(
+      ...activePrices.map(
         (dp) => Padding(
           padding: const EdgeInsets.only(bottom: 2),
           child: Text(

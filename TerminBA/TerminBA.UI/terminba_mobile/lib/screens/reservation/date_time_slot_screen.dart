@@ -68,7 +68,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                 _buildCalendar(state, notifier),
                 const Divider(height: 1),
                 if (state.selectedCourt != null)
-                  _buildPricingInfo(state.selectedCourt!),
+                  _buildPricingDetails(state.selectedCourt!, state),
                 const SizedBox(height: 16),
                 _buildSlotSection(state, notifier),
                 const SizedBox(height: 100),
@@ -81,8 +81,15 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
     );
   }
 
-  Widget _buildPricingInfo(Facility court) {
-    if (!court.isDynamicPricing || court.dynamicPrices.isEmpty) {
+  Widget _buildPricingDetails(Facility court, BookingFlowState state) {
+    final activePrices = state.selectedDate == null
+        ? court.dynamicPrices
+        : court.dynamicPrices
+            .where((dp) => state.isWithinValidityPeriod(
+                state.selectedDate!, dp.validFrom, dp.validTo))
+            .toList();
+
+    if (!court.isDynamicPricing || activePrices.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -126,7 +133,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          ...court.dynamicPrices.map((dp) {
+          ...activePrices.map((dp) {
             final days = dp.startDay == dp.endDay
                 ? formatDayOfWeek(dp.startDay)
                 : '${formatDayOfWeek(dp.startDay)} - ${formatDayOfWeek(dp.endDay)}';

@@ -145,7 +145,7 @@ class ReceivedRequestCard extends StatelessWidget {
                       _StatusChip(
                         label: request.playRequestState == 'CanceledPlayRequestState' 
                             ? 'Canceled' 
-                            : (request.isAccepted == true ? 'Accepted' : 'Denied'),
+                            : (request.isAccepted == true ? 'Accepted' : 'Rejected'),
                         color: request.isAccepted == true
                             ? const Color(0xFF00C875)
                             : (request.playRequestState == 'CanceledPlayRequestState' ? Colors.grey.shade600 : Colors.red),

@@ -9,6 +9,7 @@ import 'package:terminba_sport_center_desktop/model/turf_type.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
 import 'package:terminba_sport_center_desktop/screens/facility_insert_screen.dart';
+import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/turf_type_provider.dart';
 import 'package:terminba_sport_center_desktop/widgets/facility_card.dart';
@@ -24,6 +25,7 @@ class FacilitiesScreen extends StatefulWidget {
 class _FacilitiescreenState extends State<FacilitiesScreen> {
   late FacilityProvider _facilityProvider;
   late SportProvider _sportProvider;
+  late SportCenterProvider _sportCenterProvider;
   late TurfTypeProvider _turfTypeProvider;
   late AuthProvider _authProvider;
   static const int _pageSize = 8;
@@ -89,6 +91,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
     super.didChangeDependencies();
     _facilityProvider = context.read<FacilityProvider>();
     _sportProvider = context.read<SportProvider>();
+    _sportCenterProvider = context.read<SportCenterProvider>();
     _turfTypeProvider = context.read<TurfTypeProvider>();
     _authProvider = context.read<AuthProvider>();
     if (!_initialized) {
@@ -101,9 +104,12 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
 
   Future<void> _loadSports() async {
     try {
-      final result = await _sportProvider.get();
+      final userId = await _authProvider.getCurrentUserId();
+      if (userId == null) return;
+      
+      final sportCenter = await _sportCenterProvider.getById(userId);
       setState(() {
-        _sports = result.items ?? [];
+        _sports = sportCenter?.availableSports ?? [];
       });
     } catch (e) {
       debugPrint('Error loading sports: $e');
@@ -161,20 +167,23 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       title: 'Facilities',
-      child: Container(
-        color: const Color(0xFFF4F6F8),
-        width: double.infinity,
-        child: Column(
-          children: [
-            const SizedBox(height: 22),
-            _buildSearchRow(),
-            if (_showFilters) ...[
-              const SizedBox(height: 10),
-              _buildFilterForm(),
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
+          color: const Color(0xFFF4F6F8),
+          width: double.infinity,
+          child: Column(
+            children: [
+              const SizedBox(height: 22),
+              _buildSearchRow(),
+              if (_showFilters) ...[
+                const SizedBox(height: 10),
+                _buildFilterForm(),
+              ],
+              const SizedBox(height: 18),
+              _buildResult(),
             ],
-            const SizedBox(height: 18),
-            _buildResult(),
-          ],
+          ),
         ),
       ),
     );
@@ -296,7 +305,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   value: _formSportId,
                   iconSize: _formSportId != null ? 0 : 24,
                   decoration: InputDecoration(
-                    labelText: 'Sport',
+                    hintText: 'Sport',
                     border: const OutlineInputBorder(),
                     isDense: true,
                     suffixIcon: _formSportId != null
@@ -331,7 +340,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   value: _formTurfTypeId,
                   iconSize: _formTurfTypeId != null ? 0 : 24,
                   decoration: InputDecoration(
-                    labelText: 'Turf type',
+                    hintText: 'Turf type',
                     border: const OutlineInputBorder(),
                     isDense: true,
                     suffixIcon: _formTurfTypeId != null
@@ -366,7 +375,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   value: _formIsIndoor,
                   iconSize: _formIsIndoor != null ? 0 : 24,
                   decoration: InputDecoration(
-                    labelText: 'Indoor/Outdoor',
+                    hintText: 'Indoor/Outdoor',
                     border: const OutlineInputBorder(),
                     isDense: true,
                     suffixIcon: _formIsIndoor != null

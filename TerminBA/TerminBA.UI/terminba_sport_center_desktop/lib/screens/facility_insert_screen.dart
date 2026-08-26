@@ -70,16 +70,14 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     _sportCenterProvider = context.read<SportCenterProvider>();
     _turfTypeProvider = context.read<TurfTypeProvider>();
     _authProvider = context.read<AuthProvider>();
-    _applyFacilityDefaults();
     _loadReferenceData();
   }
 
-  void _applyFacilityDefaults() {
-    if (_prefilled || widget.facility == null) {
+  void _applyFacilityDefaults(Facility facility) {
+    if (_prefilled) {
       return;
     }
 
-    final facility = widget.facility!;
     _hoursController.text = facility.duration.inHours.toString();
     _minutesController.text =
         (facility.duration.inMinutes % 60).toString().padLeft(2, '0');
@@ -108,10 +106,15 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     setState(() => _isLoading = true);
     try {
       final userId = await _authProvider.getCurrentUserId();
-      final results = await Future.wait([
+      final futures = <Future>[
         if (userId != null) _sportCenterProvider.getById(userId) else Future.value(null),
         _turfTypeProvider.get(),
-      ]);
+      ];
+      if (widget.facility != null) {
+        futures.add(_facilityProvider.getById(widget.facility!.id, queryParameters: {'includeInactiveDynamicPrices': true}));
+      }
+
+      final results = await Future.wait(futures);
 
       setState(() {
         _sportCenterId = userId;
@@ -123,6 +126,17 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
           ..clear()
           ..addAll((results[1] as dynamic).items?.cast<TurfType>() ?? <TurfType>[]);
       });
+
+      if (widget.facility != null && results.length > 2) {
+        final fullFacility = results[2] as Facility?;
+        if (fullFacility != null) {
+          _applyFacilityDefaults(fullFacility);
+        } else {
+          _applyFacilityDefaults(widget.facility!);
+        }
+      } else if (widget.facility != null) {
+         _applyFacilityDefaults(widget.facility!);
+      }
     } catch (e) {
       debugPrint('Error loading facility reference data: $e');
       if (mounted) {
@@ -761,7 +775,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
               borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: Colors.grey.shade300),
             ),
-            color: Colors.white,
+            color: rule.isActive ? Colors.white : Colors.grey.shade300,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1203,6 +1217,18 @@ class _DynamicPriceEntry {
   double pricePerHour;
   DateTime validFrom;
   DateTime? validTo;
+
+  bool get isActive {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final from = DateTime(validFrom.year, validFrom.month, validFrom.day);
+    if (from.isAfter(today)) return false;
+    if (validTo != null) {
+      final to = DateTime(validTo!.year, validTo!.month, validTo!.day);
+      if (to.isBefore(today)) return false;
+    }
+    return true;
+  }
 
   _DynamicPriceEntry({
     this.startDay = DayOfWeek.monday,
