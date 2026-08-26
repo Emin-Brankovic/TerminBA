@@ -27,7 +27,7 @@ namespace TerminBA.WebAPI.Controllers
        }
 
         [HttpGet("{id}")]
-        public async Task<T?> GetById(int id)
+        public virtual async Task<T?> GetById(int id)
         {
             return await _service.GetByIdAsync(id);
         }

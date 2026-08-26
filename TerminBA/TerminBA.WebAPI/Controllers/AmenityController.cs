@@ -16,6 +16,20 @@ namespace TerminBA.WebAPI.Controllers
         {
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public override async Task<PagedResult<AmenityResponse>> Get([FromQuery] AmenitySearchObject? search = null)
+        {
+            return await base.Get(search);
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public override async Task<AmenityResponse?> GetById(int id)
+        {
+            return await base.GetById(id);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Administrator")]
         public override Task<AmenityResponse> Create([FromBody] AmenityInsertRequest request)

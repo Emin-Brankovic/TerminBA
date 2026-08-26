@@ -22,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 	bool _isLoading = false;
 	bool _isLoadingLookups = true;
 	bool _showPassword = false;
+	bool _isFormValid = false;
 	String? _lookupError;
 	List<City> _cities = [];
 
@@ -186,6 +187,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 						padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 28),
 						child: FormBuilder(
 							key: _formKey,
+							autovalidateMode: AutovalidateMode.onUnfocus,
+							onChanged: () {
+								final isValid = _formKey.currentState?.isValid ?? false;
+								if (_isFormValid != isValid) {
+									setState(() {
+										_isFormValid = isValid;
+									});
+								}
+							},
 							child: Column(
 								mainAxisSize: MainAxisSize.min,
 								children: [
@@ -392,7 +402,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 										width: double.infinity,
 										child: ElevatedButton(
 											onPressed:
-													_isLoading || _isLoadingLookups ? null : _submit,
+													_isLoading || _isLoadingLookups || !_isFormValid ? null : _submit,
 											style: ElevatedButton.styleFrom(
 												padding: const EdgeInsets.symmetric(vertical: 16),
 												textStyle: const TextStyle(fontSize: 16),

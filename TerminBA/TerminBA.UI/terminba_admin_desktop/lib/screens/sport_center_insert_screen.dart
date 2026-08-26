@@ -40,6 +40,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
   List<_WorkingHoursEntry> _workingHoursList = [];
   bool _isLoading = true;
   bool _isSaving = false;
+  late bool _isFormValid = widget.sportCenter != null;
 
   bool get _isEditing => widget.sportCenter != null;
 
@@ -426,7 +427,12 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                         key: _formKey,
                         autovalidateMode: AutovalidateMode.onUnfocus,
                         onChanged: () {
-                          setState(() {});
+                          final isValid = _formKey.currentState?.isValid ?? (widget.sportCenter != null);
+                          if (_isFormValid != isValid) {
+                            setState(() {
+                              _isFormValid = isValid;
+                            });
+                          }
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -704,7 +710,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                               width: double.infinity,
                               height: 48,
                               child: ElevatedButton(
-                                onPressed: _isSaving || !(_formKey.currentState?.isValid ?? _isEditing) ? null : _submit,
+                                onPressed: _isSaving || !_isFormValid ? null : _submit,
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),

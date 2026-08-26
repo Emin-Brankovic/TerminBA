@@ -18,9 +18,17 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public override async Task<PagedResult<SportResponse>> Get([FromQuery] SportSearchObject? search = null)
         {
             return await base.Get(search);
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public override async Task<SportResponse?> GetById(int id)
+        {
+            return await base.GetById(id);
         }
 
         [HttpPost]

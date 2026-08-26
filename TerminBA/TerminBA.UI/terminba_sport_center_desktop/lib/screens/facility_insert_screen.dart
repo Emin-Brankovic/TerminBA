@@ -48,6 +48,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   bool _prefilled = false;
   bool _isLoading = true;
   bool _isSaving = false;
+  late bool _isFormValid = widget.facility != null;
   int? _sportCenterId;
 
   @override
@@ -965,7 +966,12 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                         key: _formKey,
                         autovalidateMode: AutovalidateMode.onUnfocus,
                         onChanged: () {
-                          setState(() {});
+                          final isValid = _formKey.currentState?.isValid ?? (widget.facility != null);
+                          if (_isFormValid != isValid) {
+                            setState(() {
+                              _isFormValid = isValid;
+                            });
+                          }
                         },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1174,7 +1180,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: _isSaving || !(_formKey.currentState?.isValid ?? (widget.facility != null)) ? null : _submit,
+                                onPressed: _isSaving || !_isFormValid ? null : _submit,
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor:
