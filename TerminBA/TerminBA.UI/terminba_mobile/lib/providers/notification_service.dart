@@ -29,6 +29,8 @@ class NotificationService {
   Stream<Map<String, dynamic>> get onReservationCanceled => _reservationCanceledController.stream;
 
   Future<void> init() async {
+    await stop();
+
     final token = await _storage.read(key: _tokenKey);
     if (token == null) return;
 
@@ -91,7 +93,15 @@ class NotificationService {
   }
 
   Future<void> stop() async {
-    await _hubConnection?.stop();
-    _hubConnection = null;
+    if (_hubConnection != null) {
+      final connection = _hubConnection;
+      _hubConnection = null;
+      print(_hubConnection);
+      try {
+        await connection?.stop();
+      } catch (e) {
+        // ignore errors on stop
+      }
+    }
   }
 }
