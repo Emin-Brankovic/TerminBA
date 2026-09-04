@@ -85,22 +85,9 @@ namespace TerminBA.Services.Service
         public override IQueryable<Facility> ApplyIncludes(IQueryable<Facility> query)
         {
             var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
-            bool includeInactive = false;
 
-            if (_httpContextAccessor.HttpContext?.Request.Query.ContainsKey("includeInactiveDynamicPrices") == true)
-            {
-                bool.TryParse(_httpContextAccessor.HttpContext.Request.Query["includeInactiveDynamicPrices"], out includeInactive);
-            }
-
-            if (includeInactive)
-            {
-                query = query.Include(f => f.DynamicPrices);
-            }
-            else
-            {
-                var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
-                query = query.Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr));
-            }
+            var isActiveExpr = FacilityDynamicPrice.IsActiveExpr(today);
+            query = query.Include(f => f.DynamicPrices.AsQueryable().Where(isActiveExpr));
 
             query = query
                 .Include(f => f.TurfType)
@@ -108,6 +95,22 @@ namespace TerminBA.Services.Service
                 .Include(f => f.Photos);
 
             return query;
+        }
+
+        public async Task<FacilityResponse> GetByIdWithAllDynamicPricesAsync(int id)
+        {
+            var query = _context.Facilities.AsQueryable()
+                .Include(f => f.TurfType)
+                .Include(f => f.AvailableSports)
+                .Include(f => f.Photos)
+                .Include(f => f.DynamicPrices);
+
+            var entity = await query.FirstOrDefaultAsync(f => f.Id == id);
+
+            if (entity == null)
+                throw new UserException("Facility not found");
+
+            return MapToResponse(entity);
         }
 
 

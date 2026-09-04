@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminba_admin_desktop/model/sport_center.dart';
@@ -11,6 +12,22 @@ class SportCenterProvider extends BaseProvider<SportCenter> {
   @override
   SportCenter fromJson(dynamic data) {
     return SportCenter.fromJson(data);
+  }
+
+  Future<SportCenter?> getByIdWithAllWorkingHours(int id) async {
+    String url = "${baseUrl}SportCenter/$id/withAllWorkingHours";
+
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    final response = await http.get(uri, headers: headers);
+
+    if (isValidResponse(response)) {
+      var data = jsonDecode(response.body);
+      return fromJson(data);
+    } else {
+      throw Exception("Unknown error");
+    }
   }
 
   @override

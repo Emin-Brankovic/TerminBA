@@ -112,7 +112,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
         _turfTypeProvider.get(),
       ];
       if (widget.facility != null) {
-        futures.add(_facilityProvider.getById(widget.facility!.id, queryParameters: {'includeInactiveDynamicPrices': true}));
+        futures.add(_facilityProvider.getByIdWithAllDynamicPrices(widget.facility!.id));
       }
 
       final results = await Future.wait(futures);

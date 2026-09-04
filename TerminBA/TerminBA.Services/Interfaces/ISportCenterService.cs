@@ -13,6 +13,7 @@ namespace TerminBA.Services.Interfaces
     {
         public Task<AuthResponse?> Login(SportCenterLoginRequest request);
         public Task<SportCenterResponse> GetCurrentSportCenter();
+        public Task<SportCenterResponse> GetByIdWithAllWorkingHoursAsync(int id);
         public Task<SportCenterResponse> UpdateCurrentGallery(SportCenterGalleryUpdateRequest request);
         public Task<PagedResult<SportCenterResponse>> SearchAvailableAsync(SportCenterAvailabilitySearchObject search);
         public Task<double> GetAverageRatingAsync(int sportCenterId);

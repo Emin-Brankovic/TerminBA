@@ -63,7 +63,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
         _amenityProvider.get(),
       ];
       if (_isEditing) {
-        futures.add(_sportCenterProvider.getById(widget.sportCenter!.id, queryParameters: {'includeInactiveWorkingHours': true}));
+        futures.add(_sportCenterProvider.getByIdWithAllWorkingHours(widget.sportCenter!.id));
       }
 
       final results = await Future.wait(futures);

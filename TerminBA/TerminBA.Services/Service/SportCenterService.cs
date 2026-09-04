@@ -145,6 +145,24 @@ namespace TerminBA.Services.Service
             return MapToResponse(entity);
         }
 
+        public async Task<SportCenterResponse> GetByIdWithAllWorkingHoursAsync(int id)
+        {
+            var query = _context.SportCenters.AsQueryable()
+                 .Include(sc => sc.City)
+                 .Include(sc => sc.Role)
+                 .Include(sc => sc.AvailableAmenities)
+                 .Include(sc => sc.AvailableSports)
+                 .Include(sc => sc.Photos)
+                 .Include(sc => sc.WorkingHours);
+
+            var entity = await query.FirstOrDefaultAsync(sc => sc.Id == id);
+
+            if (entity == null)
+                throw new UserException("Sport center not found");
+
+            return MapToResponse(entity);
+        }
+
         public async Task<SportCenterResponse> UpdateCurrentGallery(SportCenterGalleryUpdateRequest request)
         {
             var id = int.Parse(_authService.GetUserId());
@@ -251,28 +269,14 @@ namespace TerminBA.Services.Service
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            bool includeInactive = false;
-
-            if (_httpContextAccessor.HttpContext?.Request.Query.ContainsKey("includeInactiveWorkingHours") == true)
-            {
-                bool.TryParse(_httpContextAccessor.HttpContext.Request.Query["includeInactiveWorkingHours"], out includeInactive);
-            }
 
             query = query
                  .Include(sc => sc.City)
                  .Include(sc => sc.Role)
                  .Include(sc => sc.AvailableAmenities)
                  .Include(sc => sc.AvailableSports)
-                 .Include(sc => sc.Photos);
-
-            if (includeInactive)
-            {
-                query = query.Include(sc => sc.WorkingHours);
-            }
-            else
-            {
-                query = query.Include(sc => sc.WorkingHours.Where(wh => wh.ValidFrom <= today && (wh.ValidTo == null || wh.ValidTo >= today)));
-            }
+                 .Include(sc => sc.Photos)
+                 .Include(sc => sc.WorkingHours.Where(wh => wh.ValidFrom <= today && (wh.ValidTo == null || wh.ValidTo >= today)));
 
             return query;
         }

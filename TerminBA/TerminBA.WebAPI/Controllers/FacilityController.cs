@@ -28,6 +28,13 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [Authorize(Roles = "Sport center")]
+        [HttpGet("{id}/withAllDynamicPrices")]
+        public async Task<FacilityResponse> GetByIdWithAllDynamicPrices(int id)
+        {
+            return await _facilityService.GetByIdWithAllDynamicPricesAsync(id);
+        }
+
+        [Authorize(Roles = "Sport center")]
         [HttpPost]
         public override Task<FacilityResponse> Create([FromBody] FacilityInsertRequest request)
         {

@@ -50,6 +50,13 @@ namespace TerminBA.WebAPI.Controllers
             return await _sportCenterService.GetCurrentSportCenter();
         }
 
+        [Authorize(Roles = "Administrator,Sport center")]
+        [HttpGet("{id}/withAllWorkingHours")]
+        public async Task<SportCenterResponse> GetByIdWithAllWorkingHours(int id)
+        {
+            return await _sportCenterService.GetByIdWithAllWorkingHoursAsync(id);
+        }
+
         [Authorize(Roles = "Sport center")]
         [HttpPut("gallery")]
         public async Task<SportCenterResponse> UpdateGallery([FromBody] SportCenterGalleryUpdateRequest request)

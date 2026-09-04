@@ -11,7 +11,7 @@ class SportCenterProvider extends BaseProvider<SportCenter> {
   Future<SportCenter?> getCurrentSportCenter(int id, {bool includeInactiveWorkingHours = false}) async {
     var url = "$baseUrl$endpoint/getCurrent";
     if (includeInactiveWorkingHours) {
-      url += "?includeInactiveWorkingHours=true";
+      url = "$baseUrl$endpoint/$id/withAllWorkingHours";
     }
     var uri = Uri.parse(url);
     var headers = await createHeaders();
