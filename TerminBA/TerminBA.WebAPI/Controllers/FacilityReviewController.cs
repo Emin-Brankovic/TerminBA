@@ -26,6 +26,13 @@ namespace TerminBA.WebAPI.Controllers
         }
 
         [Authorize(Roles = "User")]
+        [HttpGet("myReviews")]
+        public async Task<PagedResult<FacilityReviewResponse>> GetMyReviewsAsync([FromQuery] FacilityReviewSearchObject search)
+        {
+            return await _facilityReviewService.GetMyReviewsAsync(search);
+        }
+
+        [Authorize(Roles = "User")]
         [HttpPost]
         public override Task<FacilityReviewResponse> Create([FromBody] FacilityReviewInsertRequest request)
         {

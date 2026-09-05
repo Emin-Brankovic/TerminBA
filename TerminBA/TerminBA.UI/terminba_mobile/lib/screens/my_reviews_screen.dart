@@ -49,7 +49,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
 
   Future<void> _fetchFacilityPage(int pageKey) async {
     try {
-      final result = await context.read<FacilityReviewProvider>().get(
+      final result = await context.read<FacilityReviewProvider>().getMyReviews(
         filter: {
           'Page': pageKey,
           'PageSize': _pageSize,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:terminba_mobile/model/facility_review.dart';
+import 'package:terminba_mobile/model/search_result.dart';
 import 'package:terminba_mobile/providers/base_provider.dart';
 
 class FacilityReviewProvider extends BaseProvider<FacilityReview> {
@@ -31,5 +32,30 @@ class FacilityReviewProvider extends BaseProvider<FacilityReview> {
     } else {
       throw Exception("Unknown error");
     }
+  }
+
+  Future<SearchResult<FacilityReview>> getMyReviews({dynamic filter}) async {
+    var url = "$baseUrl$endpoint/myReviews";
+
+    if (filter != null) {
+      var queryString = getQueryString(filter);
+      url = "$url?$queryString";
+    }
+
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    var response = await http.get(uri, headers: headers);
+
+    if (isValidResponse(response)) {
+      var data = jsonDecode(response.body);
+      var result = SearchResult<FacilityReview>();
+      result.totalCount = (data['count']) as int?;
+      result.items = List<FacilityReview>.from(
+          data["items"].map((e) => fromJson(e)));
+      return result;
+    }
+    
+    throw Exception("Unknown error");
   }
 }

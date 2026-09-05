@@ -31,9 +31,6 @@ namespace TerminBA.Services.Service
             if (_currentUser["userRole"] == "Sport center")
                 search.SportCenterId = int.Parse(_authService.GetUserId());
 
-            if (_currentUser["userRole"] == "User")
-                search.UserId = int.Parse(_authService.GetUserId());
-
             if (search.SportCenterId.HasValue)
                 query = query.Where(fr => fr.Facility!.SportCenterId == search.SportCenterId.Value);
 
@@ -144,6 +141,12 @@ namespace TerminBA.Services.Service
                 .AverageAsync() ?? 0.0;
 
             return Math.Round(avg, 1);
+        }
+
+        public async Task<PagedResult<FacilityReviewResponse>> GetMyReviewsAsync(FacilityReviewSearchObject search)
+        {
+            search.UserId = int.Parse(_authService.GetUserId());
+            return await base.GetAsync(search);
         }
 
         protected override Task BeforeUpdate(FacilityReview entity, FacilityReviewUpdateRequest request)
