@@ -460,9 +460,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             FormBuilderTextField(
                               name: 'username',
                               initialValue: widget.sportCenter?.username,
-                              enabled: false,
+                              readOnly: true,
                               decoration: const InputDecoration(
-                                labelText: 'Username*',
+                                labelText: 'Username (read only)*',
                                 border: OutlineInputBorder(),
                               ),
                               validator: FormBuilderValidators.compose([
@@ -511,6 +511,7 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
                             FormBuilderDropdown<int>(
                               name: 'cityId',
                               initialValue: widget.sportCenter?.cityId,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: const InputDecoration(
                                 labelText: 'City*',
                                 border: OutlineInputBorder(),

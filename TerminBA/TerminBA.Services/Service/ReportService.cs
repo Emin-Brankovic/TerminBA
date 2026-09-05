@@ -35,7 +35,7 @@ namespace TerminBA.Services.Service
 
         public async Task<AdminDashboardResponse> GetDashboard(int year)
         {
-            var userCount = await _context.Users.CountAsync();
+            var userCount = await _context.Users.CountAsync(u => u.Id != 1);
             var sportCenterCount = await _context.SportCenters.CountAsync();
             var reservationCount = await _context.Reservations.CountAsync();
 

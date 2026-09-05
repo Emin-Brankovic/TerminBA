@@ -252,6 +252,17 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     } else if (currentItem is Role) {
       await roleProvider.delete(currentItem.id);
     }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${categories[_selectedIndex!]} deleted successfully',
+          ),
+        ),
+      );
+    }
+
     await _refreshTable();
   }
 

@@ -293,6 +293,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 									const SizedBox(height: 14),
 									FormBuilderDateTimePicker(
 										name: 'birthDate',
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
 										inputType: InputType.date,
 										lastDate: DateTime.now(),
 										decoration: const InputDecoration(
@@ -306,6 +307,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 									const SizedBox(height: 14),
 									FormBuilderDropdown<int>(
 										name: 'cityId',
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
 										enabled: isLookupReady,
 										decoration: const InputDecoration(
 											prefixIcon: Icon(Icons.location_city_outlined, size: 22),
