@@ -508,7 +508,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Amenity");
+                    b.ToTable("Amenity", (string)null);
 
                     b.HasData(
                         new
@@ -579,7 +579,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("ReservationId");
 
-                    b.ToTable("CancelationNotifications");
+                    b.ToTable("CancelationNotifications", (string)null);
 
                     b.HasData(
                         new
@@ -619,7 +619,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
 
                     b.HasData(
                         new
@@ -712,7 +712,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("TurfTypeId");
 
-                    b.ToTable("Facilities");
+                    b.ToTable("Facilities", (string)null);
 
                     b.HasData(
                         new
@@ -990,7 +990,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("FacilityId", "ValidFrom", "ValidTo");
 
-                    b.ToTable("FacilityDynamicPrices");
+                    b.ToTable("FacilityDynamicPrices", (string)null);
 
                     b.HasData(
                         new
@@ -1150,7 +1150,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("FacilityId");
 
-                    b.ToTable("FacilityPhotos");
+                    b.ToTable("FacilityPhotos", (string)null);
 
                     b.HasData(
                         new
@@ -1451,7 +1451,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("UserId", "FacilityId");
 
-                    b.ToTable("FacilityReviews");
+                    b.ToTable("FacilityReviews", (string)null);
 
                     b.HasData(
                         new
@@ -1600,7 +1600,7 @@ namespace TerminBA.Services.Migrations
                     b.HasIndex("UserId", "SportCenterId")
                         .IsUnique();
 
-                    b.ToTable("FavoriteSportCenters");
+                    b.ToTable("FavoriteSportCenters", (string)null);
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.Payment", b =>
@@ -1672,7 +1672,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.PlayRequest", b =>
@@ -1732,7 +1732,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("PostId", "RequesterId");
 
-                    b.ToTable("PlayRequests");
+                    b.ToTable("PlayRequests", (string)null);
 
                     b.HasData(
                         new
@@ -1917,7 +1917,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("SkillLevel");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
 
                     b.HasData(
                         new
@@ -2156,7 +2156,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RecommendationEvents");
+                    b.ToTable("RecommendationEvents", (string)null);
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.Reservation", b =>
@@ -2215,7 +2215,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("FacilityId", "ReservationDate", "StartTime");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", (string)null);
 
                     b.HasData(
                         new
@@ -3035,7 +3035,7 @@ namespace TerminBA.Services.Migrations
                     b.HasIndex("Jti")
                         .IsUnique();
 
-                    b.ToTable("RevokedTokens");
+                    b.ToTable("RevokedTokens", (string)null);
                 });
 
             modelBuilder.Entity("TerminBA.Services.Database.Role", b =>
@@ -3057,7 +3057,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
@@ -3095,7 +3095,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sports");
+                    b.ToTable("Sports", (string)null);
 
                     b.HasData(
                         new
@@ -3203,7 +3203,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("SportCenters");
+                    b.ToTable("SportCenters", (string)null);
 
                     b.HasData(
                         new
@@ -3411,7 +3411,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("SportCenterId");
 
-                    b.ToTable("SportCenterPhotos");
+                    b.ToTable("SportCenterPhotos", (string)null);
 
                     b.HasData(
                         new
@@ -3572,7 +3572,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("TurfTypes");
+                    b.ToTable("TurfTypes", (string)null);
 
                     b.HasData(
                         new
@@ -3668,7 +3668,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("Username");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
@@ -3884,7 +3884,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("ReviewerId", "ReviewedId");
 
-                    b.ToTable("UserReviews");
+                    b.ToTable("UserReviews", (string)null);
 
                     b.HasData(
                         new
@@ -4022,7 +4022,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasIndex("SportCenterId");
 
-                    b.ToTable("WorkingHours");
+                    b.ToTable("WorkingHours", (string)null);
 
                     b.HasData(
                         new

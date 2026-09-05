@@ -507,7 +507,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
     final priceLabel = state.selectedTimeSlot != null
         ? '${state.grandTotal.toStringAsFixed(0)} KM'
         : (state.selectedCourt?.isDynamicPricing == true
-            ? 'Dynamic Pricing'
+            ? '0 KM'
             : '${state.selectedCourt?.staticPrice?.toStringAsFixed(0) ?? '0'} KM');
 
     return SafeArea(

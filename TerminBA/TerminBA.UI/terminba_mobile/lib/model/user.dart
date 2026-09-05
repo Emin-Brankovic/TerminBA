@@ -11,7 +11,7 @@ class User {
 	int? age;
 	String username;
 	String email;
-	String phoneNumber;
+	String? phoneNumber;
 	String? instagramAccount;
 	DateTime birthDate;
 	int? cityId;

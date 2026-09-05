@@ -127,6 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 				setState(() {
 					_user = updated;
 				});
+				context.read<UserProvider>().notifyProfileUpdated();
 			}
 			await _showMessage(
 				title: 'Saved',

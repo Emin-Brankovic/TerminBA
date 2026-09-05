@@ -138,7 +138,8 @@ builder.Services.AddMapster();
 
 var connectionString = builder.Configuration.GetConnectionString("db");
 builder.Services.AddDbContext<TerminBaContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString)
+           .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
 Env.Load("..\\.env");
 

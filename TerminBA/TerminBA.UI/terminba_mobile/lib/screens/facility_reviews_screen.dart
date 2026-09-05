@@ -107,10 +107,6 @@ class FacilityReviewsScreen extends StatefulWidget  {
 
   Widget _buildSummaryHeader(ThemeData theme, ReviewsState state) {
     double displayRating = widget.averageRating;
-    if (state.reviews.isNotEmpty) {
-      final total = state.reviews.fold<int>(0, (sum, r) => sum + r.ratingNumber);
-      displayRating = total / state.reviews.length;
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +226,7 @@ class _ReviewCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          '$sportCenterName, $facilityName',
+                          facilityName,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: Colors.grey,
                           ),

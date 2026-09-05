@@ -8,6 +8,7 @@ import 'package:terminba_mobile/widgets/sport_filter_chips.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/sport_center_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
+import 'package:terminba_mobile/providers/user_provider.dart';
 import 'package:terminba_mobile/model/city.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/sport_center_detail_screen.dart';
@@ -33,6 +34,7 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
       authProvider: context.read<AuthProvider>(),
       sportCenterProvider: context.read<SportCenterProvider>(),
       sportProvider: context.read<SportProvider>(),
+      userProvider: context.read<UserProvider>(),
     );
     _notifier.initialize();
   }
@@ -170,7 +172,7 @@ class _SportCenterSearchScreenState extends State<SportCenterSearchScreen>
               const Icon(Icons.search_off, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
               Text(
-                'No sport centers found for ${_sportLabel(state)} on ${_dateLabel(state)}',
+                'No sport centers found',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),

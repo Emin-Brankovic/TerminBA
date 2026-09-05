@@ -190,12 +190,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        if (_user?.phoneNumber != null && _user!.phoneNumber.isNotEmpty)
+        if (_user?.phoneNumber != null && _user!.phoneNumber!.isNotEmpty)
           Row(
             children: [
               const Icon(Icons.phone_outlined, size: 16, color: Colors.grey),
               const SizedBox(width: 8),
-              Text(_user!.phoneNumber, style: const TextStyle(color: Colors.grey)),
+              Text(_user!.phoneNumber!, style: const TextStyle(color: Colors.grey)),
             ],
           ),
         if (_user?.instagramAccount != null && _user!.instagramAccount!.isNotEmpty) ...[

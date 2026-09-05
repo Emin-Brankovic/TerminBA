@@ -154,7 +154,7 @@ class _PlayerSearchRequestsScreenState
       if (mounted) {
         final notificationProvider = context.read<NotificationProvider>();
         for (final item in items) {
-          if (item.isSeenByRequester == false && item.isAccepted != null) {
+          if (item.isSeenByRequester == false && item.playRequestState != 'PendingPlayRequestState') {
             notificationProvider.markResponseAsSeen(item.id);
           }
         }

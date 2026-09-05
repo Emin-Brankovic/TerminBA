@@ -13,7 +13,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   (json['age'] as num?)?.toInt(),
   json['username'] as String,
   json['email'] as String,
-  json['phoneNumber'] as String,
+  json['phoneNumber'] as String?,
   json['instagramAccount'] as String?,
   DateTime.parse(json['birthDate'] as String),
   (json['cityId'] as num?)?.toInt(),

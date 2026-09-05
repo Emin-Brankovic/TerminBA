@@ -53,4 +53,8 @@ class UserProvider extends BaseProvider<User>{
       return 0;
     }
   }
+
+  void notifyProfileUpdated() {
+    notifyListeners();
+  }
 }
