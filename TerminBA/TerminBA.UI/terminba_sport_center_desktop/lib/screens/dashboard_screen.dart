@@ -274,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildTodayOperations() {
     final int completed = _upcomingReservations.where((e) => e.status == 'Completed').length;
     final int active = _upcomingReservations.where((e) => e.status == 'Active').length;
-    final int cancelled = _upcomingReservations.where((e) => e.status == 'Cancelled').length;
+    final int cancelled = _upcomingReservations.where((e) => e.status == 'Cancelled' || e.status == 'Canceled').length;
 
     return _sectionCard(
       title: 'Today Reservations',
@@ -287,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               _statusChip('Completed: $completed', const Color(0xFF027A48), const Color(0xFFECFDF3)),
               _statusChip('Active: $active', const Color(0xFF1D4ED8), const Color(0xFFEFF6FF)),
-              _statusChip('Cancelled: $cancelled', const Color(0xFFB42318), const Color(0xFFFEF3F2)),
+              _statusChip('Canceled: $cancelled', const Color(0xFFB42318), const Color(0xFFFEF3F2)),
             ],
           ),
           const SizedBox(height: 12),
@@ -475,12 +475,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final items = _dashboardData?.upcomingReservations ?? [];
     return items
         .map(
-          (item) => _UpcomingReservation(
-            item.slot,
-            item.facilityName,
-            item.bookedBy,
-            item.status,
-          ),
+          (item) {
+            String displayStatus = item.status;
+            if (displayStatus == 'CanceledWithRefundReservationState' || 
+                displayStatus == 'CanceledWithoutRefundReservationState' || 
+                displayStatus == 'Cancelled') {
+              displayStatus = 'Canceled';
+            }
+            return _UpcomingReservation(
+              item.slot,
+              item.facilityName,
+              item.bookedBy,
+              displayStatus,
+            );
+          },
         )
         .toList();
   }

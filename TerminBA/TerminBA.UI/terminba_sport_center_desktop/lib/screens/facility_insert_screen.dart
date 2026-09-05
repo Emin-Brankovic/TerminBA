@@ -1006,7 +1006,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.blueGrey.shade50,
+                                
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.blueGrey.shade100),
                               ),
@@ -1092,6 +1092,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                             FormBuilderDropdown<int>(
                               name: 'turfTypeId',
                               decoration: _inputDecoration('Turf Type*'),
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
                               initialValue: widget.facility?.turfTypeId,
                               validator: FormBuilderValidators.required(errorText: 'Turf Type is required.'),
                               items: _turfTypes
@@ -1104,38 +1105,21 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                   .toList(),
                             ),
                             const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey.shade100,
-                              ),
-                              child: FormBuilderCheckbox(
-                                name: 'isIndoor',
-                                initialValue: widget.facility?.isIndoor ?? true,
-                                title: const Text('Indoor Facility', style: TextStyle(fontSize: 14),),
-                              ),
+                            FormBuilderSwitch(
+                              name: 'isIndoor',
+                              initialValue: widget.facility?.isIndoor ?? true,
+                              title: const Text('Indoor Facility', style: TextStyle(fontSize: 14),),
+                              contentPadding: EdgeInsets.zero,
+                              decoration: const InputDecoration(border: InputBorder.none),
                             ),
                             const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey.shade100,
-                              ),
-                              child: FormBuilderSwitch(
-                                name: 'isDynamicPricing',
-                                title: const Text('Use dynamic pricing', style: TextStyle(fontSize: 14),),
-                                initialValue:
-                                    widget.facility?.isDynamicPricing ?? false,
-                                onChanged: (_) => setState(() {}),
-                              ),
+                            FormBuilderSwitch(
+                              name: 'isDynamicPricing',
+                              title: const Text('Use dynamic pricing', style: TextStyle(fontSize: 14),),
+                              initialValue: widget.facility?.isDynamicPricing ?? false,
+                              onChanged: (_) => setState(() {}),
+                              contentPadding: EdgeInsets.zero,
+                              decoration: const InputDecoration(border: InputBorder.none),
                             ),
                             const SizedBox(height: 20),
                             _sectionHeader('Pricing'),
