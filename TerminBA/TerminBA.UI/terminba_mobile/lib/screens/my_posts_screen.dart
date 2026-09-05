@@ -27,7 +27,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
   int? _selectedSportId;
   String? _selectedSkillLevel;
   DateTime? _selectedDate;
-  String _sortDirection = 'asc';
+  String _sortDirection = 'desc';
   List<Sport> _sports = [];
 
   @override

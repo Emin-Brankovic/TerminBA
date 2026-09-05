@@ -55,8 +55,8 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
         {
-            if (await UserExists(entity.Username!, entity.Email!))
-                throw new UserException("Username or email is already taken");
+            await UserExists(entity.Username!, entity.Email!);
+
 
             if (string.IsNullOrEmpty(request.Password))
                 throw new UserException("Password is required.");
@@ -117,11 +117,13 @@ namespace TerminBA.Services.Service
                 .Include(u => u.Role);
         }
 
-        private async Task<bool> UserExists(string username,string email)
+        private async Task UserExists(string username,string email)
         {
-            return await _context.Users.AnyAsync(user => 
-            user.Username!.ToLower() == username.ToLower()
-            || user.Email!.ToLower()==email.ToLower());
+            if (await _context.Users.AnyAsync(u => u.Email!.ToLower() == email.ToLower()))
+                throw new UserException("Email is already taken");
+
+            if (await _context.Users.AnyAsync(u => u.Username!.ToLower() == username.ToLower()))
+                throw new UserException("Username is already taken");
 
         }
 

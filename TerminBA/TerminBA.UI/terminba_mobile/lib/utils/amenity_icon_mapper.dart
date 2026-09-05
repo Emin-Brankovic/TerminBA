@@ -9,6 +9,10 @@ class AmenityIconMapper {
     'locker room':  Icons.lock_outline,
     'caffe':        Icons.local_cafe,
     'sauna':        Icons.hot_tub,
+    'shower':       Icons.shower,
+    'cafeteria':    Icons.local_dining,
+    'wifi':         Icons.wifi,
+    'first aid':    Icons.medical_services,
   };
 
   static IconData getIcon(String? amenityName) {

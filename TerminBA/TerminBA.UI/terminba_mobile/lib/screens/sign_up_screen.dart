@@ -148,10 +148,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 	}
 
 	String? _optionalPhoneValidator(String? value) {
+		print(value);	
 		if (value == null || value.trim().isEmpty) {
 			return null;
 		}
-		final regex = RegExp(r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$');
+		final regex = RegExp(r'^$|^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$');
 		if (!regex.hasMatch(value)) {
 			return 'Not a valid phone number';
 		}
@@ -293,6 +294,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 									FormBuilderDateTimePicker(
 										name: 'birthDate',
 										inputType: InputType.date,
+										lastDate: DateTime.now(),
 										decoration: const InputDecoration(
 											prefixIcon: Icon(Icons.cake_outlined, size: 22),
 											hintText: 'Birth Date',

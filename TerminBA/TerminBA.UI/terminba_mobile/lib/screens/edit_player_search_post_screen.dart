@@ -99,7 +99,7 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
               children: [
                 _CounterButton(
                   icon: Icons.remove,
-                  onTap: _playersWanted > 1
+                  onTap: _playersWanted > 1 && _playersWanted > widget.post.numberOfPlayersFound
                       ? () => setState(() => _playersWanted--)
                       : null,
                 ),
