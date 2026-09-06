@@ -52,7 +52,6 @@ namespace TerminBA.Services.Database
         public int? ChosenSportId { get; set; }
         public Sport? ChosenSport { get; set; }
         
-        //public bool TicketDownloaded { get; set; } = false;
 
         [MaxLength(50)]
         public string? PaymentMethod { get; set; }
@@ -61,5 +60,9 @@ namespace TerminBA.Services.Database
         public DateTime? CanceledAt { get; set; }
         public DateTime? CompletedAt { get; set; }
 
+
+
+        [MaxLength(500)]
+        public string? CancellationReason { get; set; }
     }
 }

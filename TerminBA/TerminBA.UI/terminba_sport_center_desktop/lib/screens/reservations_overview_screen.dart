@@ -149,21 +149,53 @@ class _ReservationsOverviewScreenState
       cancelMessage += '\n\nA refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the user.';
     }
 
-    final shouldCancel = await ConfirmationDialog.show(
-      context,
-      title: 'Cancel reservation',
-      message: cancelMessage,
-      cancelText: 'No',
-      confirmText: 'Yes, cancel',
-    );
+    final reasonController = TextEditingController();
+
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cancel reservation'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(cancelMessage),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Reason for cancellation (optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF4405), foregroundColor: Colors.white),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, cancel'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
 
     if (!shouldCancel) {
       return;
     }
+    
+    final reason = reasonController.text.trim();
 
     try {
       setState(() => _isLoading = true);
-      await _reservationProvider.cancelReservation(reservationId);
+      await _reservationProvider.cancelReservation(reservationId, reason);
       await _loadReservations();
 
       if (!mounted) return;
@@ -231,11 +263,27 @@ class _ReservationsOverviewScreenState
       bookedBy: reservation.user?.username ?? 'N/A',
       bookedOn: DateHelper.toLocalDateStatic(reservation.reservationDate),
       chosenSport: reservation.chosenSport?.name ?? 'N/A',
-      status: reservation.status?.split('Reservation')[0] ?? 'N/A',
+      status: _formatStatus(reservation.status),
       slot:
           '${_toHourMinute(reservation.startTime)} - ${_toHourMinute(reservation.endTime)}',
       price: reservation.price,
+      cancellationReason: reservation.cancellationReason,
+      canceledAt: reservation.canceledAt,
+      completedAt: reservation.completedAt,
     );
+  }
+
+  String _formatStatus(String? status) {
+    if (status == null) return 'N/A';
+    if (status == 'CanceledWithRefundReservationState' ||
+        status == 'CanceledWithoutRefundReservationState' ||
+        status == 'CancelledReservationState' ||
+        status == 'CanceledReservationState' ||
+        status == 'Cancelled' ||
+        status == 'Canceled') {
+      return 'Canceled';
+    }
+    return status.split('Reservation')[0];
   }
 
   String _toDateOnly(DateTime date) {
@@ -538,7 +586,7 @@ class _ReservationsOverviewScreenState
         _buildHeaderCell('Price', _priceFlex, headerStyle),
         _buildHeaderCell('Booked on', _bookedOnFlex, headerStyle),
         _buildHeaderCell('Status', _statusFlex, headerStyle),
-        const SizedBox(width: 64),
+        const SizedBox(width: 100),
       ],
     );
   }
@@ -586,7 +634,7 @@ class _ReservationsOverviewScreenState
           _buildDataCell(row.bookedOn, _bookedOnFlex, rowTextStyle),
           _buildDataCell(row.status, _statusFlex, rowTextStyle),
           SizedBox(
-            width: 64,
+            width: 100,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -643,6 +691,53 @@ class _ReservationsOverviewScreenState
                         : const Color(0xFFFF4405),
                   ),
                 ),
+                if (isCanceled || isCompleted) ...[
+                  const SizedBox(width: 10),
+                  IconButton(
+                    onPressed: () {
+                      String auditInfo = '';
+                      if (isCanceled) {
+                        if (row.canceledAt != null) auditInfo += 'Canceled At: ${row.canceledAt!.toLocal().toString().split('.')[0]}\n';
+                        
+                        if (row.cancellationReason != null && row.cancellationReason!.isNotEmpty) {
+                          auditInfo += 'Reason: ${row.cancellationReason}\n';
+                        } else {
+                          auditInfo += 'Reason: Not provided\n';
+                        }
+                      } else if (isCompleted) {
+                        if (row.completedAt != null) auditInfo += 'Completed At: ${row.completedAt!.toLocal().toString().split('.')[0]}\n';
+                      }
+
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Audit Log Details'),
+                            content: Text(auditInfo),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    tooltip: 'View Audit Log',
+                    iconSize: 22,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 24,
+                      height: 24,
+                    ),
+                    splashRadius: 18,
+                    icon: const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -686,6 +781,9 @@ class _ReservationRowData {
   final String status;
   final String slot;
   final double price;
+  final String? cancellationReason;
+  final DateTime? canceledAt;
+  final DateTime? completedAt;
 
   const _ReservationRowData({
     required this.reservationId,
@@ -697,5 +795,8 @@ class _ReservationRowData {
     required this.status,
     required this.slot,
     required this.price,
+    this.cancellationReason,
+    this.canceledAt,
+    this.completedAt,
   });
 }

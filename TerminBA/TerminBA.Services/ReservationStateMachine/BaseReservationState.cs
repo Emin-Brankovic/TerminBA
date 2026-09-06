@@ -35,7 +35,7 @@ namespace TerminBA.Services.ReservationStateMachine
             throw new UserException("Method not allowed");
         }
 
-        public virtual Task<CancellationResponse> CancelAsync(int id)
+        public virtual Task<CancellationResponse> CancelAsync(int id, string reason)
         {
             throw new UserException("Method not allowed");
         }

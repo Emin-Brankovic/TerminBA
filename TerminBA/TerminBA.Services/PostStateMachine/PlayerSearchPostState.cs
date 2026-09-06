@@ -113,7 +113,8 @@ namespace TerminBA.Services.PostStateMachine
                 .AnyAsync(pr =>
                     pr.PostId == request.PostId &&
                     pr.RequesterId == request.RequesterId &&
-                    pr.PlayRequestState == nameof(PendingPlayRequestState));
+                    (pr.PlayRequestState == nameof(PendingPlayRequestState) || 
+                    pr.PlayRequestState == nameof(AcceptedPlayRequestState)));
 
             if (duplicate)
                 throw new UserException("You already have a pending request for this post.");

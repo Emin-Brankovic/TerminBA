@@ -29,7 +29,7 @@ namespace TerminBA.Services.Service
         public ReportService(TerminBaContext context, IAuthService<AccountBase> _authService)
         {
             this._context = context;
-            this._authService = _authService;
+            this._authService = _authService;   
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
         }
 

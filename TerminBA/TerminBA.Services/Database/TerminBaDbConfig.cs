@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace TerminBA.Services.Database
 {
@@ -74,6 +74,14 @@ namespace TerminBA.Services.Database
 
             modelBuilder.Entity<Reservation>()
                 .HasIndex(r => r.ReservationDate);
+
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reservations)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.ClientCascade);
+
+
 
             modelBuilder.Entity<Facility>()
                 .HasOne(f => f.SportCenter)

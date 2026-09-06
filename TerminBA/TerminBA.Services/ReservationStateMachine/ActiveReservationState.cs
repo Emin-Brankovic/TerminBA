@@ -184,7 +184,7 @@ namespace TerminBA.Services.ReservationStateMachine
             }
         }
 
-        public override async Task<CancellationResponse> CancelAsync(int id)
+        public override async Task<CancellationResponse> CancelAsync(int id, string reason)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -250,7 +250,9 @@ namespace TerminBA.Services.ReservationStateMachine
                 }
 
                 entity.CanceledAt = DateTime.UtcNow;
+                entity.CancellationReason = reason;
 
+                await _context.SaveChangesAsync();
                 var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
                 if (post != null)
                 {

@@ -81,7 +81,8 @@ namespace TerminBA.Services.BackgroundServices
                     var updated = await context.Reservations
                         .Where(r => reservationIdsToComplete.Contains(r.Id))
                         .ExecuteUpdateAsync(setters => setters
-                            .SetProperty(r => r.Status, nameof(CompletedReservationState)), ct);
+                            .SetProperty(r => r.Status, nameof(CompletedReservationState))
+                            .SetProperty(r=>r.CompletedAt,DateTime.UtcNow), ct);
 
                     _logger.LogInformation("Auto-completed {Count} reservations, and transitioned related posts and requests.", updated);
                 }

@@ -40,6 +40,12 @@ namespace TerminBA.Models.Model
         public bool HasActivePost { get; set; }
 
         public DateTime? CancellationDeadline { get; set; }
+
+        public string? CancellationReason { get; set; }
+
+        public DateTime? CanceledAt { get; set; }
+
+        public DateTime? CompletedAt { get; set; }
     }
 }
 

@@ -11,7 +11,7 @@ namespace TerminBA.Services.Interfaces
 {
     public interface IReservationService : IBaseCRUDService<ReservationResponse, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>
     {
-        Task<CancellationResponse> CancelAsync(int id);
+        Task<CancellationResponse> CancelAsync(int id, ReservationCancelRequest request);
     }
 }
 

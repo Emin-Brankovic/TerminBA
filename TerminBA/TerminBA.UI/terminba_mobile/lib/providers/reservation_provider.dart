@@ -12,12 +12,12 @@ class ReservationProvider extends BaseProvider<ReservationResponse> {
     return ReservationResponse.fromJson(data as Map<String, dynamic>);
   }
 
-    Future<CancellationResponse> cancelReservationPost(int id) async {
+    Future<CancellationResponse> cancelReservationPost(int id, String reason) async {
     var url = '$baseUrl$endpoint/cancel/$id';
     var uri = Uri.parse(url);
     var headers = await createHeaders();
 
-    var response = await http.put(uri, headers: headers);
+    var response = await http.put(uri, headers: headers, body: jsonEncode({"reason": reason}));
     if (!isValidResponse(response)) {
       throw Exception('Failed to cancel reservation');
     }

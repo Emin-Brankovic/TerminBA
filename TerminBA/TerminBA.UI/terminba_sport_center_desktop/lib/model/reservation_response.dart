@@ -22,6 +22,9 @@ class ReservationResponse {
   Sport? chosenSport;
   bool? isPaid;
   DateTime? cancellationDeadline;
+  String? cancellationReason;
+  DateTime? canceledAt;
+  DateTime? completedAt;
 
   ReservationResponse({
     required this.id,
@@ -38,6 +41,9 @@ class ReservationResponse {
     this.chosenSport,
     this.isPaid,
     this.cancellationDeadline,
+    this.cancellationReason,
+    this.canceledAt,
+    this.completedAt,
   });
 
   factory ReservationResponse.fromJson(Map<String, dynamic> json) =>

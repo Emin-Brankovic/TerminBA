@@ -7,12 +7,12 @@ import 'package:terminba_sport_center_desktop/providers/base_provider.dart';
 class ReservationProvider extends BaseProvider<ReservationResponse> {
   ReservationProvider() : super("Reservation");
 
-  Future<void> cancelReservation(int id) async {
+  Future<void> cancelReservation(int id, String reason) async {
     final url = '$baseUrl$endpoint/cancel/$id';
     final uri = Uri.parse(url);
     final headers = await createHeaders();
 
-    final response = await http.put(uri, headers: headers, body: jsonEncode({}));
+    final response = await http.put(uri, headers: headers, body: jsonEncode({"reason": reason}));
 
     if (!isValidResponse(response)) {
       throw Exception('Failed to cancel reservation');

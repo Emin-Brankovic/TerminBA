@@ -100,18 +100,50 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the card on which you made the reservation.';
     }
 
-    final confirm = await ConfirmationDialog.show(
-      context,
-      title: 'Cancel reservation?',
-      message: 'Are you sure you want to cancel this reservation? This action cannot be undone.$priceMessage',
-      confirmText: 'Yes, cancel',
-      cancelText: 'No',
+    final reasonController = TextEditingController();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cancel reservation?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to cancel this reservation? This action cannot be undone.$priceMessage'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Reason for cancellation (optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, cancel'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirm == true) {
+      final reason = reasonController.text.trim();
+
       try {
         final provider = context.read<ReservationProvider>();
-        final response = await provider.cancelReservationPost(res.id);
+        final response = await provider.cancelReservationPost(res.id, reason);
         _pagingController.refresh();
         
         if (mounted) {

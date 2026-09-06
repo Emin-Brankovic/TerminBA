@@ -67,7 +67,7 @@ namespace TerminBA.Services.ReservationStateMachine
             return _mapper.Map<ReservationResponse>(entity);
         }
 
-        public override async Task<CancellationResponse> CancelAsync(int id)
+        public override async Task<CancellationResponse> CancelAsync(int id, string reason)
         {
             var entity = await _context.Reservations.Include(r => r.Facility).FirstOrDefaultAsync(r => r.Id == id);
             if (entity == null)
@@ -75,6 +75,7 @@ namespace TerminBA.Services.ReservationStateMachine
 
             entity.Status = nameof(CanceledWithoutRefundReservationState);
             entity.CanceledAt = DateTime.UtcNow;
+            entity.CancellationReason = reason;
 
             var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
             if (post != null)

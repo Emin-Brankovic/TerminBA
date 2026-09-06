@@ -61,14 +61,14 @@ namespace TerminBA.Services.Service
             return await baseState.DeleteAsync(id);
         }
 
-        public async Task<CancellationResponse> CancelAsync(int id)
+        public async Task<CancellationResponse> CancelAsync(int id, ReservationCancelRequest request)
         {
             var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id)
                 ?? throw new UserException("Reservation was not found");
 
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 
-            return await baseState.CancelAsync(id);
+            return await baseState.CancelAsync(id, request.Reason ?? string.Empty);
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
