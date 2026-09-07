@@ -164,26 +164,22 @@ namespace TerminBA.Services.Service
 
         public async Task Logout()
         {
-            var authHeader = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].FirstOrDefault();
-            if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                return;
+            var user = _httpContextAccessor.HttpContext?.User;
 
-            var tokenString = authHeader.Substring("Bearer ".Length).Trim();
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            if (!tokenHandler.CanReadToken(tokenString))
-                return;
-
-            var jwtToken = tokenHandler.ReadJwtToken(tokenString);
-            var jti = jwtToken.Id;
-            var expiresAt = jwtToken.ValidTo;
-
+            // Extract the JWT ID (jti) from the claims
+            var jti = user?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
             if (string.IsNullOrEmpty(jti))
                 return;
+            // Extract the Expiration (exp) from the claims
+            var expClaim = user?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Exp)?.Value;
+            DateTime expiresAt = DateTime.UtcNow.AddDays(7); // Fallback
 
+            if (expClaim != null && long.TryParse(expClaim, out long expSeconds))
+            {
+                expiresAt = DateTimeOffset.FromUnixTimeSeconds(expSeconds).UtcDateTime;
+            }
             var alreadyRevoked = await _context.RevokedTokens
                 .AnyAsync(rt => rt.Jti == jti);
-
             if (!alreadyRevoked)
             {
                 _context.RevokedTokens.Add(new RevokedToken
@@ -192,6 +188,7 @@ namespace TerminBA.Services.Service
                     ExpiresAt = expiresAt,
                     RevokedAt = DateTime.UtcNow
                 });
+
                 await _context.SaveChangesAsync();
             }
         }

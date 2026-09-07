@@ -116,83 +116,95 @@ namespace TerminBA.Services.Service
 
         public override async Task<FacilityResponse> CreateAsync(FacilityInsertRequest request)
         {
-            Facility entity = new Facility();
-
-            entity = MapInsertToEntity(entity, request);
-
-            if (request.AvailableSportsIds != null && request.AvailableSportsIds.Any())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var sports = await _context.Sports
-                    .Where(s => request.AvailableSportsIds.Contains(s.Id))
-                    .ToListAsync();
+                Facility entity = new Facility();
 
-                entity.AvailableSports = sports;
-            }
+                entity = MapInsertToEntity(entity, request);
 
-            await BeforeInsert(entity, request);
-
-            var photos = new List<FacilityPhoto>();
-
-            if (request.PhotoFiles != null && request.PhotoFiles.Any())
-            {
-                foreach (var photo in request.PhotoFiles)
+                if (request.AvailableSportsIds != null && request.AvailableSportsIds.Any())
                 {
-                    var reuslt = await _photoService.UploadFacilityPhotoAsync(photo);
-                    photos.Add(new FacilityPhoto
-                    {
-                        Url = reuslt.SecureUrl.AbsoluteUri,
-                        PublicId = reuslt.PublicId,
-                        Facility = entity
-                    });
+                    var sports = await _context.Sports
+                        .Where(s => request.AvailableSportsIds.Contains(s.Id))
+                        .ToListAsync();
+
+                    entity.AvailableSports = sports;
                 }
-            }
-            else if (request.PhotosBase64 != null && request.PhotosBase64.Any())
-            {
-                foreach (var base64Photo in request.PhotosBase64)
+
+                await BeforeInsert(entity, request);
+
+                var photos = new List<FacilityPhoto>();
+
+                if (request.PhotoFiles != null && request.PhotoFiles.Any())
                 {
-                    if (string.IsNullOrWhiteSpace(base64Photo))
+                    foreach (var photo in request.PhotoFiles)
                     {
-                        continue;
+                        var reuslt = await _photoService.UploadFacilityPhotoAsync(photo);
+                        photos.Add(new FacilityPhoto
+                        {
+                            Url = reuslt.SecureUrl.AbsoluteUri,
+                            PublicId = reuslt.PublicId,
+                            Facility = entity
+                        });
+                    }
+                }
+                else if (request.PhotosBase64 != null && request.PhotosBase64.Any())
+                {
+                    foreach (var base64Photo in request.PhotosBase64)
+                    {
+                        if (string.IsNullOrWhiteSpace(base64Photo))
+                        {
+                            continue;
+                        }
+
+                        var photoBytes = DecodeBase64Photo(base64Photo);
+                        using var stream = new MemoryStream(photoBytes);
+                        var fileName = $"facility_{Guid.NewGuid():N}.jpg";
+                        var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = "image/jpeg"
+                        };
+
+                        var result = await _photoService.UploadFacilityPhotoAsync(formFile);
+                        photos.Add(new FacilityPhoto
+                        {
+                            Url = result.SecureUrl.AbsoluteUri,
+                            PublicId = result.PublicId,
+                            Facility = entity
+                        });
+                    }
+                }
+
+
+                await _context.Facilities.AddAsync(entity);
+
+                await _context.SaveChangesAsync();
+
+                if (photos.Any())
+                {
+                    foreach (var photo in photos)
+                    {
+                        photo.FacilityId = entity.Id;
                     }
 
-                    var photoBytes = DecodeBase64Photo(base64Photo);
-                    using var stream = new MemoryStream(photoBytes);
-                    var fileName = $"facility_{Guid.NewGuid():N}.jpg";
-                    var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
-                    {
-                        Headers = new HeaderDictionary(),
-                        ContentType = "image/jpeg"
-                    };
-
-                    var result = await _photoService.UploadFacilityPhotoAsync(formFile);
-                    photos.Add(new FacilityPhoto
-                    {
-                        Url = result.SecureUrl.AbsoluteUri,
-                        PublicId = result.PublicId,
-                        Facility = entity
-                    });
+                    entity.Photos = photos;
+                    await _context.FacilityPhotos.AddRangeAsync(photos);
+                    await _context.SaveChangesAsync();
                 }
+
+                await transaction.CommitAsync();
+                return MapToResponse(entity);
             }
-
-
-            await _context.Facilities.AddAsync(entity);
-
-            await _context.SaveChangesAsync();
-
-            if (photos.Any())
+            catch
             {
-                foreach (var photo in photos)
-                {
-                    photo.FacilityId = entity.Id;
-                }
-
-                entity.Photos = photos;
-                await _context.FacilityPhotos.AddRangeAsync(photos);
-                await _context.SaveChangesAsync();
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            return MapToResponse(entity);
         }
+
+
 
         public async Task<List<FacilityTimeSlot>> GetFacilityTimeSlotAsync(int facilityId, DateOnly pickedDate)
         {
@@ -247,113 +259,124 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeUpdate(Facility entity, FacilityUpdateRequest request)
         {
-            await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
-
-            if (entity.Name!.ToLower() != request.Name!.ToLower())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var sameNameCenter = await _context.Facilities.AnyAsync(sc => sc.SportCenterId == request.SportCenterId && sc.Name!.ToLower() == request.Name!.ToLower());
+                await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
 
-                if (sameNameCenter)
-                    throw new UserException($"Facility with name: {request.Name} already exits in your sport center.");
-            }
-
-
-            ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
-            await ValidateDynamicPricesUpdateRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
-
-            _context.Entry(entity).Collection(f => f.AvailableSports).Load();
-
-            if (request.AvailableSportsIds != null && request.AvailableSportsIds.Any())
-            {
-                var existingSports = await _context.Sports
-                    .Where(s => request.AvailableSportsIds.Contains(s.Id))
-                    .ToListAsync();
-
-                entity.AvailableSports = existingSports;
-            }
-
-
-            if (request.IsDynamicPricing)
-            {
-                _context.Entry(entity).Collection(f => f.DynamicPrices).Load();
-
-                var existingDynamicPrices = await _context.FacilityDynamicPrices
-                    .Where(fdp => fdp.FacilityId == entity.Id)
-                    .ToListAsync();
-
-                entity.DynamicPrices = existingDynamicPrices;
-            }
-
-            if(entity.IsDynamicPricing && !request.IsDynamicPricing)
-            {
-                var dynamicPrices = await _context.FacilityDynamicPrices
-                    .Where(fdp => fdp.FacilityId == entity.Id)
-                    .ToListAsync();
-                _context.FacilityDynamicPrices.RemoveRange(dynamicPrices);
-            }
-
-            if (request.RemovedPhotoIds != null && request.RemovedPhotoIds.Any())
-            {
-                _context.Entry(entity).Collection(f => f.Photos).Load();
-
-                var photosToRemove = entity.Photos
-                    .Where(p => request.RemovedPhotoIds.Contains(p.Id))
-                    .ToList();
-
-                if (photosToRemove.Any())
+                if (entity.Name!.ToLower() != request.Name!.ToLower())
                 {
-                    foreach (var photo in photosToRemove)
+                    var sameNameCenter = await _context.Facilities.AnyAsync(sc => sc.SportCenterId == request.SportCenterId && sc.Name!.ToLower() == request.Name!.ToLower());
+
+                    if (sameNameCenter)
+                        throw new UserException($"Facility with name: {request.Name} already exits in your sport center.");
+                }
+
+
+                ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
+                await ValidateDynamicPricesUpdateRequest(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
+
+                _context.Entry(entity).Collection(f => f.AvailableSports).Load();
+
+                if (request.AvailableSportsIds != null && request.AvailableSportsIds.Any())
+                {
+                    var existingSports = await _context.Sports
+                        .Where(s => request.AvailableSportsIds.Contains(s.Id))
+                        .ToListAsync();
+
+                    entity.AvailableSports = existingSports;
+                }
+
+
+                if (request.IsDynamicPricing)
+                {
+                    _context.Entry(entity).Collection(f => f.DynamicPrices).Load();
+
+                    var existingDynamicPrices = await _context.FacilityDynamicPrices
+                        .Where(fdp => fdp.FacilityId == entity.Id)
+                        .ToListAsync();
+
+                    entity.DynamicPrices = existingDynamicPrices;
+                }
+
+                if(entity.IsDynamicPricing && !request.IsDynamicPricing)
+                {
+                    var dynamicPrices = await _context.FacilityDynamicPrices
+                        .Where(fdp => fdp.FacilityId == entity.Id)
+                        .ToListAsync();
+                    _context.FacilityDynamicPrices.RemoveRange(dynamicPrices);
+                }
+
+                if (request.RemovedPhotoIds != null && request.RemovedPhotoIds.Any())
+                {
+                    _context.Entry(entity).Collection(f => f.Photos).Load();
+
+                    var photosToRemove = entity.Photos
+                        .Where(p => request.RemovedPhotoIds.Contains(p.Id))
+                        .ToList();
+
+                    if (photosToRemove.Any())
                     {
-                        if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                        foreach (var photo in photosToRemove)
                         {
-                            await _photoService.DeleteFacilityPhotoAsync(photo.PublicId);
+                            if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                            {
+                                await _photoService.DeleteFacilityPhotoAsync(photo.PublicId);
+                            }
                         }
+
+                        _context.FacilityPhotos.RemoveRange(photosToRemove);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                if (request.PhotosBase64 != null && request.PhotosBase64.Any())
+                {
+                    var photos = new List<FacilityPhoto>();
+                    foreach (var base64Photo in request.PhotosBase64)
+                    {
+                        if (string.IsNullOrWhiteSpace(base64Photo))
+                        {
+                            continue;
+                        }
+
+                        var photoBytes = DecodeBase64Photo(base64Photo);
+                        using var stream = new MemoryStream(photoBytes);
+                        var fileName = $"facility_{Guid.NewGuid():N}.jpg";
+                        var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                        {
+                            Headers = new HeaderDictionary(),
+                            ContentType = "image/jpeg"
+                        };
+
+                        var result = await _photoService.UploadFacilityPhotoAsync(formFile);
+                        photos.Add(new FacilityPhoto
+                        {
+                            Url = result.SecureUrl.AbsoluteUri,
+                            PublicId = result.PublicId,
+                            Facility = entity
+                        });
                     }
 
-                    _context.FacilityPhotos.RemoveRange(photosToRemove);
-                    await _context.SaveChangesAsync();
+                    if (photos.Any())
+                    {
+                        foreach (var photo in photos)
+                        {
+                            photo.FacilityId = entity.Id;
+                        }
+
+                        entity.Photos = photos;
+                        await _context.FacilityPhotos.AddRangeAsync(photos);
+                        await _context.SaveChangesAsync();
+                    }
                 }
+
+                await transaction.CommitAsync();
             }
-
-            if (request.PhotosBase64 != null && request.PhotosBase64.Any())
+            catch
             {
-                var photos = new List<FacilityPhoto>();
-                foreach (var base64Photo in request.PhotosBase64)
-                {
-                    if (string.IsNullOrWhiteSpace(base64Photo))
-                    {
-                        continue;
-                    }
-
-                    var photoBytes = DecodeBase64Photo(base64Photo);
-                    using var stream = new MemoryStream(photoBytes);
-                    var fileName = $"facility_{Guid.NewGuid():N}.jpg";
-                    var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
-                    {
-                        Headers = new HeaderDictionary(),
-                        ContentType = "image/jpeg"
-                    };
-
-                    var result = await _photoService.UploadFacilityPhotoAsync(formFile);
-                    photos.Add(new FacilityPhoto
-                    {
-                        Url = result.SecureUrl.AbsoluteUri,
-                        PublicId = result.PublicId,
-                        Facility = entity
-                    });
-                }
-
-                if (photos.Any())
-                {
-                    foreach (var photo in photos)
-                    {
-                        photo.FacilityId = entity.Id;
-                    }
-
-                    entity.Photos = photos;
-                    await _context.FacilityPhotos.AddRangeAsync(photos);
-                    await _context.SaveChangesAsync();
-                }
+                await transaction.RollbackAsync();
+                throw;
             }
         }
 

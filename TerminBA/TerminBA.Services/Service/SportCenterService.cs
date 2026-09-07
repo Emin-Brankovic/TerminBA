@@ -71,62 +71,76 @@ namespace TerminBA.Services.Service
 
         public override async Task<SportCenterResponse> CreateAsync(SportCenterInsertRequest request)
         {
-            SportCenter entity = new SportCenter();
-
-            var sportcenter = MapInsertToEntity(entity, request);
-
-            if (request.SportIds != null && request.SportIds.Any())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var sports = await _context.Sports
-                    .Where(s => request.SportIds.Contains(s.Id))
-                    .ToListAsync();
+                SportCenter entity = new SportCenter();
 
-                entity.AvailableSports = sports;
+                var sportcenter = MapInsertToEntity(entity, request);
+
+                if (request.SportIds != null && request.SportIds.Any())
+                {
+                    var sports = await _context.Sports
+                        .Where(s => request.SportIds.Contains(s.Id))
+                        .ToListAsync();
+
+                    entity.AvailableSports = sports;
+                }
+
+                if (request.AmenityIds != null && request.AmenityIds.Any())
+                {
+                    var amenities = await _context.Amenity
+                        .Where(s => request.AmenityIds.Contains(s.Id))
+                        .ToListAsync();
+
+                    entity.AvailableAmenities = amenities;
+                }
+
+                string randomPassword = StringHelper.GenerateRandomString();
+
+                entity.PasswordSalt = HashingHelper.GenerateSalt();
+                entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword);
+                entity.RoleId = 2;
+
+                await BeforeInsert(entity,request);
+
+                _context.Add(entity);
+
+                await _context.SaveChangesAsync();
+
+                var workingHoursEntities = request.WorkingHours
+                        !.Select(wh => new WorkingHours
+                        {
+                            SportCenterId = sportcenter.Id,
+                            StartDay = wh.StartDay,
+                            EndDay = wh.EndDay,
+                            OpeningHours = wh.OpeningHours,
+                            CloseingHours = wh.CloseingHours,
+                            ValidFrom = wh.ValidFrom,
+                            ValidTo = wh.ValidTo
+                        }).ToList();
+
+                await _context.AddRangeAsync(workingHoursEntities);
+                
+                await _context.SaveChangesAsync();
+
+                byte[] pdfBytes = _reportService.SportCenterCredentialsReport(entity.Username!, randomPassword);
+
+                var response = MapToResponse(entity);
+
+                response.CredentialsReport = pdfBytes;
+
+                await transaction.CommitAsync();
+                return response;
             }
-
-            if (request.AmenityIds != null && request.AmenityIds.Any())
+            catch
             {
-                var amenities = await _context.Amenity
-                    .Where(s => request.AmenityIds.Contains(s.Id))
-                    .ToListAsync();
-
-                entity.AvailableAmenities = amenities;
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            string randomPassword = StringHelper.GenerateRandomString();
-
-            entity.PasswordSalt = HashingHelper.GenerateSalt();
-            entity.PasswordHash = HashingHelper.GenerateHash(entity.PasswordSalt, randomPassword);
-            entity.RoleId = 2;
-
-            await BeforeInsert(entity,request);
-
-            _context.Add(entity);
-
-            await _context.SaveChangesAsync();
-
-            var workingHoursEntities = request.WorkingHours
-                    !.Select(wh => new WorkingHours
-                    {
-                        SportCenterId = sportcenter.Id,
-                        StartDay = wh.StartDay,
-                        EndDay = wh.EndDay,
-                        OpeningHours = wh.OpeningHours,
-                        CloseingHours = wh.CloseingHours,
-                        ValidFrom = wh.ValidFrom,
-                        ValidTo = wh.ValidTo
-                    }).ToList();
-
-            await _context.AddRangeAsync(workingHoursEntities);
-
-            byte[] pdfBytes = _reportService.SportCenterCredentialsReport(entity.Username!, randomPassword);
-
-            var response = MapToResponse(entity);
-
-            response.CredentialsReport = pdfBytes;
-
-            return response;
         }
+
+
 
         public async Task<SportCenterResponse> GetCurrentSportCenter()
         {
@@ -395,69 +409,81 @@ namespace TerminBA.Services.Service
 
         private async Task UpdateGalleryAsync(SportCenter entity, List<int>? removedPhotoIds, List<string>? photosBase64)
         {
-            if (removedPhotoIds != null && removedPhotoIds.Any())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                _context.Entry(entity).Collection(sc => sc.Photos).Load();
-
-                var photosToRemove = entity.Photos
-                    .Where(p => removedPhotoIds.Contains(p.Id))
-                    .ToList();
-
-                if (photosToRemove.Any())
+                if (removedPhotoIds != null && removedPhotoIds.Any())
                 {
-                    foreach (var photo in photosToRemove)
+                    _context.Entry(entity).Collection(sc => sc.Photos).Load();
+
+                    var photosToRemove = entity.Photos
+                        .Where(p => removedPhotoIds.Contains(p.Id))
+                        .ToList();
+
+                    if (photosToRemove.Any())
                     {
-                        if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                        foreach (var photo in photosToRemove)
                         {
-                            await _photoService.DeleteSportCenterPhotoAsync(photo.PublicId);
+                            if (!string.IsNullOrWhiteSpace(photo.PublicId))
+                            {
+                                await _photoService.DeleteSportCenterPhotoAsync(photo.PublicId);
+                            }
                         }
+
+                        _context.SportCenterPhotos.RemoveRange(photosToRemove);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                if (photosBase64 == null || !photosBase64.Any())
+                {
+                    await transaction.CommitAsync();
+                    return;
+                }
+
+                var photos = new List<SportCenterPhoto>();
+                foreach (var base64Photo in photosBase64)
+                {
+                    if (string.IsNullOrWhiteSpace(base64Photo))
+                    {
+                        continue;
                     }
 
-                    _context.SportCenterPhotos.RemoveRange(photosToRemove);
+                    var photoBytes = DecodeBase64Photo(base64Photo);
+                    using var stream = new MemoryStream(photoBytes);
+                    var fileName = $"sportcenter_{Guid.NewGuid():N}.jpg";
+                    var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = "image/jpeg"
+                    };
+
+                    var result = await _photoService.UploadSportCenterPhotoAsync(formFile);
+                    photos.Add(new SportCenterPhoto
+                    {
+                        Url = result.SecureUrl.AbsoluteUri,
+                        PublicId = result.PublicId,
+                        SportCenter = entity
+                    });
+                }
+
+                if (photos.Any())
+                {
+                    foreach (var photo in photos)
+                    {
+                        photo.SportCenterId = entity.Id;
+                    }
+
+                    await _context.SportCenterPhotos.AddRangeAsync(photos);
                     await _context.SaveChangesAsync();
                 }
+
+                await transaction.CommitAsync();
             }
-
-            if (photosBase64 == null || !photosBase64.Any())
+            catch
             {
-                return;
-            }
-
-            var photos = new List<SportCenterPhoto>();
-            foreach (var base64Photo in photosBase64)
-            {
-                if (string.IsNullOrWhiteSpace(base64Photo))
-                {
-                    continue;
-                }
-
-                var photoBytes = DecodeBase64Photo(base64Photo);
-                using var stream = new MemoryStream(photoBytes);
-                var fileName = $"sportcenter_{Guid.NewGuid():N}.jpg";
-                var formFile = new FormFile(stream, 0, photoBytes.Length, "photos", fileName)
-                {
-                    Headers = new HeaderDictionary(),
-                    ContentType = "image/jpeg"
-                };
-
-                var result = await _photoService.UploadSportCenterPhotoAsync(formFile);
-                photos.Add(new SportCenterPhoto
-                {
-                    Url = result.SecureUrl.AbsoluteUri,
-                    PublicId = result.PublicId,
-                    SportCenter = entity
-                });
-            }
-
-            if (photos.Any())
-            {
-                foreach (var photo in photos)
-                {
-                    photo.SportCenterId = entity.Id;
-                }
-
-                await _context.SportCenterPhotos.AddRangeAsync(photos);
-                await _context.SaveChangesAsync();
+                await transaction.RollbackAsync();
+                throw;
             }
         }
 

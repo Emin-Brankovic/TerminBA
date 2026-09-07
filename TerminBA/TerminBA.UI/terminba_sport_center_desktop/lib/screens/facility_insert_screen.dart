@@ -893,7 +893,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                     initialValue: rule.pricePerHour.toString(),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: _inputDecoration('Price per hour (EUR)*'),
+                    decoration: _inputDecoration('Price per slot*'),
                     onChanged: (value) {
                       final parsed = double.tryParse(value ?? '');
                       if (parsed != null) {
