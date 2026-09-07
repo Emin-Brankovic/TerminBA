@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:terminba_admin_desktop/model/dashboard_response.dart';
@@ -60,6 +61,7 @@ class ReportProvider extends BaseProvider<DashboardResponse> {
         'chartImage',
         imageBytes,
         filename: 'dashboard_chart.png',
+        contentType: MediaType('image', 'png'),
       ),
     );
 

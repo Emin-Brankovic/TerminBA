@@ -6,6 +6,7 @@ using System.Reflection.Metadata.Ecma335;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.Helpers;
 
 namespace TerminBA.WebAPI.Controllers
 {
@@ -38,6 +39,15 @@ namespace TerminBA.WebAPI.Controllers
         {
             if (chartImage == null || chartImage.Length == 0)
                 return BadRequest("No image uploaded");
+
+            try
+            {
+                FileValidator.ValidateImage(chartImage);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             byte[] imageBytes;
             using (var memoryStream = new MemoryStream())

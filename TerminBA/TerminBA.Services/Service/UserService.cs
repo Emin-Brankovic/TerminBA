@@ -83,6 +83,14 @@ namespace TerminBA.Services.Service
 
         protected async override Task BeforeUpdate(User entity, UserUpdateRequest request)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var currentUserIdStr = currentUser["userId"];
+
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+            {
+                throw new UserException("You are not authorized to update this profile.");
+            }
+
             if (entity.Email!.ToLower()!=request.Email!.ToLower())
             {
                 if(await _context.Users.AnyAsync(u=>u.Email!.ToLower() == request.Email.ToLower()))

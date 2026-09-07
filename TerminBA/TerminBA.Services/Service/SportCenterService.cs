@@ -359,6 +359,18 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeUpdate(SportCenter entity, SportCenterUpdateRequest request)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var role = currentUser["userRole"];
+            var currentUserIdStr = currentUser["userId"];
+
+            if (role != "Administrator") 
+            {
+                if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+                {
+                    throw new UserException("You are not authorized to update this sport center's profile.");
+                }
+            }
+
             ValidateWorkingHours(request.WorkingHours);
 
             if (entity.Username!.ToLower() != request.Username!.ToLower())

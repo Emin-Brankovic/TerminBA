@@ -18,13 +18,13 @@ namespace TerminBA.Services.Service
     {
         private readonly IFacilityDynamicPriceService _facilityDynamicPriceService;
         private readonly IPhotoService _photoService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAuthService<SportCenter> _authService;
 
-        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService,IPhotoService photoService, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
+        public FacilityService(TerminBaContext context, IMapper mapper, IFacilityDynamicPriceService facilityDynamicPriceService,IPhotoService photoService, IAuthService<SportCenter> authService) : base(context, mapper)
         {
             _facilityDynamicPriceService = facilityDynamicPriceService;
             this._photoService = photoService;
-            _httpContextAccessor = httpContextAccessor;
+            _authService = authService;
         }
 
         public override IQueryable<Facility> ApplyFilter(IQueryable<Facility> query, FacilitySearchObject search)
@@ -240,8 +240,16 @@ namespace TerminBA.Services.Service
             return facilityTimeSlots;
         }
 
-    protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)
+        protected override async Task BeforeInsert(Facility entity, FacilityInsertRequest request)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var currentUserIdStr = currentUser["userId"];
+
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != request.SportCenterId)
+            {
+                throw new UserException("You cannot create a facility or upload photos for another sport center.");
+            }
+
             bool nameExists = await _context.Facilities.AnyAsync(f =>
             f.SportCenterId == request.SportCenterId &&
             f.Name.ToLower() == request.Name.ToLower());
@@ -259,6 +267,14 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeUpdate(Facility entity, FacilityUpdateRequest request)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var currentUserIdStr = currentUser["userId"];
+
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.SportCenterId)
+            {
+                throw new UserException("You are not authorized to update or upload photos for this facility.");
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -382,6 +398,14 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeDelete(Facility entity)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var currentUserIdStr = currentUser["userId"];
+
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.SportCenterId)
+            {
+                throw new UserException("You are not authorized to delete this facility.");
+            }
+
             var reviews = await _context.FacilityReviews
                 .Where(fr => fr.FacilityId == entity.Id)
                 .ToListAsync();
