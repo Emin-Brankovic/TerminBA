@@ -31,5 +31,7 @@ namespace TerminBA.Services.Database
         public DateTime DateCancelled { get; set; } = DateTime.UtcNow;
 
         public bool IsSeen { get; set; } = false;
+
+        public string? Reason { get; set; }
     }
 }

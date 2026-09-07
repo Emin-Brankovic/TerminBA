@@ -13,6 +13,7 @@ class CancelationNotificationResponse {
   final String facilityName;
   final String dateCancelled;
   final bool isSeen;
+  final String? reason;
   final ReservationResponse? reservation;
 
   const CancelationNotificationResponse({
@@ -23,6 +24,7 @@ class CancelationNotificationResponse {
     required this.facilityName,
     required this.dateCancelled,
     required this.isSeen,
+    this.reason,
     this.reservation,
   });
 

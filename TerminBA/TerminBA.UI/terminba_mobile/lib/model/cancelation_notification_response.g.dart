@@ -16,6 +16,7 @@ CancelationNotificationResponse _$CancelationNotificationResponseFromJson(
   facilityName: json['facilityName'] as String,
   dateCancelled: json['dateCancelled'] as String,
   isSeen: json['isSeen'] as bool,
+  reason: json['reason'] as String?,
   reservation: json['reservation'] == null
       ? null
       : ReservationResponse.fromJson(
@@ -25,13 +26,17 @@ CancelationNotificationResponse _$CancelationNotificationResponseFromJson(
 
 Map<String, dynamic> _$CancelationNotificationResponseToJson(
   CancelationNotificationResponse instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'postOwnerId': instance.postOwnerId,
-  'reservationId': instance.reservationId,
-  'requesterName': instance.requesterName,
-  'facilityName': instance.facilityName,
-  'dateCancelled': instance.dateCancelled,
-  'isSeen': instance.isSeen,
-  'reservation': instance.reservation?.toJson(),
-};
+) {
+  final val = <String, dynamic>{
+    'id': instance.id,
+    'postOwnerId': instance.postOwnerId,
+    'reservationId': instance.reservationId,
+    'requesterName': instance.requesterName,
+  };
+  val['facilityName'] = instance.facilityName;
+  val['dateCancelled'] = instance.dateCancelled;
+  val['isSeen'] = instance.isSeen;
+  val['reason'] = instance.reason;
+  val['reservation'] = instance.reservation?.toJson();
+  return val;
+}

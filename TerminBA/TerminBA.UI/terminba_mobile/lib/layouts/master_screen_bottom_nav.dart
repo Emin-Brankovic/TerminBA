@@ -217,26 +217,15 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 							icon: Semantics(
 								label: 'Find Players',
 								selected: false,
-								child: context.watch<NotificationProvider>().unseenCancelationCount > 0
-									? Badge(
-											child: Icon(Icons.people_outline),
-									  )
-									: Icon(Icons.people_outline),
+								child: const Icon(Icons.people_outline),
 							),
 							selectedIcon: Semantics(
 								label: 'Find Players',
 								selected: true,
-								child: context.watch<NotificationProvider>().unseenCancelationCount > 0
-									? Badge(
-											child: Icon(
-												Icons.people_outline,
-												color: selectedColor,
-											),
-									  )
-									: Icon(
-										Icons.people_outline,
-										color: selectedColor,
-									),
+								child: Icon(
+									Icons.people_outline,
+									color: selectedColor,
+								),
 							),
 							label: 'Find Players',
 						),
@@ -244,16 +233,16 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 							icon: Semantics(
 								label: 'Profile',
 								selected: false,
-								child: context.watch<NotificationProvider>().unseenCount > 0
+								child: (context.watch<NotificationProvider>().unseenCount > 0 || context.watch<NotificationProvider>().unseenCancelationCount > 0)
 									? Badge(
-											child: Icon(Icons.person_outline),
+											child: const Icon(Icons.person_outline),
 									  )
-									: Icon(Icons.person_outline),
+									: const Icon(Icons.person_outline),
 							),
 							selectedIcon: Semantics(
 								label: 'Profile',
 								selected: true,
-								child: context.watch<NotificationProvider>().unseenCount > 0
+								child: (context.watch<NotificationProvider>().unseenCount > 0 || context.watch<NotificationProvider>().unseenCancelationCount > 0)
 									? Badge(
 											child: Icon(Icons.person_outline, color: selectedColor),
 									  )

@@ -59,7 +59,8 @@ namespace TerminBA.Services.PlayRequestStateMachine
                     RequesterName = request.Requester != null ? $"{request.Requester.FirstName} {request.Requester.LastName}" : "A user",
                     FacilityName = post.Reservation.Facility?.Name ?? "Unknown facility",
                     DateCancelled = DateTime.UtcNow,
-                    IsSeen = false
+                    IsSeen = false,
+                    Reason = reason
                 };
                 _context.CancelationNotifications.Add(notification);
             }

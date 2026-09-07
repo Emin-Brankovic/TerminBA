@@ -5,6 +5,7 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
+import 'package:terminba_mobile/screens/cancelation_notifications_screen.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/my_posts_screen.dart';
 import 'package:terminba_mobile/screens/public_profile_screen.dart';
@@ -125,6 +126,33 @@ class ProfileMenuScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => const PlayerSearchRequestsScreen(),
+                ),
+              );
+            },
+          ),
+          _listItem(
+            context,
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            color: accent,
+            trailing: context.watch<NotificationProvider>().unseenCancelationCount > 0
+                ? Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${context.watch<NotificationProvider>().unseenCancelationCount}',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  )
+                : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CancelationNotificationsScreen(),
                 ),
               );
             },

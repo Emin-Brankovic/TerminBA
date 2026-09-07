@@ -254,9 +254,9 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      notification.postOwnerId != notification.reservation?.userId
-                          ? 'Reservation Cancelled'
-                          : 'Accepted Request Cancelled',
+                      notification.postOwnerId == notification.reservation?.userId
+                          ? ((notification.reservation?.isCancelled ?? false) ? 'Reservation Canceled by Sport Center' : 'Accepted Request Canceled')
+                          : 'Reservation Canceled',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -288,11 +288,41 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
               ),
               const SizedBox(height: 12),
               Text(
-                notification.postOwnerId != notification.reservation?.userId
-                    ? '${notification.requesterName} has cancelled their reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}, so your accepted request is cancelled.'
-                    : '${notification.requesterName} has cancelled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.',
+                notification.postOwnerId == notification.reservation?.userId
+                    ? ((notification.reservation?.isCancelled ?? false)
+                        ? '${notification.requesterName} has canceled your reservation${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.'
+                        : '${notification.requesterName} has canceled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.')
+                    : '${notification.requesterName} has canceled their reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}, so your accepted request is canceled.',
                 style: const TextStyle(fontSize: 14),
               ),
+              if (notification.reason != null && notification.reason!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Reason: ${notification.reason}',
+                          style: TextStyle(
+                            color: Colors.red.shade900,
+                            fontSize: 13,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Text(
                 _formatDate(notification.dateCancelled),

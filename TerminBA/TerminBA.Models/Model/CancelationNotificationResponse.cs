@@ -11,6 +11,7 @@ namespace TerminBA.Models.Model
         public string FacilityName { get; set; } = string.Empty;
         public DateTime DateCancelled { get; set; }
         public bool IsSeen { get; set; }
+        public string? Reason { get; set; }
         public ReservationResponse? Reservation { get; set; }
     }
 }

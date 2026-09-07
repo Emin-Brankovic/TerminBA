@@ -191,6 +191,7 @@ namespace TerminBA.Services.ReservationStateMachine
             {
                 var entity = await _context.Reservations
                     .Include(r => r.Facility)
+                        .ThenInclude(f => f.SportCenter)
                     .FirstOrDefaultAsync(r => r.Id == id);
 
                 if (entity == null)
@@ -253,6 +254,37 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.CancellationReason = reason;
 
                 await _context.SaveChangesAsync();
+
+                var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
+                var currentUser = authService?.GetCurrentUser();
+                bool isSportCenter = currentUser != null && currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
+                var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
+
+                if (isSportCenter && notificationHubService != null && entity.UserId.HasValue)
+                {
+                    var sportCenterName = entity.Facility?.SportCenter?.DisplayName ?? "Unknown sport center";
+                    var ownerNotification = new CancelationNotification
+                    {
+                        PostOwnerId = entity.UserId.Value,
+                        ReservationId = id,
+                        RequesterName = sportCenterName,
+                        FacilityName = entity.Facility?.Name ?? "Unknown facility",
+                        DateCancelled = DateTime.UtcNow,
+                        IsSeen = false,
+                        Reason = reason
+                    };
+                    _context.CancelationNotifications.Add(ownerNotification);
+
+                    var payload = new
+                    {
+                        type = "reservation_canceled",
+                        reservationId = id,
+                        canceledAt = DateTime.UtcNow.ToString("o"),
+                        reason = reason
+                    };
+                    await notificationHubService.SendReservationCanceledNotificationAsync(entity.UserId.Value, payload);
+                }
+
                 var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
                 if (post != null)
                 {
@@ -272,7 +304,7 @@ namespace TerminBA.Services.ReservationStateMachine
                         .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
                         .ToListAsync();
 
-                    var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
+
                     if (notificationHubService != null && acceptedRequests.Any())
                     {
                         var postOwner = await _context.Users.FindAsync(entity.UserId);
