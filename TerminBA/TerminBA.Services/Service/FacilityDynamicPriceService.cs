@@ -89,7 +89,7 @@ namespace TerminBA.Services.Service
                 StartTime = entity.StartTime,
                 EndTime = entity.EndTime,
 
-                PricePerHour = entity.PricePerHour,
+                Price = entity.Price,
 
                 IsActive = entity.IsActive,
 

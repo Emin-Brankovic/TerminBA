@@ -152,7 +152,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                     ),
                   ),
                   Text(
-                    '${dp.pricePerHour.toStringAsFixed(0)} KM',
+                    '${dp.price.toStringAsFixed(0)} KM',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

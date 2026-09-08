@@ -16,7 +16,7 @@ FacilityDynamicPrice _$FacilityDynamicPriceFromJson(
   endDay: dayOfWeekFromJson((json['endDay'] as num).toInt()),
   startTime: json['startTime'] as String,
   endTime: json['endTime'] as String,
-  pricePerHour: (json['pricePerHour'] as num).toDouble(),
+  price: (json['price'] as num).toDouble(),
   isActive: json['isActive'] as bool,
   validFrom: DateTime.parse(json['validFrom'] as String),
   validTo: json['validTo'] == null
@@ -34,7 +34,7 @@ Map<String, dynamic> _$FacilityDynamicPriceToJson(
   'endDay': dayOfWeekToJson(instance.endDay),
   'startTime': instance.startTime,
   'endTime': instance.endTime,
-  'pricePerHour': instance.pricePerHour,
+  'price': instance.price,
   'isActive': instance.isActive,
   'validFrom': instance.validFrom.toIso8601String(),
   'validTo': instance.validTo?.toIso8601String(),

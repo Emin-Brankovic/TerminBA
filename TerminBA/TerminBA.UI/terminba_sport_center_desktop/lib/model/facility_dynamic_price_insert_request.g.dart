@@ -14,7 +14,7 @@ FacilityDynamicPriceInsertRequest _$FacilityDynamicPriceInsertRequestFromJson(
   dayOfWeekFromJson((json['endDay'] as num).toInt()),
   json['startTime'] as String,
   json['endTime'] as String,
-  (json['pricePerHour'] as num).toDouble(),
+  (json['price'] as num).toDouble(),
   _dateOnlyFromJson(json['validFrom'] as String),
   _nullableDateOnlyFromJson(json['validTo'] as String?),
 );
@@ -27,7 +27,7 @@ Map<String, dynamic> _$FacilityDynamicPriceInsertRequestToJson(
   'endDay': dayOfWeekToJson(instance.endDay),
   'startTime': instance.startTime,
   'endTime': instance.endTime,
-  'pricePerHour': instance.pricePerHour,
+  'price': instance.price,
   'validFrom': _dateOnlyToJson(instance.validFrom),
   'validTo': _nullableDateOnlyToJson(instance.validTo),
 };

@@ -532,7 +532,7 @@ namespace TerminBA.Services.Service
                 return facility.StaticPrice ?? 0m;
 
             decimal hours = (decimal)duration.TotalHours;
-            return dynamicPrice.PricePerHour * hours;
+            return dynamicPrice.Price * hours;
         }
 
         private static UserProfile BuildProfileFromReservations(

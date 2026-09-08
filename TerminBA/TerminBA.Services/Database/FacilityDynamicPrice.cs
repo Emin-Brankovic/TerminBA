@@ -32,7 +32,7 @@ namespace TerminBA.Services.Database
 
         [Required]
         [Column(TypeName = "decimal(10,2)")]
-        public decimal PricePerHour { get; set; }
+        public decimal Price { get; set; }
 
         [NotMapped]
         public bool IsActive =>

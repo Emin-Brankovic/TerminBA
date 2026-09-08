@@ -208,7 +208,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
           isWithinValidityPeriod(date, dp.validFrom, dp.validTo) &&
           dpStart <= slotStart &&
           dpEnd >= slotEnd) {
-        return dp.pricePerHour;
+        return dp.price;
       }
     }
 

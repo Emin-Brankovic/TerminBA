@@ -64,7 +64,7 @@ namespace TerminBA.Services.Service
                 query = query.Where(f =>
                     (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value >= minPrice)
                     ||
-                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour >= minPrice))
+                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.Price >= minPrice))
                 );
             }
 
@@ -75,7 +75,7 @@ namespace TerminBA.Services.Service
                 query = query.Where(f =>
                     (!f.IsDynamicPricing && f.StaticPrice.HasValue && f.StaticPrice.Value <= maxPrice)
                     ||
-                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.PricePerHour <= maxPrice))
+                    (f.IsDynamicPricing && f.DynamicPrices.Any(dp => dp.Price <= maxPrice))
                 );
             }
 
@@ -473,7 +473,7 @@ namespace TerminBA.Services.Service
             {
                 var dynamicPrice = dynamicPrices[i];
 
-                if (dynamicPrice.PricePerHour <= 0)
+                if (dynamicPrice.Price <= 0)
                 {
                     throw new UserException("Price per hour must be a positive value.");
                 }
@@ -545,7 +545,7 @@ namespace TerminBA.Services.Service
             {
                 var dynamicPrice = dynamicPrices[i];
 
-                if (dynamicPrice.PricePerHour <= 0)
+                if (dynamicPrice.Price <= 0)
                 {
                     throw new UserException("Price per hour must be a positive value.");
                 }

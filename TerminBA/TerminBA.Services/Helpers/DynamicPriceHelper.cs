@@ -29,7 +29,7 @@ namespace TerminBA.Services.Helpers
                     && dp.EndTime >= endTime)
                 ?? throw new UserException("No price is found for selected time and date");
 
-            return dynamicPrice.PricePerHour;
+            return dynamicPrice.Price;
         }
     }
 }

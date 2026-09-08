@@ -25,8 +25,8 @@ namespace TerminBA.Models.Request
         public TimeOnly EndTime { get; set; }
 
         [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "Price per hour must be a positive value.")]
-        public decimal PricePerHour { get; set; }
+        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value.")]
+        public decimal Price { get; set; }
 
         [Required]
         public DateOnly ValidFrom { get; set; }

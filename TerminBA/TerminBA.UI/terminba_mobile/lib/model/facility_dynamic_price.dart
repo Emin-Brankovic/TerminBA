@@ -14,7 +14,7 @@ class FacilityDynamicPrice {
   DayOfWeek endDay;
   String startTime;
   String endTime;
-  double pricePerHour;
+  double price;
   bool isActive;
   DateTime validFrom;
   DateTime? validTo;
@@ -27,7 +27,7 @@ class FacilityDynamicPrice {
     required this.endDay,
     required this.startTime,
     required this.endTime,
-    required this.pricePerHour,
+    required this.price,
     required this.isActive,
     required this.validFrom,
     this.validTo,

@@ -209,7 +209,7 @@ class _FacilityCardState extends State<FacilityCard> {
           child: Text(
             '${_dayName(dp.startDay)} – ${_dayName(dp.endDay)}: '
             '${_timeStr(dp.startTime)} – ${_timeStr(dp.endTime)} '
-            '(${dp.pricePerHour.toStringAsFixed(2)} KM)',
+            '(${dp.price.toStringAsFixed(2)} KM)',
             style: const TextStyle(fontSize: 13, color: Colors.black87),
           ),
         ),

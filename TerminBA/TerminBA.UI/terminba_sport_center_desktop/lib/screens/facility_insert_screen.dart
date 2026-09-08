@@ -93,7 +93,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
             facilityId: facility.id,
             startTime: _parseTimeOfDay(price.startTime),
             endTime: _parseTimeOfDay(price.endTime),
-            pricePerHour: price.pricePerHour,
+            price: price.price,
             validFrom: price.validFrom,
             validTo: price.validTo,
           ),
@@ -212,7 +212,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                     e.endDay,
                     _formatTime(e.startTime),
                     _formatTime(e.endTime),
-                    e.pricePerHour,
+                    e.price,
                     e.validFrom,
                     e.validTo,
                   ),
@@ -890,14 +890,14 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                    const SizedBox(height: 8),
                   FormBuilderTextField(
                     name: 'dynamicPrice_$index',
-                    initialValue: rule.pricePerHour.toString(),
+                    initialValue: rule.price.toString(),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: _inputDecoration('Price per slot*'),
+                    decoration: _inputDecoration('Price*'),
                     onChanged: (value) {
                       final parsed = double.tryParse(value ?? '');
                       if (parsed != null) {
-                        _dynamicPrices[index].pricePerHour = parsed;
+                        _dynamicPrices[index].price = parsed;
                       }
                     },
                     validator: (value) {
@@ -1197,7 +1197,7 @@ class _DynamicPriceEntry {
   int facilityId;
   TimeOfDay startTime;
   TimeOfDay endTime;
-  double pricePerHour;
+  double price;
   DateTime validFrom;
   DateTime? validTo;
 
@@ -1219,7 +1219,7 @@ class _DynamicPriceEntry {
     this.facilityId = 2,
     TimeOfDay? startTime,
     TimeOfDay? endTime,
-    this.pricePerHour = 20,
+    this.price = 20,
     DateTime? validFrom,
     this.validTo,
   }) : startTime = startTime ?? const TimeOfDay(hour: 8, minute: 0),

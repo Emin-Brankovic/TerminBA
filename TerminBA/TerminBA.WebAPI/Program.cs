@@ -22,6 +22,7 @@ using TerminBA.WebAPI.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Env.Load("..\\.env");
 
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<ISportService, SportService>();
@@ -137,12 +138,11 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddMapster();
 
-var connectionString = builder.Configuration.GetConnectionString("db");
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__db");
 builder.Services.AddDbContext<TerminBaContext>(options =>
     options.UseSqlServer(connectionString)
            .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
-Env.Load("..\\.env");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

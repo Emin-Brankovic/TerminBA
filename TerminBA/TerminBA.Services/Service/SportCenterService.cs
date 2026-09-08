@@ -108,22 +108,6 @@ namespace TerminBA.Services.Service
 
                 await _context.SaveChangesAsync();
 
-                var workingHoursEntities = request.WorkingHours
-                        !.Select(wh => new WorkingHours
-                        {
-                            SportCenterId = sportcenter.Id,
-                            StartDay = wh.StartDay,
-                            EndDay = wh.EndDay,
-                            OpeningHours = wh.OpeningHours,
-                            CloseingHours = wh.CloseingHours,
-                            ValidFrom = wh.ValidFrom,
-                            ValidTo = wh.ValidTo
-                        }).ToList();
-
-                await _context.AddRangeAsync(workingHoursEntities);
-                
-                await _context.SaveChangesAsync();
-
                 byte[] pdfBytes = _reportService.SportCenterCredentialsReport(entity.Username!, randomPassword);
 
                 var response = MapToResponse(entity);

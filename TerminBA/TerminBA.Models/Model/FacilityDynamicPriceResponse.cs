@@ -24,7 +24,7 @@ namespace TerminBA.Models.Model
 
         public TimeOnly EndTime { get; set; }
 
-        public decimal PricePerHour { get; set; }
+        public decimal Price { get; set; }
 
         public bool IsActive { get; set; }
 

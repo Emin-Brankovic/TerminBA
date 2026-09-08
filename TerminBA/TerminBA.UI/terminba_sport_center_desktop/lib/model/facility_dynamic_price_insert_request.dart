@@ -13,13 +13,13 @@ class FacilityDynamicPriceInsertRequest {
 	DayOfWeek endDay;
 	String startTime;
 	String endTime;
-	double pricePerHour;
+	double price;
 	@JsonKey(fromJson: _dateOnlyFromJson, toJson: _dateOnlyToJson)
 	DateTime validFrom;
 	@JsonKey(fromJson: _nullableDateOnlyFromJson, toJson: _nullableDateOnlyToJson)
 	DateTime? validTo;
 
-	FacilityDynamicPriceInsertRequest(this.facilityId,this.startDay,this.endDay,this.startTime,this.endTime,this.pricePerHour,this.validFrom,this.validTo,);
+	FacilityDynamicPriceInsertRequest(this.facilityId,this.startDay,this.endDay,this.startTime,this.endTime,this.price,this.validFrom,this.validTo,);
 
 	factory FacilityDynamicPriceInsertRequest.fromJson(Map<String, dynamic> json) => _$FacilityDynamicPriceInsertRequestFromJson(json);
 

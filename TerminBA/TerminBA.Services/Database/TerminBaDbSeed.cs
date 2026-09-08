@@ -345,7 +345,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(17, 0),
-                    PricePerHour = 60.00m,
+                    Price = 60.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -357,7 +357,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(17, 0),
                     EndTime = new TimeOnly(22, 0),
-                    PricePerHour = 80.00m,
+                    Price = 80.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -369,7 +369,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Sunday,
                     StartTime = new TimeOnly(9, 0),
                     EndTime = new TimeOnly(20, 0),
-                    PricePerHour = 90.00m,
+                    Price = 90.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -381,7 +381,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(6, 0),
                     EndTime = new TimeOnly(21, 0),
-                    PricePerHour = 45.00m,
+                    Price = 45.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -393,7 +393,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Sunday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(19, 0),
-                    PricePerHour = 55.00m,
+                    Price = 55.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -405,7 +405,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(15, 0),
-                    PricePerHour = 50.00m,
+                    Price = 50.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -417,7 +417,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(16, 0),
                     EndTime = new TimeOnly(23, 0),
-                    PricePerHour = 70.00m,
+                    Price = 70.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -429,7 +429,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Sunday,
                     StartTime = new TimeOnly(9, 0),
                     EndTime = new TimeOnly(23, 0),
-                    PricePerHour = 80.00m,
+                    Price = 80.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -441,7 +441,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(16, 0),
-                    PricePerHour = 50.00m,
+                    Price = 50.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -453,7 +453,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Friday,
                     StartTime = new TimeOnly(16, 0),
                     EndTime = new TimeOnly(22, 0),
-                    PricePerHour = 75.00m,
+                    Price = 75.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -465,7 +465,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Sunday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(20, 0),
-                    PricePerHour = 60.00m,
+                    Price = 60.00m,
                     ValidFrom = today,
                     ValidTo = null
                 },
@@ -477,7 +477,7 @@ namespace TerminBA.Services.Database
                     EndDay = DayOfWeek.Sunday,
                     StartTime = new TimeOnly(8, 0),
                     EndTime = new TimeOnly(22, 0),
-                    PricePerHour = 60.00m,
+                    Price = 60.00m,
                     ValidFrom = today,
                     ValidTo = null
                 }
