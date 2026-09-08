@@ -158,9 +158,9 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     setState(() => _isLoading = true);
     try {
       final results = await Future.wait([
-        _cityProvider.get(),
-        _sportProvider.get(),
-        _amenityProvider.get(),
+        _cityProvider.get(filter: {'PageSize': 100}),
+        _sportProvider.get(filter: {'PageSize': 100}),
+        _amenityProvider.get(filter: {'PageSize': 100}),
         _sportCenterProvider.getCurrentSportCenter(widget.sportCenter.id, includeInactiveWorkingHours: true),
       ]);
 

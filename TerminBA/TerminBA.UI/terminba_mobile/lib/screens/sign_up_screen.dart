@@ -40,7 +40,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 		try {
 			final results = await Future.wait([
-				_cityProvider.get(),
+				_cityProvider.get(filter: {'PageSize': 100}),
 			]);
 
 			final cities = (results[0].items ?? []).cast<City>();

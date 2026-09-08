@@ -118,7 +118,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
 
   Future<void> _loadTurfTypes() async {
     try {
-      final result = await _turfTypeProvider.get();
+      final result = await _turfTypeProvider.get(filter: {'PageSize': 100});
       setState(() {
         _turfTypes = result.items ?? [];
       });

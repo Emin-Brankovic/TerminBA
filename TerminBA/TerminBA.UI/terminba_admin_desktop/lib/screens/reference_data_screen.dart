@@ -26,6 +26,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   final List<String> data = [];
   late ReferenceDataDataSource<dynamic> _referenceDataDataSource;
   final TextEditingController _searchController = TextEditingController();
+  int _currentFirstRowIndex = 0;
+  int _rowsPerPage = 10;
 
   late AmenityProvider amenityProvider;
   late TurfTypeProvider turfTypeProvider;
@@ -54,6 +56,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     super.initState();
     _referenceDataDataSource = ReferenceDataDataSource<dynamic>(
       [],
+      0,
+      0,
       (item) => '',
       _onEdit,
       _onDelete,
@@ -66,9 +70,14 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     super.dispose();
   }
 
-  Future<void> _refreshTable() async {
+  Future<void> _refreshTable({int? firstRowIndex}) async {
     if (_selectedIndex == null) return;
-    var source = await _getReferenceData(_selectedIndex!);
+    
+    if (firstRowIndex != null) {
+      _currentFirstRowIndex = firstRowIndex;
+    }
+
+    var source = await _getReferenceData(_selectedIndex!, _currentFirstRowIndex);
     setState(() {
       _referenceDataDataSource = source;
     });
@@ -325,7 +334,18 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         padding: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
           child: PaginatedDataTable(
-            rowsPerPage: 10,
+            rowsPerPage: _rowsPerPage,
+            availableRowsPerPage: const [10, 20, 50],
+            onRowsPerPageChanged: (value) {
+              setState(() {
+                _rowsPerPage = value ?? 10;
+                _currentFirstRowIndex = 0;
+              });
+              _refreshTable();
+            },
+            onPageChanged: (firstRowIndex) {
+              _refreshTable(firstRowIndex: firstRowIndex);
+            },
             columns: [
               DataColumn(label: Text("Name")),
               DataColumn(
@@ -374,7 +394,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                             _searchController.clear();
                           });
                           if (selected) {
-                            var source = await _getReferenceData(index);
+                            _currentFirstRowIndex = 0;
+                            var source = await _getReferenceData(index, _currentFirstRowIndex);
                             setState(() {
                               _referenceDataDataSource = source;
                             });
@@ -383,6 +404,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                               _referenceDataDataSource =
                                   ReferenceDataDataSource<dynamic>(
                                     [],
+                                    0,
+                                    0,
                                     (item) => '',
                                     _onEdit,
                                     _onDelete,
@@ -399,10 +422,13 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     );
   }
 
-  Future<ReferenceDataDataSource<dynamic>> _getReferenceData(int index) async {
-    Map<String, dynamic>? filter;
+  Future<ReferenceDataDataSource<dynamic>> _getReferenceData(int index, int firstRowIndex) async {
+    final pageNumber = (firstRowIndex ~/ _rowsPerPage) + 1;
+    Map<String, dynamic> filter = {
+      'PageSize': _rowsPerPage,
+      'Page': pageNumber,
+    };
     if (_searchController.text.isNotEmpty) {
-      filter = {};
       final search = _searchController.text;
       if (index == 0) filter['name'] = search;
       else if (index == 1) filter['name'] = search;
@@ -416,6 +442,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         var result = await turfTypeProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
           (item) => (item as TurfType).name,
           _onEdit,
           _onDelete,
@@ -424,6 +452,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         var result = await amenityProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
           (item) => (item as Amenity).name,
           _onEdit,
           _onDelete,
@@ -432,6 +462,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         var result = await cityProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
           (item) => (item as City).name,
           _onEdit,
           _onDelete,
@@ -440,6 +472,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         var result = await sportProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
           (item) => (item as Sport).name ?? '',
           _onEdit,
           _onDelete,
@@ -448,6 +482,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
         var result = await roleProvider.get(filter: filter);
         return ReferenceDataDataSource<dynamic>(
           List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
           (item) => (item as Role).name ?? '',
           _onEdit,
           _onDelete,
@@ -455,6 +491,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       default:
         return ReferenceDataDataSource<dynamic>(
           [],
+          0,
+          firstRowIndex,
           (item) => '',
           _onEdit,
           _onDelete,
@@ -465,12 +503,16 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
 
 class ReferenceDataDataSource<T> extends DataTableSource {
   final List<T> _items;
+  final int _totalCount;
+  final int _startingIndex;
   final String Function(T) _nameExtractor;
   final Function(int) _onEdit;
   final Function(int) _onDelete;
 
   ReferenceDataDataSource(
     this._items,
+    this._totalCount,
+    this._startingIndex,
     this._nameExtractor,
     this._onEdit,
     this._onDelete,
@@ -478,8 +520,9 @@ class ReferenceDataDataSource<T> extends DataTableSource {
 
   @override
   DataRow? getRow(int index) {
-    if (index >= _items.length) return null;
-    final item = _items[index];
+    int localIndex = index - _startingIndex;
+    if (localIndex < 0 || localIndex >= _items.length) return null;
+    final item = _items[localIndex];
     return DataRow(
       cells: [
         DataCell(Text(_nameExtractor(item))),
@@ -524,7 +567,7 @@ class ReferenceDataDataSource<T> extends DataTableSource {
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => _items.length;
+  int get rowCount => _totalCount;
 
   @override
   int get selectedRowCount => 0;

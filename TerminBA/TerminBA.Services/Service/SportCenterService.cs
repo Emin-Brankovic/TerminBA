@@ -248,12 +248,9 @@ namespace TerminBA.Services.Service
 
             var totalCount = await query.CountAsync();
 
-            if (search.Page.HasValue && search.PageSize.HasValue)
-            {
-                query = query
-                    .Skip((search.Page.Value - 1) * search.PageSize.Value)
-                    .Take(search.PageSize.Value);
-            }
+            query = query
+                .Skip(((search?.Page ?? 1) - 1) * (search?.PageSize ?? 10))
+                .Take(search?.PageSize ?? 10);
 
             var list = await query.ToListAsync();
 

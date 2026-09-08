@@ -45,7 +45,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
 
   Future<void> _loadCities() async {
     try {
-      final result = await _cityProvider.get();
+      final result = await _cityProvider.get(filter: {'PageSize': 100});
       setState(() {
         _cities = result.items ?? [];
       });

@@ -109,7 +109,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
       final userId = await _authProvider.getCurrentUserId();
       final futures = <Future>[
         if (userId != null) _sportCenterProvider.getById(userId) else Future.value(null),
-        _turfTypeProvider.get(),
+        _turfTypeProvider.get(filter: {'PageSize': 100}),
       ];
       if (widget.facility != null) {
         futures.add(_facilityProvider.getByIdWithAllDynamicPrices(widget.facility!.id));

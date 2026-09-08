@@ -58,9 +58,9 @@ class _SportCenterInsertScreenState extends State<SportCenterInsertScreen> {
     setState(() => _isLoading = true);
     try {
       final futures = <Future>[
-        _cityProvider.get(),
-        _sportProvider.get(),
-        _amenityProvider.get(),
+        _cityProvider.get(filter: {'PageSize': 100}),
+        _sportProvider.get(filter: {'PageSize': 100}),
+        _amenityProvider.get(filter: {'PageSize': 100}),
       ];
       if (_isEditing) {
         futures.add(_sportCenterProvider.getByIdWithAllWorkingHours(widget.sportCenter!.id));

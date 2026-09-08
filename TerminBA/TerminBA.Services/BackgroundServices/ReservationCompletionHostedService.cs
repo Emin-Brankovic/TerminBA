@@ -63,7 +63,6 @@ namespace TerminBA.Services.BackgroundServices
 
                 if (reservationIdsToComplete.Any())
                 {
-                    // 1. Expire pending play requests
                     await context.PlayRequests
                         .Where(pr => pr.PlayRequestState == nameof(PendingPlayRequestState) && pr.Post != null && reservationIdsToComplete.Contains(pr.Post.ReservationId))
                         .ExecuteUpdateAsync(setters => setters
@@ -71,13 +70,11 @@ namespace TerminBA.Services.BackgroundServices
                             .SetProperty(pr => pr.Reason, "The reservation began before the post owner evaluated your request.")
                             .SetProperty(pr => pr.DateOfResponse, DateTime.UtcNow), ct);
 
-                    // 2. Finish posts
                     await context.Posts
                         .Where(p => reservationIdsToComplete.Contains(p.ReservationId))
                         .ExecuteUpdateAsync(setters => setters
                             .SetProperty(p => p.PostState, nameof(FinishedPostState)), ct);
 
-                    // 3. Complete reservations
                     var updated = await context.Reservations
                         .Where(r => reservationIdsToComplete.Contains(r.Id))
                         .ExecuteUpdateAsync(setters => setters

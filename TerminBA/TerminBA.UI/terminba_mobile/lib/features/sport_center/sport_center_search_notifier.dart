@@ -62,10 +62,10 @@ class SportCenterSearchNotifier extends ChangeNotifier {
         }
       }
 
-      final sportsResult = await _sportProvider.get();
+      final sportsResult = await _sportProvider.get(filter: {'PageSize': 100});
       final sports = (sportsResult.items ?? []).cast<Sport>();
 
-      final citiesResult = await _cityProvider.get();
+      final citiesResult = await _cityProvider.get(filter: {'PageSize': 100});
       final cities = (citiesResult.items ?? []).cast<City>();
 
       _setState(

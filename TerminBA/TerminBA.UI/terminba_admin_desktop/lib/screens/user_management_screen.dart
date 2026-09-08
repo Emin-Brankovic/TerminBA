@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:terminba_admin_desktop/widgets/universal_pagination.dart';
 import 'package:terminba_admin_desktop/layouts/master_screen.dart';
 import 'package:terminba_admin_desktop/model/city.dart';
 import 'package:terminba_admin_desktop/model/user.dart';
@@ -19,18 +20,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Map<String, dynamic> _initValue = {'search': null, 'city': null};
 
-  late UserDataSource _userDataSource;
   late UserProvider _userProvider;
   late CityProvider _cityProvider;
   bool _providersInitialized = false;
   List<City> cities = <City>[];
   bool _citySelected = false;
   int? _selectedCityId;
+  
+  int _currentPage = 1;
+  int _totalPages = 1;
+  static const int _pageSize = 10;
+  List<User> _users = [];
 
   @override
   void initState() {
     super.initState();
-    _userDataSource = UserDataSource([]);
   }
 
   @override
@@ -46,11 +50,32 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _loadUsers({int? page}) async {
+    final int targetPage = page ?? _currentPage;
     try {
-      var result = await _userProvider.get();
+      final filter = <String, dynamic>{
+        'page': targetPage,
+        'pageSize': _pageSize,
+      };
+
+      if (formKey.currentState?.saveAndValidate() ?? false) {
+        final values = formKey.currentState!.value;
+        if (values['search'] != null && (values['search'] as String).isNotEmpty) {
+          filter['fullName'] = values['search'];
+        }
+      }
+      
+      if (_selectedCityId != null) {
+        filter['cityId'] = _selectedCityId;
+      }
+
+      var result = await _userProvider.get(filter: filter);
+      int totalItems = result.totalCount ?? 0;
+      
       setState(() {
-        _userDataSource = UserDataSource(result.items ?? []);
+        _users = result.items ?? [];
+        _currentPage = targetPage;
+        _totalPages = totalItems == 0 ? 1 : ((totalItems + _pageSize - 1) ~/ _pageSize);
       });
     } catch (e) {
       debugPrint('Error loading users: $e');
@@ -59,7 +84,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Future<void> _loadCities() async {
     try {
-      var result = await _cityProvider.get();
+      var result = await _cityProvider.get(filter: {'PageSize': 100});
       setState(() {
         cities = result.items ?? [];
       });
@@ -83,25 +108,55 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(10.0),
-        child: SingleChildScrollView(
-          child: PaginatedDataTable(
-            rowsPerPage: 10,
-            columns: [
-              DataColumn(label: Text("Id")),
-              DataColumn(label: Text("First Name")),
-              DataColumn(label: Text("Last Name")),
-              DataColumn(label: Text("Username")),
-              DataColumn(label: Text("Email")),
-              DataColumn(label: Text("Phone Number")),
-              DataColumn(label: Text("Instagram")),
-              DataColumn(label: Text("Birth Date")),
-              DataColumn(label: Text("City")),
-
-              DataColumn(label: Text("Created At")),
-              DataColumn(label: Text("Updated At")),
-            ],
-            source: _userDataSource,
-          ),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text("Id")),
+                      DataColumn(label: Text("First Name")),
+                      DataColumn(label: Text("Last Name")),
+                      DataColumn(label: Text("Username")),
+                      DataColumn(label: Text("Email")),
+                      DataColumn(label: Text("Phone Number")),
+                      DataColumn(label: Text("Instagram")),
+                      DataColumn(label: Text("Birth Date")),
+                      DataColumn(label: Text("City")),
+                      DataColumn(label: Text("Created At")),
+                      DataColumn(label: Text("Updated At")),
+                    ],
+                    rows: _users.map((user) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(user.id.toString())),
+                          DataCell(Text(user.firstName)),
+                          DataCell(Text(user.lastName)),
+                          DataCell(Text(user.username)),
+                          DataCell(Text(user.email)),
+                          DataCell(Text(user.phoneNumber)),
+                          DataCell(Text(user.instagramAccount ?? 'Not provided')),
+                          DataCell(Text(user.birthDate.toLocal().toString().split(' ')[0])),
+                          DataCell(Text(user.city?.name ?? '')),
+                          DataCell(Text(user.createdAt?.toLocal().toString().split(' ')[0] ?? '')),
+                          DataCell(Text(user.updatedAt?.toLocal().toString().split(' ')[0] ?? '')),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            UniversalPagination(
+              currentPage: _currentPage,
+              totalPages: _totalPages,
+              onPageChanged: (page) => _loadUsers(page: page),
+            ),
+          ],
         ),
       ),
     );
@@ -170,26 +225,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
             const SizedBox(width: 10),
             ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState?.saveAndValidate() ?? false) {
-                  final values = formKey.currentState!.value;
-                  try {
-                    var result = await _userProvider.get(
-                      filter: {
-                        if (values['search'] != null &&
-                            (values['search'] as String).isNotEmpty)
-                          'fullName': values['search'],
-                        if (_selectedCityId != null) 'cityId': _selectedCityId,
-                      },
-                    );
-                    setState(() {
-                      _userDataSource = UserDataSource(result.items ?? []);
-                    });
-                  } catch (e) {
-                    debugPrint('Search error: $e');
-                  }
-                }
-              },
+              onPressed: () => _loadUsers(page: 1),
               child: const Text('Search'),
             ),
           ],
@@ -199,43 +235,3 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 }
 
-class UserDataSource extends DataTableSource {
-  final List<User> _users;
-
-  UserDataSource(this._users);
-
-  @override
-  DataRow? getRow(int index) {
-    if (index >= _users.length) return null;
-    final user = _users[index];
-    return DataRow(
-      cells: [
-        DataCell(Text(user.id.toString())),
-        DataCell(Text(user.firstName)),
-        DataCell(Text(user.lastName)),
-        DataCell(Text(user.username)),
-        DataCell(Text(user.email)),
-        DataCell(Text(user.phoneNumber)),
-        DataCell(Text(user.instagramAccount ?? 'Not provided')),
-        DataCell(Text(user.birthDate.toLocal().toString().split(' ')[0])),
-        DataCell(Text(user.city?.name ?? '')),
-
-        DataCell(
-          Text(user.createdAt?.toLocal().toString().split(' ')[0] ?? ''),
-        ),
-        DataCell(
-          Text(user.updatedAt?.toLocal().toString().split(' ')[0] ?? ''),
-        ),
-      ],
-    );
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => _users.length;
-
-  @override
-  int get selectedRowCount => 0;
-}

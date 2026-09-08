@@ -57,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 			}
 
 			final results = await Future.wait<dynamic>([
-				_cityProvider.get(),
+				_cityProvider.get(filter: {'PageSize': 100}),
 				_userProvider.getById(userId),
 			]);
 			
