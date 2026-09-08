@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace TerminBA.Services.Database
         [MaxLength(50)]
         public string? Name { get; set; }
 
-        //public string Icon { get; set; }
+
 
         public ICollection<SportCenter> SportCentars { get; set; } = new List<SportCenter>();
     }

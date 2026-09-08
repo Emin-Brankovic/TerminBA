@@ -418,7 +418,7 @@ namespace TerminBA.Services.ReservationStateMachine
                         {
                             var notification = new CancelationNotification
                             {
-                                PostOwnerId = ar.RequesterId, // The player receiving the notification
+                                PostOwnerId = ar.RequesterId, 
                                 ReservationId = id,
                                 RequesterName = postOwner != null ? $"{postOwner.FirstName} {postOwner.LastName}" : "The post owner",
                                 FacilityName = facilityName,

@@ -32,7 +32,7 @@ namespace TerminBA.Services.Database
         public int? FacilityId { get; set; }
         public Facility? Facility { get; set; }
      
-       // public ICollection<FacilityReview> FacilityReviews { get; set; } = new List<FacilityReview>();
+
 
         [ForeignKey(nameof(Reservation))]
         public int? ReservationId { get; set; }
