@@ -1,6 +1,6 @@
 using EasyNetQ;
 using Microsoft.EntityFrameworkCore;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Messages;
 using TerminBA.Services.Database;
 

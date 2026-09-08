@@ -2,7 +2,7 @@ using MapsterMapper;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Models.SearchObjects;
-using TerminBA.Models.Requests;
+using TerminBA.Models.Request;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TerminBA.Models.Model;

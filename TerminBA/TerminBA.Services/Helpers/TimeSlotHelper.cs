@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;
 

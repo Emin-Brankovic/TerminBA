@@ -11,7 +11,6 @@ import 'package:terminba_sport_center_desktop/model/sport.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_dynamic_price_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/facility_time_slot_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
 import 'package:terminba_sport_center_desktop/widgets/confirmation_dialog.dart';
 
@@ -31,7 +30,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
   late ReservationProvider _reservationProvider;
   late FacilityProvider _facilityProvider;
   late AuthProvider _authProvider;
-  late FacilityTimeSlotProvider _facilityTimeSlotProvider;
   late FacilityDynamicPriceProvider _facilityDynamicPriceProvider;
 
   bool _initialized = false;
@@ -62,7 +60,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     _reservationProvider = context.read<ReservationProvider>();
     _facilityProvider = context.read<FacilityProvider>();
     _authProvider = context.read<AuthProvider>();
-    _facilityTimeSlotProvider = context.read<FacilityTimeSlotProvider>();
     _facilityDynamicPriceProvider = context
         .read<FacilityDynamicPriceProvider>();
     _initializeData();
@@ -165,7 +162,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
     }
 
     try {
-      final result = await _facilityTimeSlotProvider.getFacilityTimeSlots(
+      final result = await _facilityProvider.getFacilityTimeSlots(
         _selectedFacilityId!,
         _selectedDate,
       );

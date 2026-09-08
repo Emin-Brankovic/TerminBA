@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 
 namespace TerminBA.Services.Helpers
 {

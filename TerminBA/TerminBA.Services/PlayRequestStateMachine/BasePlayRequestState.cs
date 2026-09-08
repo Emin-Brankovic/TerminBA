@@ -2,7 +2,7 @@ using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;

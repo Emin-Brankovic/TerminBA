@@ -50,7 +50,6 @@ namespace TerminBA.Models.Model
 
         public ICollection<SportCenterPhotoResponse> Photos { get; set; } = new List<SportCenterPhotoResponse>();
 
-        //public ICollection<FacilityResponse> Facilities { get; set; } = new List<FacilityResponse>();
     }
 }
 

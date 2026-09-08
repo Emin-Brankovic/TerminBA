@@ -1,5 +1,5 @@
 using TerminBA.Models.Model;
-using TerminBA.Models.Requests;
+using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 
 namespace TerminBA.Services.Interfaces

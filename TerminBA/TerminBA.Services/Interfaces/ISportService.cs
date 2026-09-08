@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +9,7 @@ using TerminBA.Models.SearchObjects;
 
 namespace TerminBA.Services.Interfaces
 {
-    public interface ISportService : IBaseCRUDService<SportResponse,SportSearchObject,SportInserRequest,SportUpdateRequest>
+    public interface ISportService : IBaseCRUDService<SportResponse,SportSearchObject,SportInsertRequest,SportUpdateRequest>
     {
 
     }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TerminBA.Models.Model;
-using TerminBA.Models.Requests;
+using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Interfaces;
 using System.Threading.Tasks;

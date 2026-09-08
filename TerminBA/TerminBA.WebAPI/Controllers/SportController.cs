@@ -11,7 +11,7 @@ namespace TerminBA.WebAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
 
-    public class SportController : BaseCRUDController<SportResponse, SportSearchObject, SportInserRequest, SportUpdateRequest>
+    public class SportController : BaseCRUDController<SportResponse, SportSearchObject, SportInsertRequest, SportUpdateRequest>
     {
         public SportController(ISportService sportService) : base(sportService)
         {
@@ -33,7 +33,7 @@ namespace TerminBA.WebAPI.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Administrator")]
-        public override Task<SportResponse> Create([FromBody] SportInserRequest request)
+        public override Task<SportResponse> Create([FromBody] SportInsertRequest request)
         {
             return base.Create(request);
         }

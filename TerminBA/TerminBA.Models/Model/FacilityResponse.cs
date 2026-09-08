@@ -38,9 +38,7 @@ namespace TerminBA.Models.Model
         public ICollection<FacilityPhotoResponse> Photos { get; set; } = new List<FacilityPhotoResponse>();
 
 
-        //public ICollection<FacilityReviewResponse> ReviewsReceived { get; set; } = new List<FacilityReviewResponse>();
 
-        //public ICollection<ReservationResponse> Reservations { get; set; } = new List<ReservationResponse>();
     }
 }
 

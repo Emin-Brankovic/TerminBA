@@ -18,8 +18,6 @@ namespace TerminBA.Models.Request
         [Required]
         public int NumberOfPlayersWanted { get; set; }
 
-        //[Required]
-        //public int ReservationId { get; set; }
     }
 }
 

@@ -9,7 +9,6 @@ import 'package:terminba_sport_center_desktop/providers/city_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_dynamic_price_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_review_provider.dart';
-import 'package:terminba_sport_center_desktop/providers/facility_time_slot_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/report_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/reservation_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/sport_center_provider.dart';
@@ -52,7 +51,6 @@ void main() async {
         ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
         ChangeNotifierProvider<TurfTypeProvider>(create: (_) => TurfTypeProvider()),
         ChangeNotifierProvider<ReservationProvider>(create: (_) => ReservationProvider()),
-        ChangeNotifierProvider<FacilityTimeSlotProvider>(create: (_) => FacilityTimeSlotProvider()),
         ChangeNotifierProvider<FacilityDynamicPriceProvider>(create: (_) => FacilityDynamicPriceProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),
         ChangeNotifierProvider<FacilityReviewProvider>(create: (_) => FacilityReviewProvider()),

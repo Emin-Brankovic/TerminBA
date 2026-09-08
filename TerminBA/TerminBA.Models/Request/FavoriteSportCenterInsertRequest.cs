@@ -1,6 +1,6 @@
 using System;
 
-namespace TerminBA.Models.Requests
+namespace TerminBA.Models.Request
 {
     public class FavoriteSportCenterInsertRequest
     {

@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.Service
 {
-    public class SportService : BaseCRUDService<SportResponse, Sport, SportSearchObject, SportInserRequest, SportUpdateRequest>, ISportService
+    public class SportService : BaseCRUDService<SportResponse, Sport, SportSearchObject, SportInsertRequest, SportUpdateRequest>, ISportService
     {
         public SportService(TerminBaContext context, IMapper mapper) : base(context, mapper)
         {

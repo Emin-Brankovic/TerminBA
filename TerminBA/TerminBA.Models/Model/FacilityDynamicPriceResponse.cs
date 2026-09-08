@@ -13,7 +13,6 @@ namespace TerminBA.Models.Model
 
         public int FacilityId { get; set; }
 
-        //public FacilityResponse? Facility { get; set; }
 
         public string? FacilityName { get; set; }
 

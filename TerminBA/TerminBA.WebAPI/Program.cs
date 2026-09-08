@@ -6,7 +6,7 @@ using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Services;
 using TerminBA.Services.BackgroundServices;
 using TerminBA.Services.Database;

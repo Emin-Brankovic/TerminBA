@@ -10,10 +10,6 @@ namespace TerminBA.Models.SearchObjects
     public class WorkingHoursSearchObject : BaseSearchObject
     {
         public int? SportCenterId { get; set; }
-        //public DayOfWeekEnum? StartDay { get; set; }
-        //public DayOfWeekEnum? EndDay { get; set; }
-        //public DateTime? ValidFrom { get; set; }
-        //public DateTime? ValidTo { get; set; }
     }
 }
 

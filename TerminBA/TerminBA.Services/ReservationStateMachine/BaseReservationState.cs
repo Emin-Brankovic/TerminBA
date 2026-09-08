@@ -1,6 +1,6 @@
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Services.Database;

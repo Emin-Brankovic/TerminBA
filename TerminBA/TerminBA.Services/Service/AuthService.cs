@@ -17,7 +17,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using Microsoft.Identity.Client;
 using TerminBA.Services.Helpers;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using Microsoft.AspNetCore.Http;
 
 namespace TerminBA.Services.Service

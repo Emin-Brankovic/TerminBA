@@ -3,7 +3,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Microsoft.Extensions.DependencyInjection;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Messages;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;

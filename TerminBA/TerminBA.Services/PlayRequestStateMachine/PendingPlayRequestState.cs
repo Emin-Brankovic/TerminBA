@@ -2,7 +2,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Model;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;

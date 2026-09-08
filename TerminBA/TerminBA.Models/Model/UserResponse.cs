@@ -29,8 +29,6 @@ namespace TerminBA.Models.Model
         public int CityId { get; set; }
         public CityResponse? City { get; set; }
 
-        //public int RoleId { get; set; }
-        //public RoleResponse? Role { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 
 namespace TerminBA.WebAPI.Filters
 {

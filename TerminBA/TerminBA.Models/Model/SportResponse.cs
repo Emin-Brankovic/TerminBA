@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,7 +13,5 @@ namespace TerminBA.Models.Model
 
         public string? Name { get; set; }
 
-        //public ICollection<SportCenter> SportCentars { get; set; } = new List<SportCenter>();
-        //public ICollection<Facility> Facilities { get; set; } = new List<Facility>();
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
-using TerminBA.Models.Execptions;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;

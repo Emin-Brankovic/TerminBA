@@ -12,7 +12,6 @@ namespace TerminBA.Models.SearchObjects
         public string? Username { get; set; }
         public string? Email { get; set; }
         public int? CityId { get; set; }
-        //public int? RoleId { get; set; }
     }
 }
 
