@@ -27,6 +27,7 @@ namespace TerminBA.Services.Service
         private readonly TerminBaContext _context;
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _jwtSecretKey;
 
 
         public AuthService(TerminBaContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor)
@@ -34,6 +35,8 @@ namespace TerminBA.Services.Service
             this._context = context;
             this._config = config;
             _httpContextAccessor = httpContextAccessor;
+            _jwtSecretKey = Environment.GetEnvironmentVariable("JWTSecretKey")
+            ?? throw new InvalidOperationException("JWTSecretKey environment variable is missing.");
         }
         public async Task<AuthResponse?> Login(BaseLoginRequest request) 
         {
@@ -57,9 +60,8 @@ namespace TerminBA.Services.Service
         public AuthResponse CreatToken(AccountBase account)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var secretKey = Environment.GetEnvironmentVariable("JWTSecretKey");
             
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey ?? string.Empty));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecretKey));
             var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenExperation = DateTime.UtcNow.AddDays(7);
