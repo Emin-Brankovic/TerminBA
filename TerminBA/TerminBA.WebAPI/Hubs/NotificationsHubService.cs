@@ -31,5 +31,10 @@ namespace TerminBA.WebAPI.Hubs
         {
             await _hubContext.Clients.User(requesterUserId.ToString()).SendAsync("reservation_canceled", payload);
         }
+
+        public async Task SendReservationUpdatedNotificationAsync(int userId, object payload)
+        {
+            await _hubContext.Clients.User(userId.ToString()).SendAsync("reservation_updated", payload);
+        }
     }
 }

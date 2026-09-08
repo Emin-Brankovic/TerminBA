@@ -1,39 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cancelation_notification_response.dart';
+part of 'notification_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-CancelationNotificationResponse _$CancelationNotificationResponseFromJson(
+NotificationResponse _$NotificationResponseFromJson(
   Map<String, dynamic> json,
-) => CancelationNotificationResponse(
+) => NotificationResponse(
   id: (json['id'] as num).toInt(),
   postOwnerId: (json['postOwnerId'] as num).toInt(),
   reservationId: (json['reservationId'] as num).toInt(),
-  requesterName: json['requesterName'] as String,
-  facilityName: json['facilityName'] as String,
-  dateCancelled: json['dateCancelled'] as String,
-  isSeen: json['isSeen'] as bool,
-  reason: json['reason'] as String?,
   reservation: json['reservation'] == null
       ? null
       : ReservationResponse.fromJson(
           json['reservation'] as Map<String, dynamic>,
         ),
+  requesterName: json['requesterName'] as String,
+  facilityName: json['facilityName'] as String,
+  date: json['date'] as String,
+  isSeen: json['isSeen'] as bool,
+  reason: json['reason'] as String?,
+  type: json['type'] as String,
 );
 
-Map<String, dynamic> _$CancelationNotificationResponseToJson(
-  CancelationNotificationResponse instance,
+Map<String, dynamic> _$NotificationResponseToJson(
+  NotificationResponse instance,
 ) => <String, dynamic>{
   'id': instance.id,
   'postOwnerId': instance.postOwnerId,
   'reservationId': instance.reservationId,
+  'reservation': instance.reservation,
   'requesterName': instance.requesterName,
   'facilityName': instance.facilityName,
-  'dateCancelled': instance.dateCancelled,
+  'date': instance.date,
   'isSeen': instance.isSeen,
   'reason': instance.reason,
-  'reservation': instance.reservation?.toJson(),
+  'type': instance.type,
 };

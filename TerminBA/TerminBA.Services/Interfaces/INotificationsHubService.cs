@@ -6,5 +6,6 @@ namespace TerminBA.Services.Interfaces
         Task SendJoinRequestRespondedNotificationAsync(int requesterUserId, object payload);
         Task SendJoinRequestCancelledNotificationAsync(int postOwnerUserId, object payload);
         Task SendReservationCanceledNotificationAsync(int requesterUserId, object payload);
+        Task SendReservationUpdatedNotificationAsync(int userId, object payload);
     }
 }

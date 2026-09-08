@@ -42,6 +42,7 @@ namespace TerminBA.Services.Database
         public DbSet<FavoriteSportCenter> FavoriteSportCenters { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<CancelationNotification> CancelationNotifications { get; set; }
+        public DbSet<UpdateNotification> UpdateNotifications { get; set; }
         public DbSet<RecommendationEvent> RecommendationEvents { get; set; }
         public DbSet<RevokedToken> RevokedTokens { get; set; }
 

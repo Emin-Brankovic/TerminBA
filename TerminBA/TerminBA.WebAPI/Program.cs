@@ -39,6 +39,7 @@ builder.Services.AddScoped<IFacilityReviewService, FacilityReviewService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
 builder.Services.AddScoped<IPlayRequestService, PlayRequestService>();
 builder.Services.AddScoped<ICancelationNotificationService, CancelationNotificationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddScoped<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
 builder.Services.AddScoped<BasePostState>();

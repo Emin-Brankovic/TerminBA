@@ -5,7 +5,7 @@ import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/profile_screen.dart';
 import 'package:terminba_mobile/screens/favorite_sport_centers_screen.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
-import 'package:terminba_mobile/screens/cancelation_notifications_screen.dart';
+import 'package:terminba_mobile/screens/notifications_screen.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/screens/my_posts_screen.dart';
 import 'package:terminba_mobile/screens/public_profile_screen.dart';
@@ -152,7 +152,7 @@ class ProfileMenuScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CancelationNotificationsScreen(),
+                  builder: (_) => const NotificationsScreen(),
                 ),
               );
             },

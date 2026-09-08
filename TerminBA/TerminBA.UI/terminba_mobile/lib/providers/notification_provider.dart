@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
-import 'package:terminba_mobile/providers/cancelation_notification_provider.dart';
+import 'package:terminba_mobile/providers/unified_notification_provider.dart';
 
 class NotificationProvider with ChangeNotifier {
   final PlayRequestProvider _playRequestProvider;
-  final CancelationNotificationProvider _cancelationNotificationProvider;
+  final UnifiedNotificationProvider _unifiedNotificationProvider;
   int _unseenReceivedCount = 0;
   int _unseenSentCount = 0;
   int _unseenCancelationCount = 0;
 
-  NotificationProvider(this._playRequestProvider, this._cancelationNotificationProvider);
+  NotificationProvider(this._playRequestProvider, this._unifiedNotificationProvider);
 
   int get unseenCount => _unseenReceivedCount + _unseenSentCount;
   int get unseenCancelationCount => _unseenCancelationCount;
@@ -18,7 +18,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       _unseenReceivedCount = await _playRequestProvider.getUnseenCount();
       _unseenSentCount = await _playRequestProvider.getUnseenResponsesCount();
-      _unseenCancelationCount = await _cancelationNotificationProvider.getUnseenCount();
+      _unseenCancelationCount = await _unifiedNotificationProvider.getUnseenCount();
       notifyListeners();
     } catch (e) {
       debugPrint("Failed to fetch unseen count: $e");
@@ -79,12 +79,12 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
-  Future<void> markCancelationAsSeen(int id) async {
+  Future<void> markCancelationAsSeen(int id, String type) async {
     try {
-      await _cancelationNotificationProvider.markAsSeen(id);
+      await _unifiedNotificationProvider.markAsSeen(id, type);
       decrementUnseenCancelationCount();
     } catch (e) {
-      debugPrint("Failed to mark cancelation as seen: $e");
+      debugPrint("Failed to mark notification as seen: $e");
       rethrow;
     }
   }

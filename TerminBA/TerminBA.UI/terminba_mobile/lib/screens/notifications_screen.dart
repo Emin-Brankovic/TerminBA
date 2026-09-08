@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
-import 'package:terminba_mobile/model/cancelation_notification_response.dart';
+import 'package:terminba_mobile/model/notification_response.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
-import 'package:terminba_mobile/providers/cancelation_notification_provider.dart';
+import 'package:terminba_mobile/providers/unified_notification_provider.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:intl/intl.dart';
 
-class CancelationNotificationsScreen extends StatefulWidget {
-  const CancelationNotificationsScreen({super.key});
+class NotificationsScreen extends StatefulWidget {
+  const NotificationsScreen({super.key});
 
   @override
-  State<CancelationNotificationsScreen> createState() => _CancelationNotificationsScreenState();
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _CancelationNotificationsScreenState extends State<CancelationNotificationsScreen> {
+class _NotificationsScreenState extends State<NotificationsScreen> {
   static const _pageSize = 10;
   bool _isSelectionMode = false;
-  final Set<int> _selectedIds = {};
+  final Set<Map<String, dynamic>> _selectedItems = {};
 
-  final PagingController<int, CancelationNotificationResponse> _pagingController =
+  final PagingController<int, NotificationResponse> _pagingController =
       PagingController(firstPageKey: 1);
 
   @override
@@ -33,7 +33,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
 
   Future<void> _fetchPage(int pageKey) async {
     try {
-      final result = await context.read<CancelationNotificationProvider>().get(
+      final result = await context.read<UnifiedNotificationProvider>().get(
         filter: {
           'page': pageKey,
           'pageSize': _pageSize,
@@ -57,11 +57,11 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     }
   }
 
-  Future<void> _markAsSeen(CancelationNotificationResponse notification) async {
+  Future<void> _markAsSeen(NotificationResponse notification) async {
     if (notification.isSeen) return;
 
     try {
-      await context.read<NotificationProvider>().markCancelationAsSeen(notification.id);
+      await context.read<NotificationProvider>().markCancelationAsSeen(notification.id, notification.type);
       _pagingController.refresh();
     } catch (e) {
       if (mounted) {
@@ -72,31 +72,32 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     }
   }
 
-  void _toggleSelection(int id) {
+  void _toggleSelection(NotificationResponse notification) {
     setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
-        if (_selectedIds.isEmpty) {
+      var existing = _selectedItems.where((i) => i['id'] == notification.id && i['type'] == notification.type);
+      if (existing.isNotEmpty) {
+        _selectedItems.removeWhere((i) => i['id'] == notification.id && i['type'] == notification.type);
+        if (_selectedItems.isEmpty) {
           _isSelectionMode = false;
         }
       } else {
-        _selectedIds.add(id);
+        _selectedItems.add({'id': notification.id, 'type': notification.type});
       }
     });
   }
 
   void _clearSelection() {
     setState(() {
-      _selectedIds.clear();
+      _selectedItems.clear();
       _isSelectionMode = false;
     });
   }
 
   Future<void> _markSelectedAsRead() async {
-    if (_selectedIds.isEmpty) return;
+    if (_selectedItems.isEmpty) return;
 
     try {
-      await context.read<CancelationNotificationProvider>().markAsSeenMultiple(_selectedIds.toList());
+      await context.read<UnifiedNotificationProvider>().markAsSeenMultiple(_selectedItems.toList());
       if (mounted) {
          await context.read<NotificationProvider>().fetchUnseenCount();
          ScaffoldMessenger.of(context).showSnackBar(
@@ -115,7 +116,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
   }
 
   Future<void> _deleteSelected() async {
-    if (_selectedIds.isEmpty) return;
+    if (_selectedItems.isEmpty) return;
 
     final confirm = await ConfirmationDialog.show(
       context,
@@ -128,7 +129,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     if (!confirm) return;
 
     try {
-      await context.read<CancelationNotificationProvider>().deleteMultiple(_selectedIds.toList());
+      await context.read<UnifiedNotificationProvider>().deleteMultiple(_selectedItems.toList());
       if (mounted) {
          await context.read<NotificationProvider>().fetchUnseenCount();
          ScaffoldMessenger.of(context).showSnackBar(
@@ -155,6 +156,15 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
   String _formatDate(String dateStr) {
     try {
       final parsed = DateTime.parse(dateStr).toLocal();
+      return DateFormat('dd.MM.yyyy HH:mm').format(parsed);
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  String _formatDateOnly(String dateStr) {
+    try {
+      final parsed = DateTime.parse(dateStr).toLocal();
       return DateFormat('dd.MM.yyyy').format(parsed);
     } catch (_) {
       return dateStr;
@@ -166,7 +176,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     return Scaffold(
       appBar: AppBar(
         title: _isSelectionMode
-            ? Text('${_selectedIds.length} Selected')
+            ? Text('${_selectedItems.length} Selected')
             : const Text('Notifications'),
         leading: _isSelectionMode
             ? IconButton(
@@ -190,16 +200,16 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
       body: RefreshIndicator(
         onRefresh: () async => _pagingController.refresh(),
         color: const Color(0xFF00C875),
-        child: PagedListView<int, CancelationNotificationResponse>(
+        child: PagedListView<int, NotificationResponse>(
           pagingController: _pagingController,
-          builderDelegate: PagedChildBuilderDelegate<CancelationNotificationResponse>(
+          builderDelegate: PagedChildBuilderDelegate<NotificationResponse>(
             itemBuilder: (context, item, index) => _buildNotificationCard(item),
             firstPageProgressIndicatorBuilder: (_) => const Center(child: CircularProgressIndicator()),
             noItemsFoundIndicatorBuilder: (_) => const Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Text(
-                  'No cancelation notifications yet.',
+                  'No notifications yet.',
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
@@ -210,9 +220,10 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
     );
   }
 
-  Widget _buildNotificationCard(CancelationNotificationResponse notification) {
+  Widget _buildNotificationCard(NotificationResponse notification) {
     final isUnseen = !notification.isSeen;
-    final isSelected = _selectedIds.contains(notification.id);
+    final isSelected = _selectedItems.any((i) => i['id'] == notification.id && i['type'] == notification.type);
+    final isCancelation = notification.type == "Cancelation";
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -228,12 +239,12 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
         onLongPress: () {
           setState(() {
             _isSelectionMode = true;
-            _toggleSelection(notification.id);
+            _toggleSelection(notification);
           });
         },
         onTap: () {
           if (_isSelectionMode) {
-            _toggleSelection(notification.id);
+            _toggleSelection(notification);
           } else {
             _markAsSeen(notification);
           }
@@ -247,16 +258,18 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
               Row(
                 children: [
                   Icon(
-                    Icons.cancel_presentation,
-                    color: Colors.orange.shade700,
+                    isCancelation ? Icons.cancel_presentation : Icons.edit_calendar,
+                    color: isCancelation ? Colors.orange.shade700 : Colors.blue.shade700,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      notification.postOwnerId == notification.reservation?.userId
-                          ? ((notification.reservation?.isCancelled ?? false) ? 'Reservation Canceled by Sport Center' : 'Accepted Request Canceled')
-                          : 'Reservation Canceled',
+                      isCancelation 
+                          ? (notification.postOwnerId == notification.reservation?.userId
+                              ? ((notification.reservation?.isCancelled ?? false) ? 'Reservation Canceled by Sport Center' : 'Accepted Request Canceled')
+                              : 'Reservation Canceled')
+                          : 'Reservation Updated',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -288,11 +301,13 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
               ),
               const SizedBox(height: 12),
               Text(
-                notification.postOwnerId == notification.reservation?.userId
-                    ? ((notification.reservation?.isCancelled ?? false)
-                        ? '${notification.requesterName} has canceled your reservation${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.'
-                        : '${notification.requesterName} has canceled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}.')
-                    : '${notification.requesterName} has canceled their reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDate(notification.reservation!.reservationDate!)}' : ''}, so your accepted request is canceled.',
+                isCancelation
+                    ? (notification.postOwnerId == notification.reservation?.userId
+                        ? ((notification.reservation?.isCancelled ?? false)
+                            ? '${notification.requesterName} has canceled your reservation${notification.reservation?.reservationDate != null ? ' on ${_formatDateOnly(notification.reservation!.reservationDate!)}' : ''}.'
+                            : '${notification.requesterName} has canceled their accepted request for your reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDateOnly(notification.reservation!.reservationDate!)}' : ''}.')
+                        : '${notification.requesterName} has canceled their reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDateOnly(notification.reservation!.reservationDate!)}' : ''}, so your accepted request is canceled.')
+                    : '${notification.requesterName} has updated the reservation at ${notification.facilityName}${notification.reservation?.reservationDate != null ? ' on ${_formatDateOnly(notification.reservation!.reservationDate!)}' : ''}.',
                 style: const TextStyle(fontSize: 14),
               ),
               if (notification.reason != null && notification.reason!.isNotEmpty) ...[
@@ -300,20 +315,20 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: isCancelation ? Colors.red.shade50 : Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
+                    border: Border.all(color: isCancelation ? Colors.red.shade200 : Colors.blue.shade200),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 16),
+                      Icon(isCancelation ? Icons.info_outline : Icons.update, color: isCancelation ? Colors.red.shade700 : Colors.blue.shade700, size: 16),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Reason: ${notification.reason}',
+                          isCancelation ? 'Reason: ${notification.reason}' : '${notification.reason}',
                           style: TextStyle(
-                            color: Colors.red.shade900,
+                            color: isCancelation ? Colors.red.shade900 : Colors.blue.shade900,
                             fontSize: 13,
                             fontStyle: FontStyle.italic,
                           ),
@@ -325,7 +340,7 @@ class _CancelationNotificationsScreenState extends State<CancelationNotification
               ],
               const SizedBox(height: 12),
               Text(
-                _formatDate(notification.dateCancelled),
+                _formatDate(notification.date),
                 style: TextStyle(
                   color: Colors.grey.shade600,
                   fontSize: 12,

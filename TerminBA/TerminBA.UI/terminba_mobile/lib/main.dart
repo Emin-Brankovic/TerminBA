@@ -16,7 +16,7 @@ import 'package:terminba_mobile/providers/favorite_sport_center_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
 import 'package:terminba_mobile/providers/play_request_provider.dart';
-import 'package:terminba_mobile/providers/cancelation_notification_provider.dart';
+import 'package:terminba_mobile/providers/unified_notification_provider.dart';
 import 'package:terminba_mobile/providers/user_review_provider.dart';
 import 'package:terminba_mobile/providers/recommendation_provider.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
@@ -62,15 +62,15 @@ void main() async {
         ChangeNotifierProvider<PaymentProvider>(create: (_) => PaymentProvider()),
         ChangeNotifierProvider<PostProvider>(create: (_) => PostProvider()),
         ChangeNotifierProvider<PlayRequestProvider>(create: (_) => PlayRequestProvider()),
-        ChangeNotifierProvider<CancelationNotificationProvider>(create: (_) => CancelationNotificationProvider()),
+        ChangeNotifierProvider<UnifiedNotificationProvider>(create: (_) => UnifiedNotificationProvider()),
         ChangeNotifierProvider<UserReviewProvider>(create: (_) => UserReviewProvider()),
         ChangeNotifierProvider<RecommendationProvider>(create: (_) => RecommendationProvider()),
-        ChangeNotifierProxyProvider2<PlayRequestProvider, CancelationNotificationProvider, NotificationProvider>(
+        ChangeNotifierProxyProvider2<PlayRequestProvider, UnifiedNotificationProvider, NotificationProvider>(
           create: (context) => NotificationProvider(
             Provider.of<PlayRequestProvider>(context, listen: false),
-            Provider.of<CancelationNotificationProvider>(context, listen: false),
+            Provider.of<UnifiedNotificationProvider>(context, listen: false),
           ),
-          update: (context, playRequestProvider, cancelationProvider, previous) => NotificationProvider(playRequestProvider, cancelationProvider),
+          update: (context, playRequestProvider, unifiedProvider, previous) => NotificationProvider(playRequestProvider, unifiedProvider),
         ),
       ],
       child: const MyApp(),

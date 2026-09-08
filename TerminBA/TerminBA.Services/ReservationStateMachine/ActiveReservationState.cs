@@ -162,6 +162,19 @@ namespace TerminBA.Services.ReservationStateMachine
                     }
                 }
 
+                var originalFacilityId = entity.FacilityId;
+                var originalDate = entity.ReservationDate;
+                var originalStartTime = entity.StartTime;
+                var originalEndTime = entity.EndTime;
+                var originalPrice = entity.Price;
+
+                string? originalFacilityName = null;
+                if (request.FacilityId.HasValue && entity.FacilityId != request.FacilityId.Value)
+                {
+                    var origFac = await _context.Facilities.FindAsync(entity.FacilityId);
+                    originalFacilityName = origFac?.Name;
+                }
+
                 _mapper.Map(request, entity);
                 
                 var fac = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
@@ -171,6 +184,97 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.CancellationDeadline = reservationStartUtc.AddHours(-hours);
 
                 entity.Status = nameof(ActiveReservationState);
+
+                var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
+                var currentUser = authService?.GetCurrentUser();
+                bool isSportCenter = currentUser != null && currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
+                var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
+
+                var post = await _context.Posts.FirstOrDefaultAsync(p => p.ReservationId == id);
+                var requesterName = isSportCenter ? (fac?.SportCenter?.DisplayName ?? "Sport center") : "The reservation owner";
+                var facilityName = fac?.Name ?? "Unknown facility";
+
+                var changedValues = new List<string>();
+                if (originalDate != entity.ReservationDate)
+                    changedValues.Add($"Date: {originalDate:dd.MM.yyyy} -> {entity.ReservationDate:dd.MM.yyyy}");
+                
+                if (originalStartTime != entity.StartTime || originalEndTime != entity.EndTime)
+                    changedValues.Add($"Time: {originalStartTime:HH:mm} - {originalEndTime:HH:mm} -> {entity.StartTime:HH:mm} - {entity.EndTime:HH:mm}");
+
+                if (originalFacilityId != entity.FacilityId)
+                    changedValues.Add($"Facility: {originalFacilityName ?? "Unknown"} -> {facilityName}");
+
+                if (originalPrice != entity.Price)
+                    changedValues.Add($"Price: {originalPrice} -> {entity.Price}");
+
+                string? updateMessage = null;
+                if (changedValues.Any())
+                {
+                    updateMessage = "Updated values:\n" + string.Join("\n", changedValues);
+                }
+
+                if (isSportCenter && entity.UserId.HasValue)
+                {
+                    var ownerNotification = new UpdateNotification
+                    {
+                        PostOwnerId = entity.UserId.Value,
+                        ReservationId = id,
+                        RequesterName = requesterName,
+                        FacilityName = facilityName,
+                        DateUpdated = DateTime.UtcNow,
+                        IsSeen = false,
+                        Message = updateMessage
+                    };
+                    _context.UpdateNotifications.Add(ownerNotification);
+
+                    if (notificationHubService != null)
+                    {
+                        var payload = new
+                        {
+                            type = "reservation_updated",
+                            reservationId = id,
+                            updatedAt = DateTime.UtcNow.ToString("o")
+                        };
+                        await notificationHubService.SendReservationUpdatedNotificationAsync(entity.UserId.Value, payload);
+                    }
+                }
+
+                if (post != null)
+                {
+                    var acceptedRequests = await _context.PlayRequests
+                        .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
+                        .ToListAsync();
+
+                    if (acceptedRequests.Any())
+                    {
+                        foreach (var ar in acceptedRequests)
+                        {
+                            var notification = new UpdateNotification
+                            {
+                                PostOwnerId = ar.RequesterId,
+                                ReservationId = id,
+                                RequesterName = requesterName,
+                                FacilityName = facilityName,
+                                DateUpdated = DateTime.UtcNow,
+                                IsSeen = false,
+                                Message = updateMessage
+                            };
+                            _context.UpdateNotifications.Add(notification);
+
+                            if (notificationHubService != null)
+                            {
+                                var payload = new
+                                {
+                                    type = "reservation_updated",
+                                    postId = post.Id,
+                                    reservationId = id,
+                                    updatedAt = DateTime.UtcNow.ToString("o")
+                                };
+                                await notificationHubService.SendReservationUpdatedNotificationAsync(ar.RequesterId, payload);
+                            }
+                        }
+                    }
+                }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
