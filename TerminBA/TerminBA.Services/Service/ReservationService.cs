@@ -52,7 +52,7 @@ namespace TerminBA.Services.Service
         public override async Task<bool> DeleteAsync(int id)
         {
             var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
-
+            
             if (entity == null)
                 return false;
 

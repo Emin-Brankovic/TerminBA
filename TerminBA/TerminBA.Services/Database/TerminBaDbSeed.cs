@@ -33,6 +33,7 @@ namespace TerminBA.Services.Database
             SeedUserReviews(modelBuilder);
             SeedSportCenterPhotos(modelBuilder);
             SeedFacilityPhotos(modelBuilder);
+            SeedFavoriteSportCenters(modelBuilder);
         }
 
         private static void SeedRoles(ModelBuilder modelBuilder)
@@ -525,7 +526,7 @@ namespace TerminBA.Services.Database
                 new Reservation { Id = 20, UserId = 11, FacilityId = 2, ReservationDate = dateDecFuture, StartTime = new TimeOnly(18, 0), EndTime = new TimeOnly(19, 0), Status = GetReservationStatus(dateDecFuture,currentDate), Price = 50.00m, ChosenSportId = 2 }
             };
 
-            var futureSeedDate = new DateOnly(2026, 9, 1);
+            var futureSeedDate = new DateOnly(2026, 9, 7);
 
             for (int i = 0; i < 10; i++)
             {
@@ -674,7 +675,33 @@ namespace TerminBA.Services.Database
 
             var canceledReservationDate = new DateOnly(2026, 9, 3);
 
+            reservations.Add(new Reservation
+            {
+                Id = 67,
+                UserId = 2,
+                FacilityId = 5,
+                ReservationDate = canceledReservationDate,
+                StartTime = new TimeOnly(18, 0),
+                EndTime = new TimeOnly(19, 0),
+                Status = nameof(CanceledReservationState),
+                Price = 30.00m,
+                ChosenSportId = 2
+            });
 
+            foreach (var r in reservations)
+            {
+                var reservationStartsAt = r.ReservationDate.ToDateTime(r.StartTime, DateTimeKind.Utc);
+                
+                if (r.Status == nameof(CompletedReservationState))
+                {
+                    r.CompletedAt = reservationStartsAt;
+                }
+                else if (r.Status == nameof(CanceledReservationState))
+                {
+                    r.CancellationReason = "Can't come, sorry";
+                    r.CanceledAt = reservationStartsAt.AddDays(-1);
+                }
+            }
 
             modelBuilder.Entity<Reservation>().HasData(reservations);
         }
@@ -770,7 +797,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         }
     };
 
-    var futureSeedDate = new DateOnly(2026, 9, 1);
+    var futureSeedDate = new DateOnly(2026, 9, 7);
 
     for (int i = 0; i < 5; i++)
     {
@@ -975,6 +1002,19 @@ private static void SeedPlayRequests(ModelBuilder modelBuilder)
                 ? null
                 : requestDate.AddDays(1);
 
+        string reason = null;
+        DateTime? canceledAt = null;
+
+        if (state == nameof(CanceledPlayRequestState))
+        {
+            reason = "Can't come, sorry";
+            if (responseDate.HasValue && reservationStartsAt > responseDate.Value)
+            {
+                var diff = reservationStartsAt - responseDate.Value;
+                canceledAt = responseDate.Value.Add(new TimeSpan(diff.Ticks / 2));
+            }
+        }
+
         playRequests.Add(new PlayRequest
         {
             Id = nextId++,
@@ -983,7 +1023,9 @@ private static void SeedPlayRequests(ModelBuilder modelBuilder)
             PlayRequestState = state,
             RequestText = "Count me in!",
             DateOfRequest = requestDate,
-            DateOfResponse = responseDate
+            DateOfResponse = responseDate,
+            Reason = reason,
+            CanceledAt = canceledAt
         });
 
         used.Add((schedule.PostId, requesterId));
@@ -1152,12 +1194,15 @@ private static void SeedPlayRequests(ModelBuilder modelBuilder)
                 .Replace(" ", "_")
                 .Replace("-", "_");
 
+            string contactEmail = $"{username}@example.com";
+
             return new SportCenter
             {
                 Id = id,
                 Username = username,
                 DisplayName = displayName,
                 PhoneNumber = phoneNumber,
+                ContactEmail = contactEmail,
                 PasswordSalt = salt,
                 PasswordHash = hash,
                 RoleId = roleId,
@@ -1255,5 +1300,14 @@ private static void SeedPlayRequests(ModelBuilder modelBuilder)
             );
         }
 
+        private static void SeedFavoriteSportCenters(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<FavoriteSportCenter>().HasData(
+                new FavoriteSportCenter { Id = 1, UserId = 2, SportCenterId = 1, CreatedAt = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc) },
+                new FavoriteSportCenter { Id = 2, UserId = 2, SportCenterId = 4, CreatedAt = new DateTime(2026, 1, 2, 12, 0, 0, DateTimeKind.Utc) },
+                new FavoriteSportCenter { Id = 3, UserId = 3, SportCenterId = 2, CreatedAt = new DateTime(2026, 1, 3, 12, 0, 0, DateTimeKind.Utc) },
+                new FavoriteSportCenter { Id = 4, UserId = 4, SportCenterId = 3, CreatedAt = new DateTime(2026, 1, 4, 12, 0, 0, DateTimeKind.Utc) }
+            );
+        }
     }
 }
