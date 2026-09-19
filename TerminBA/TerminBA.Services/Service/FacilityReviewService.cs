@@ -163,5 +163,23 @@ namespace TerminBA.Services.Service
 
             return Task.CompletedTask;
         }
+
+        protected override async Task BeforeDelete(FacilityReview entity)
+        {
+            var currentUserRole = _currentUser["userRole"];
+            var currentUserId = int.Parse(_authService.GetUserId());
+
+            if (currentUserRole == "User")
+            {
+                if (entity.UserId != currentUserId)
+                    throw new UserException("You can only delete your own facility reviews.");
+            }
+            else if (currentUserRole == "Sport center")
+            {
+                var facility = await _context.Facilities.FindAsync(entity.FacilityId);
+                if (facility == null || facility.SportCenterId != currentUserId)
+                    throw new UserException("You can only delete reviews on your own facilities.");
+            }
+        }
     }
 }

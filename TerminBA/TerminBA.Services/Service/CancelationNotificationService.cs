@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TerminBA.Models.Exceptions;
 using TerminBA.Models.Model;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
@@ -44,11 +45,17 @@ namespace TerminBA.Services.Service
 
         public async Task MarkAsSeenAsync(int id)
         {
-            var notification = await _context.CancelationNotifications.FindAsync(id);
-            if (notification != null)
+            var userIdStr = _authService.GetUserId();
+            if (int.TryParse(userIdStr, out int userId))
             {
-                notification.IsSeen = true;
-                await _context.SaveChangesAsync();
+                var notification = await _context.CancelationNotifications
+                    .FirstOrDefaultAsync(x => x.Id == id && x.PostOwnerId == userId);
+                
+                if (notification != null)
+                {
+                    notification.IsSeen = true;
+                    await _context.SaveChangesAsync();
+                }
             }
         }
 
@@ -66,25 +73,46 @@ namespace TerminBA.Services.Service
 
         public async Task MarkAsSeenMultipleAsync(List<int> ids)
         {
-            var notifications = await _context.CancelationNotifications
-                .Where(x => ids.Contains(x.Id))
-                .ToListAsync();
-
-            foreach (var notification in notifications)
+            var userIdStr = _authService.GetUserId();
+            if (int.TryParse(userIdStr, out int userId))
             {
-                notification.IsSeen = true;
+                var notifications = await _context.CancelationNotifications
+                    .Where(x => ids.Contains(x.Id) && x.PostOwnerId == userId)
+                    .ToListAsync();
+
+                foreach (var notification in notifications)
+                {
+                    notification.IsSeen = true;
+                }
+                await _context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteMultipleAsync(List<int> ids)
         {
-            var notifications = await _context.CancelationNotifications
-                .Where(x => ids.Contains(x.Id))
-                .ToListAsync();
+            var userIdStr = _authService.GetUserId();
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                var notifications = await _context.CancelationNotifications
+                    .Where(x => ids.Contains(x.Id) && x.PostOwnerId == userId)
+                    .ToListAsync();
 
-            _context.CancelationNotifications.RemoveRange(notifications);
-            await _context.SaveChangesAsync();
+                _context.CancelationNotifications.RemoveRange(notifications);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        protected override Task BeforeDelete(CancelationNotification entity)
+        {
+            var userIdStr = _authService.GetUserId();
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                if (entity.PostOwnerId != userId)
+                {
+                    throw new UserException("You can only delete your own cancellation notifications.");
+                }
+            }
+            return Task.CompletedTask;
         }
     }
 }

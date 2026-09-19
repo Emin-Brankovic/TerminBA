@@ -112,9 +112,10 @@ namespace TerminBA.Services.Service
 
         public async Task MarkAsSeenAsync(int id, string type)
         {
+            int userId = int.Parse(_authService.GetUserId());
             if (type == "Cancelation")
             {
-                var notification = await _context.CancelationNotifications.FindAsync(id);
+                var notification = await _context.CancelationNotifications.FirstOrDefaultAsync(n => n.Id == id && n.PostOwnerId == userId);
                 if (notification != null && !notification.IsSeen)
                 {
                     notification.IsSeen = true;
@@ -123,7 +124,7 @@ namespace TerminBA.Services.Service
             }
             else if (type == "Update")
             {
-                var notification = await _context.UpdateNotifications.FindAsync(id);
+                var notification = await _context.UpdateNotifications.FirstOrDefaultAsync(n => n.Id == id && n.PostOwnerId == userId);
                 if (notification != null && !notification.IsSeen)
                 {
                     notification.IsSeen = true;
@@ -134,18 +135,19 @@ namespace TerminBA.Services.Service
 
         public async Task MarkAsSeenMultipleAsync(List<NotificationIdentifier> items)
         {
+            int userId = int.Parse(_authService.GetUserId());
             var cancelIds = items.Where(i => i.Type == "Cancelation").Select(i => i.Id).ToList();
             var updateIds = items.Where(i => i.Type == "Update").Select(i => i.Id).ToList();
 
             if (cancelIds.Any())
             {
-                var cancels = await _context.CancelationNotifications.Where(n => cancelIds.Contains(n.Id)).ToListAsync();
+                var cancels = await _context.CancelationNotifications.Where(n => cancelIds.Contains(n.Id) && n.PostOwnerId == userId).ToListAsync();
                 foreach (var n in cancels) n.IsSeen = true;
             }
 
             if (updateIds.Any())
             {
-                var updates = await _context.UpdateNotifications.Where(n => updateIds.Contains(n.Id)).ToListAsync();
+                var updates = await _context.UpdateNotifications.Where(n => updateIds.Contains(n.Id) && n.PostOwnerId == userId).ToListAsync();
                 foreach (var n in updates) n.IsSeen = true;
             }
 
@@ -154,18 +156,19 @@ namespace TerminBA.Services.Service
 
         public async Task DeleteMultipleAsync(List<NotificationIdentifier> items)
         {
+            int userId = int.Parse(_authService.GetUserId());
             var cancelIds = items.Where(i => i.Type == "Cancelation").Select(i => i.Id).ToList();
             var updateIds = items.Where(i => i.Type == "Update").Select(i => i.Id).ToList();
 
             if (cancelIds.Any())
             {
-                var cancels = await _context.CancelationNotifications.Where(n => cancelIds.Contains(n.Id)).ToListAsync();
+                var cancels = await _context.CancelationNotifications.Where(n => cancelIds.Contains(n.Id) && n.PostOwnerId == userId).ToListAsync();
                 _context.CancelationNotifications.RemoveRange(cancels);
             }
 
             if (updateIds.Any())
             {
-                var updates = await _context.UpdateNotifications.Where(n => updateIds.Contains(n.Id)).ToListAsync();
+                var updates = await _context.UpdateNotifications.Where(n => updateIds.Contains(n.Id) && n.PostOwnerId == userId).ToListAsync();
                 _context.UpdateNotifications.RemoveRange(updates);
             }
 

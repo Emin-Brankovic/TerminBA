@@ -275,6 +275,11 @@ namespace TerminBA.Services.Service
                 throw new UserException("You are not authorized to update or upload photos for this facility.");
             }
 
+            if (request.SportCenterId != entity.SportCenterId)
+            {
+                throw new UserException("Changing SportCenterId is not allowed.");
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {

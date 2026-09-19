@@ -39,10 +39,21 @@ namespace TerminBA.Services.Service
 
         public override async Task<ReservationResponse?> UpdateAsync(int id, ReservationUpdateRequest request)
         {
-            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+            var entity = await _context.Reservations
+                .Include(r => r.Facility)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 return null;
+
+            if (_currentUser["userRole"] == "User" && entity.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only modify your own reservations.");
+            }
+            if (_currentUser["userRole"] == "Sport center" && entity.Facility.SportCenterId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only modify reservations for your own facilities.");
+            }
 
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 
@@ -63,8 +74,19 @@ namespace TerminBA.Services.Service
 
         public async Task<CancellationResponse> CancelAsync(int id, ReservationCancelRequest request)
         {
-            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id)
+            var entity = await _context.Reservations
+                .Include(r => r.Facility)
+                .FirstOrDefaultAsync(r => r.Id == id)
                 ?? throw new UserException("Reservation was not found");
+
+            if (_currentUser["userRole"] == "User" && entity.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only cancel your own reservations.");
+            }
+            if (_currentUser["userRole"] == "Sport center" && entity.Facility.SportCenterId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only cancel reservations for your own facilities.");
+            }
 
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 

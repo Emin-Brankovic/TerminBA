@@ -110,6 +110,14 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeDelete(User entity)
         {
+            var currentUser = _authService.GetCurrentUser();
+            var currentUserIdStr = currentUser["userId"];
+
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+            {
+                throw new UserException("You are not authorized to delete this profile.");
+            }
+
             var recievedRewies=await _context.UserReviews
                 .Where(ur=>ur.ReviewedId==entity.Id)
                 .ToListAsync();

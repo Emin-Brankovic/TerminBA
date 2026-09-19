@@ -145,7 +145,17 @@ namespace TerminBA.Services.Service
 
         public override async Task<PostResponse?> UpdateAsync(int id, PostUpdateRequest request)
         {
-           var entity=await _context.Posts.FindAsync(id);
+           var entity = await _context.Posts
+               .Include(p => p.Reservation)
+               .FirstOrDefaultAsync(p => p.Id == id);
+
+           if (entity == null)
+               return null;
+
+           if (entity.Reservation.UserId != int.Parse(_authService.GetUserId()))
+           {
+               throw new UserException("You can only modify your own posts.");
+           }
 
            var baseState = _basePostState.GetPostState(entity.PostState);
 
@@ -154,7 +164,16 @@ namespace TerminBA.Services.Service
 
         public async override Task<bool> DeleteAsync(int id)
         {
-            var entity = await _context.Posts.FindAsync(id);
+            var entity = await _context.Posts
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (entity == null) return false;
+
+            if (entity.Reservation.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only delete your own posts.");
+            }
 
             var baseState = _basePostState.GetPostState(entity.PostState);
 
@@ -163,18 +182,34 @@ namespace TerminBA.Services.Service
 
         public async Task<PostResponse> ClosePost(int id)
         {
-            var entity = await _context.Posts.FindAsync(id);
+            var entity = await _context.Posts
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.Id == id)
+                ?? throw new UserException("Post was not found");
 
-            var baseState = _basePostState.GetPostState(entity!.PostState);
+            if (entity.Reservation.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only close your own posts.");
+            }
+
+            var baseState = _basePostState.GetPostState(entity.PostState);
 
             return await baseState.ClosePost(entity);
         }
 
         public async Task<PostResponse> ReopenPost(int id)
         {
-            var entity = await _context.Posts.FindAsync(id);
+            var entity = await _context.Posts
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.Id == id)
+                ?? throw new UserException("Post was not found");
 
-            var baseState = _basePostState.GetPostState(entity!.PostState);
+            if (entity.Reservation.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only reopen your own posts.");
+            }
+
+            var baseState = _basePostState.GetPostState(entity.PostState);
 
             return await baseState.ReopenAsync(id);
         }

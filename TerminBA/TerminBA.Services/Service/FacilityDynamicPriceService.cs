@@ -17,8 +17,13 @@ namespace TerminBA.Services.Service
 {
     public class FacilityDynamicPriceService : BaseCRUDService<FacilityDynamicPriceResponse, FacilityDynamicPrice, FacilityDynamicPriceSearchObject, FacilityDynamicPriceInsertRequest, FacilityDynamicPriceUpdateRequest>, IFacilityDynamicPriceService
     {
-        public FacilityDynamicPriceService(TerminBaContext context, IMapper mapper) : base(context, mapper)
+        private readonly IAuthService<AccountBase> _authService;
+        private readonly Dictionary<string, string> _currentUser;
+
+        public FacilityDynamicPriceService(TerminBaContext context, IMapper mapper, IAuthService<AccountBase> authService) : base(context, mapper)
         {
+            _authService = authService;
+            _currentUser = _authService.GetCurrentUser();
         }
 
         public async Task<decimal> DynamicPriceForDateAsync(DynamicPriceForDateRequest request)
@@ -100,14 +105,49 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(FacilityDynamicPrice entity, FacilityDynamicPriceInsertRequest request)
         {
+            if (_currentUser["userRole"] == "Sport center")
+            {
+                var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == request.FacilityId);
+                if (facility == null || facility.SportCenterId != int.Parse(_authService.GetUserId()))
+                {
+                    throw new UserException("You can only create dynamic prices for your own facilities.");
+                }
+            }
+
             ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
             await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
         }
 
         protected override async Task BeforeUpdate(FacilityDynamicPrice entity, FacilityDynamicPriceUpdateRequest request)
         {
+            if (_currentUser["userRole"] == "Sport center")
+            {
+                var existingFacility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+                if (existingFacility == null || existingFacility.SportCenterId != int.Parse(_authService.GetUserId()))
+                {
+                    throw new UserException("You can only modify dynamic prices for your own facilities.");
+                }
+
+                if (request.FacilityId != entity.FacilityId)
+                {
+                    throw new UserException("Changing FacilityId is not allowed.");
+                }
+            }
+
             ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
             await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
+        }
+
+        protected override async Task BeforeDelete(FacilityDynamicPrice entity)
+        {
+            if (_currentUser["userRole"] == "Sport center")
+            {
+                var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+                if (facility == null || facility.SportCenterId != int.Parse(_authService.GetUserId()))
+                {
+                    throw new UserException("You can only delete dynamic prices for your own facilities.");
+                }
+            }
         }
 
         public override IQueryable<FacilityDynamicPrice> ApplyIncludes(IQueryable<FacilityDynamicPrice> query)

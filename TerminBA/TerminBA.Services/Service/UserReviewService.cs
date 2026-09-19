@@ -125,5 +125,16 @@ namespace TerminBA.Services.Service
 
             return Task.CompletedTask;
         }
+
+        protected override Task BeforeDelete(UserReview entity)
+        {
+            var userId = int.Parse(_authService.GetUserId());
+            if (entity.ReviewerId != userId)
+            {
+                throw new UserException("You can only delete your own user reviews.");
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

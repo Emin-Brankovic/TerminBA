@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TerminBA.Models.Model;
 using System.Threading.Tasks;
+using TerminBA.Models.Exceptions;
 
 namespace TerminBA.Services.Service
 {
@@ -52,6 +53,18 @@ namespace TerminBA.Services.Service
                         .ThenInclude(sc => sc.Photos)
                         .Include(x => x.SportCenter)
                         .ThenInclude(sc => sc.City);
+        }
+
+        protected override Task BeforeDelete(FavoriteSportCenter entity)
+        {
+            var userIdStr = _authService.GetUserId();
+            if (entity.UserId != int.Parse(userIdStr))
+            {
+                throw new UserException("You can only delete your own favorite sport centers.");
+            }
+
+
+            return Task.CompletedTask;
         }
     }
 }

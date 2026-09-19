@@ -583,6 +583,22 @@ namespace TerminBA.Services.Service
 
             return days;
         }
+
+        protected override Task BeforeDelete(SportCenter entity)
+        {
+            var currentUser = _authService.GetCurrentUser();
+            var role = currentUser["userRole"];
+            var currentUserIdStr = currentUser["userId"];
+
+            if (role != "Administrator")
+            {
+                if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+                {
+                    throw new UserException("You are not authorized to delete this sport center's profile.");
+                }
+            }
+            return Task.CompletedTask;
+        }
     }
 }
 

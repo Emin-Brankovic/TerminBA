@@ -199,5 +199,15 @@ namespace TerminBA.Services.Service
             return _mapper.Map<PlayRequestResponse>(request);
         }
 
+        protected override Task BeforeDelete(PlayRequest entity)
+        {
+            var userId = int.Parse(_authService.GetUserId());
+            if (entity.RequesterId != userId)
+            {
+                throw new UserException("You can only delete your own play requests.");
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }
