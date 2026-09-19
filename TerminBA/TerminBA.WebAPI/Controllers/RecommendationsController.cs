@@ -21,14 +21,19 @@ namespace TerminBA.WebAPI.Controllers
             _logger = logger;
         }
 
-        [HttpGet("{userId:int}")]
+        [HttpGet]
         [ProducesResponseType(typeof(List<RecommendationResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<RecommendationResult>>> GetRecommendations(
-            int userId,
             [FromQuery] int topN = 5)
         {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
             if (topN < 1 || topN > 20)
                 topN = 5;
 

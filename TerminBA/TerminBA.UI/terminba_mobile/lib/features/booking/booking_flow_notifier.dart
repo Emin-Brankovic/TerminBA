@@ -136,7 +136,7 @@ class BookingFlowNotifier extends ChangeNotifier {
     ));
   }
 
-  Future<PaymentIntentResponse?> createPaymentIntent({required int userId, required int reservationId}) async {
+  Future<PaymentIntentResponse?> createPaymentIntent({required int reservationId}) async {
     final court = _state.selectedCourt;
     if (court == null) {
       _setState(_state.copyWith(paymentError: 'No court selected.'));
@@ -155,7 +155,6 @@ class BookingFlowNotifier extends ChangeNotifier {
         amount: amountInSmallestUnit,
         currency: 'bam',
         facilityId: court.id,
-        userId: userId,
         reservationId: reservationId,
       );
 
@@ -181,7 +180,7 @@ class BookingFlowNotifier extends ChangeNotifier {
   }
 
 
-  Future<bool> createPendingReservation({required int userId}) async {
+  Future<bool> createPendingReservation() async {
     final court = _state.selectedCourt;
     final date = _state.selectedDate;
     final slot = _state.selectedTimeSlot;
@@ -201,7 +200,6 @@ class BookingFlowNotifier extends ChangeNotifier {
       final endTime = _ensureSeconds(slot.endTime);
 
       final request = ReservationInsertRequest(
-        userId: userId,
         facilityId: court.id,
         reservationDate: dateString,
         startTime: startTime,

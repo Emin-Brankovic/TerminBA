@@ -18,8 +18,6 @@ namespace TerminBA.Models.Request
         [MaxLength(180)]
         public string? Comment { get; set; }
 
-        public int? ReviewerId { get; set; }
-
         public int? ReviewedId { get; set; }
 
         public int? ReservationId { get; set; }

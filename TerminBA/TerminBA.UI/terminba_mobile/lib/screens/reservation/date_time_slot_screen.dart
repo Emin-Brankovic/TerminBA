@@ -539,7 +539,7 @@ class _DateTimeSlotScreenState extends State<DateTimeSlotScreen> {
                         final userId = await auth.getCurrentUserId();
                         if (userId == null) return;
                         
-                        final success = await notifier.createPendingReservation(userId: userId!);
+                        final success = await notifier.createPendingReservation();
                         
                         if (success && context.mounted) {
                           Navigator.of(context).push(

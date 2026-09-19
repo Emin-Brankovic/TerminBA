@@ -214,7 +214,6 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
       try {
         final req = PlayRequestInsertRequest(
           postId: post.id,
-          requesterId: currentUserId,
           requestText: msgCtrl.text.trim().isEmpty ? null : msgCtrl.text.trim(),
         );
         await context

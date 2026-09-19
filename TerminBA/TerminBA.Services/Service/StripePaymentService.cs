@@ -8,19 +8,21 @@ using EasyNetQ;
 using TerminBA.Models.Messages;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.ReservationStateMachine;
+using TerminBA.Services.Database;
 
 namespace TerminBA.Services.Service
 {
     public class StripePaymentService : IStripePaymentService
     {
-
         private readonly Database.TerminBaContext _context;
         private readonly IBus _bus;
+        private readonly IAuthService<AccountBase> _authService;
 
-        public StripePaymentService(Database.TerminBaContext context, IBus bus)
+        public StripePaymentService(Database.TerminBaContext context, IBus bus, IAuthService<AccountBase> authService)
         {
             _context = context;
             _bus = bus;
+            _authService = authService;
             var secretKey = Environment.GetEnvironmentVariable("StripeSecretKey")
                 ?? throw new InvalidOperationException("StripeSecretKey environment variable is not set.");
 
@@ -65,27 +67,35 @@ namespace TerminBA.Services.Service
                 throw new UserException("Amount mismatch between request and calculated price.");
             }
 
-            Stripe.Customer customer = null;
-            if (request.UserId.HasValue)
+            var currentUserIdStr = _authService.GetUserId();
+            if (string.IsNullOrEmpty(currentUserIdStr) || !int.TryParse(currentUserIdStr, out int currentUserId))
             {
-                var user = await _context.Users.FindAsync(request.UserId.Value);
-                if (user != null && !string.IsNullOrEmpty(user.Email))
+                throw new UserException("User is not authenticated.");
+            }
+
+            if (reservation.UserId != currentUserId)
+            {
+                throw new UserException("You are not authorized to pay for this reservation.");
+            }
+
+            Stripe.Customer customer = null;
+            var user = await _context.Users.FindAsync(currentUserId);
+            if (user != null && !string.IsNullOrEmpty(user.Email))
+            {
+                var customerService = new CustomerService();
+                var existingCustomers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email, Limit = 1 });
+                if (existingCustomers.Any())
                 {
-                    var customerService = new CustomerService();
-                    var existingCustomers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email, Limit = 1 });
-                    if (existingCustomers.Any())
+                    customer = existingCustomers.First();
+                }
+                else
+                {
+                    customer = await customerService.CreateAsync(new CustomerCreateOptions
                     {
-                        customer = existingCustomers.First();
-                    }
-                    else
-                    {
-                        customer = await customerService.CreateAsync(new CustomerCreateOptions
-                        {
-                            Email = user.Email,
-                            Name = $"{user.FirstName} {user.LastName}",
-                            Metadata = new Dictionary<string, string> { { "userId", user.Id.ToString() } }
-                        });
-                    }
+                        Email = user.Email,
+                        Name = $"{user.FirstName} {user.LastName}",
+                        Metadata = new Dictionary<string, string> { { "userId", user.Id.ToString() } }
+                    });
                 }
             }
 
@@ -97,7 +107,7 @@ namespace TerminBA.Services.Service
                 Metadata = new Dictionary<string, string>
                 {
                     { "facilityId", request.FacilityId?.ToString() ?? string.Empty },
-                    { "userId",     request.UserId?.ToString()     ?? string.Empty },
+                    { "userId",     currentUserId.ToString() },
                     { "reservationId", request.ReservationId.ToString() },
                     { "source",     "TerminBA-Mobile" },
                 },
@@ -177,7 +187,7 @@ namespace TerminBA.Services.Service
                 {
                     reservation.Status = nameof(ActiveReservationState);
 
-                    await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
+                    //await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
                 }
                 await _context.SaveChangesAsync();
             }

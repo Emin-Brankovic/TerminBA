@@ -43,6 +43,11 @@ namespace TerminBA.Services.Service
             return result;
         }
 
+        public override Task<PlayRequestResponse?> UpdateAsync(int id, PlayRequestUpdateRequest request)
+        {
+            throw new UserException("Direct updates to play requests are not allowed. Please use the specific endpoints for responding to or canceling requests.");
+        }
+
         public async Task<PlayRequestResponse> RespondToPlayRequestAsync(int id, PlayRequestRespondRequest request)
         {
             var entity = await _context.PlayRequests

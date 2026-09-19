@@ -25,13 +25,13 @@ class RecommendationProvider extends ChangeNotifier {
   }
 
 
-  Future<void> loadRecommendations(int userId, {int topN = 5}) async {
+  Future<void> loadRecommendations({int topN = 5}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final url = '${_baseUrl}recommendations/$userId?topN=$topN';
+      final url = '${_baseUrl}recommendations?topN=$topN';
       final uri = Uri.parse(url);
       final headers = await BaseProvider.createStaticHeaders();
 

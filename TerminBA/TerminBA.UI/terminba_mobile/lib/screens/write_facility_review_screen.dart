@@ -68,7 +68,6 @@ class _WriteFacilityReviewScreenState
         comment: _commentController.text.trim().isEmpty
             ? null
             : _commentController.text.trim(),
-        userId: null, // set by the server from the JWT token
         facilityId: widget.facility.id,
         reservationId: widget.reservationId,
       );

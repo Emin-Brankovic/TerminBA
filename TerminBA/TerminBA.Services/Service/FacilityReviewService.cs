@@ -101,8 +101,7 @@ namespace TerminBA.Services.Service
 
         public override async Task<FacilityReviewResponse> CreateAsync(FacilityReviewInsertRequest request)
         {
-            if (request.UserId == null)
-                request.UserId = int.Parse(_authService.GetUserId());
+            var userId = int.Parse(_authService.GetUserId());
 
             if (request.ReservationId.HasValue)
             {
@@ -113,7 +112,7 @@ namespace TerminBA.Services.Service
                 if (reservation == null)
                     throw new UserException("Reservation not found.");
 
-                if (reservation.UserId != request.UserId)
+                if (reservation.UserId != userId)
                     throw new UserException("You can only review your own reservations.");
 
                 var endDateTime = reservation.ReservationDate.ToDateTime(reservation.EndTime);
@@ -129,7 +128,13 @@ namespace TerminBA.Services.Service
                     request.FacilityId = reservation.FacilityId;
             }
 
-            return await base.CreateAsync(request);
+            var entity = _mapper.Map<FacilityReview>(request);
+            entity.UserId = userId;
+
+            await _context.FacilityReviews.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<FacilityReviewResponse>(entity);
         }
 
 
@@ -151,7 +156,9 @@ namespace TerminBA.Services.Service
 
         protected override Task BeforeUpdate(FacilityReview entity, FacilityReviewUpdateRequest request)
         {
-            if (entity.UserId != request.UserId)
+            var currentUserId = int.Parse(_authService.GetUserId());
+            request.UserId = currentUserId;
+            if (entity.UserId != currentUserId)
                 throw new UserException("Editing of other reviews isn't possible");
 
             return Task.CompletedTask;

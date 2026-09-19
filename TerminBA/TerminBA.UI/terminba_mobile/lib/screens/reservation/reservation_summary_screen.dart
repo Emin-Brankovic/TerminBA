@@ -211,7 +211,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     }
 
     final reservationId = state.bookingConfirmation!.id;
-    final intentResponse = await notifier.createPaymentIntent(userId: userId, reservationId: reservationId);
+    final intentResponse = await notifier.createPaymentIntent(reservationId: reservationId);
 
     if (!mounted) return;
 

@@ -62,7 +62,6 @@ class _WriteUserReviewScreenState extends State<WriteUserReviewScreen> {
         ratingNumber: _selectedRating,
         ratingDate: DateTime.now().toUtc(),
         comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
-        reviewerId: null, // set by backend
         reviewedId: widget.reviewedUser.id,
         reservationId: widget.reservationId,
       );

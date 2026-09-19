@@ -12,9 +12,6 @@ namespace TerminBA.Models.Request
         [Required]
         public int PostId { get; set; }
 
-        [Required]
-        public int RequesterId { get; set; }
-
         [MaxLength(100)]
         public string? RequestText { get; set; }
 

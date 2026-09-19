@@ -25,6 +25,8 @@ namespace TerminBA.Services.ReservationStateMachine
         {
             var entity = new Reservation();
             entity = _mapper.Map(request, entity);
+            var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
+            entity.UserId = int.Parse(authService.GetUserId());
             entity.Status = nameof(ActiveReservationState);
 
             var facility = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == request.FacilityId);

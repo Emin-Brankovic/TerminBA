@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final recommendationProvider = context.read<RecommendationProvider>();
     final userId = await authProvider.getCurrentUserId();
     if (userId != null) {
-      await recommendationProvider.loadRecommendations(userId);
+      await recommendationProvider.loadRecommendations();
     }
   }
 

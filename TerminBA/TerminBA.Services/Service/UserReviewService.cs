@@ -61,8 +61,7 @@ namespace TerminBA.Services.Service
         }
         protected override async Task BeforeInsert(UserReview entity, UserReviewInsertRequest request)
         {
-            if (entity.ReviewerId == null)
-                entity.ReviewerId = int.Parse(_authService.GetUserId());
+            entity.ReviewerId = int.Parse(_authService.GetUserId());
 
             if (entity.ReviewerId == entity.ReviewedId)
                 throw new UserException("You cannot review yourself.");
@@ -120,6 +119,7 @@ namespace TerminBA.Services.Service
 
         protected override Task BeforeUpdate(UserReview entity, UserReviewUpdateRequest request)
         {
+            request.ReviewerId = int.Parse(_authService.GetUserId());
             if (entity.ReviewerId != request.ReviewerId)
                 throw new UserException("Editing of other reviews isn't possible");
 

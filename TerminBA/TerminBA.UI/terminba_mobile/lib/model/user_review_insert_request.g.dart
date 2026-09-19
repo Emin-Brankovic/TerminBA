@@ -12,7 +12,6 @@ UserReviewInsertRequest _$UserReviewInsertRequestFromJson(
   ratingNumber: (json['ratingNumber'] as num).toInt(),
   ratingDate: _dateOnlyFromJson(json['ratingDate'] as String),
   comment: json['comment'] as String?,
-  reviewerId: (json['reviewerId'] as num?)?.toInt(),
   reviewedId: (json['reviewedId'] as num?)?.toInt(),
   reservationId: (json['reservationId'] as num?)?.toInt(),
 );
@@ -23,7 +22,6 @@ Map<String, dynamic> _$UserReviewInsertRequestToJson(
   'ratingNumber': instance.ratingNumber,
   'ratingDate': _dateOnlyToJson(instance.ratingDate),
   'comment': instance.comment,
-  'reviewerId': instance.reviewerId,
   'reviewedId': instance.reviewedId,
   'reservationId': instance.reservationId,
 };

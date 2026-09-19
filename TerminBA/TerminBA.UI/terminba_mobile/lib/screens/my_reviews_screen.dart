@@ -114,7 +114,6 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
             ratingNumber: rating,
             ratingDate: review.ratingDate,
             comment: comment,
-            userId: review.userId,
             facilityId: review.facilityId,
             reservationId: null,
           );
@@ -170,7 +169,6 @@ class _MyReviewsScreenState extends State<MyReviewsScreen>
             ratingNumber: rating,
             ratingDate: review.ratingDate,
             comment: comment,
-            reviewerId: review.reviewerId,
             reviewedId: review.reviewedId,
             reservationId: review.reservationId,
           );

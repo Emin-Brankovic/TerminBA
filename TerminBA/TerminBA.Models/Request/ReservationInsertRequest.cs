@@ -9,8 +9,6 @@ namespace TerminBA.Models.Request
 {
     public class ReservationInsertRequest
     {
-        public int? UserId { get; set; }
-
         public int? FacilityId { get; set; }
 
         [Required]

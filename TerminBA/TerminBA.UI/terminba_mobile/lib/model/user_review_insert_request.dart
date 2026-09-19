@@ -9,7 +9,6 @@ class UserReviewInsertRequest {
   @JsonKey(fromJson: _dateOnlyFromJson, toJson: _dateOnlyToJson)
   DateTime ratingDate;
   String? comment;
-  int? reviewerId;
   int? reviewedId;
   int? reservationId;
 
@@ -17,7 +16,6 @@ class UserReviewInsertRequest {
     required this.ratingNumber,
     required this.ratingDate,
     this.comment,
-    this.reviewerId,
     this.reviewedId,
     this.reservationId,
   });

@@ -1,5 +1,6 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -33,8 +34,11 @@ namespace TerminBA.Services.PostStateMachine
         {
             PlayRequest entity = new PlayRequest();
             entity = _mapper.Map(request, entity);
+            var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
+            var requesterId = int.Parse(authService.GetUserId());
+            entity.RequesterId = requesterId;
 
-            await ValidatePlayRequestInsertAsync(request);
+            await ValidatePlayRequestInsertAsync(request, requesterId);
 
             await _context.PlayRequests.AddAsync(entity);
 
@@ -44,7 +48,7 @@ namespace TerminBA.Services.PostStateMachine
                 .Include(p => p.Reservation)
                 .FirstOrDefaultAsync(p => p.Id == request.PostId);
 
-            var requester = await _context.Users.FindAsync(request.RequesterId);
+            var requester = await _context.Users.FindAsync(requesterId);
 
             if (post?.Reservation?.UserId != null)
             {
@@ -53,7 +57,7 @@ namespace TerminBA.Services.PostStateMachine
                     type = "join_request_received",
                     requestId = entity.Id,
                     postId = entity.PostId,
-                    fromUserId = request.RequesterId,
+                    fromUserId = requesterId,
                     fromUserDisplayName = requester != null ? $"{requester.FirstName} {requester.LastName}" : "A user",
                     createdAt = entity.DateOfRequest?.ToString("o"),
                     messagePreview = entity.RequestText ?? ""
@@ -99,20 +103,20 @@ namespace TerminBA.Services.PostStateMachine
             return _mapper.Map<PostResponse>(post);
         }
 
-        private async Task ValidatePlayRequestInsertAsync(PlayRequestInsertRequest request)
+        private async Task ValidatePlayRequestInsertAsync(PlayRequestInsertRequest request, int requesterId)
         {
 
             var post = await _context.Posts
                 .Include(p=>p.Reservation)
                 .FirstOrDefaultAsync(p=>request.PostId==p.Id);
 
-            if (post?.Reservation?.UserId == request.RequesterId)
+            if (post?.Reservation?.UserId == requesterId)
                 throw new UserException("You cannot send a request to your own post.");
 
             var duplicate = await _context.PlayRequests
                 .AnyAsync(pr =>
                     pr.PostId == request.PostId &&
-                    pr.RequesterId == request.RequesterId &&
+                    pr.RequesterId == requesterId &&
                     (pr.PlayRequestState == nameof(PendingPlayRequestState) || 
                     pr.PlayRequestState == nameof(AcceptedPlayRequestState)));
 

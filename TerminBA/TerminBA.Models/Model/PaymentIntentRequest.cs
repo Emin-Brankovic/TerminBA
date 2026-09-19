@@ -14,7 +14,6 @@ namespace TerminBA.Models.Model
         public long Amount { get; set; }
         public string Currency { get; set; } = "bam";
         public int? FacilityId { get; set; }
-        public int? UserId { get; set; }
 
         [Required]
         public int ReservationId { get; set; }
