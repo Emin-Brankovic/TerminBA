@@ -27,6 +27,13 @@ namespace TerminBA.WebAPI.Controllers
             return await _reservationService.CancelAsync(id, request);
         }
 
+        [Authorize(Roles = "User,Sport center")]
+        [HttpPost("{id}/confirm-on-site")]
+        public async Task<ReservationResponse> ConfirmOnSitePayment(int id)
+        {
+            return await _reservationService.ConfirmOnSitePaymentAsync(id);
+        }
+
         [Authorize(Roles = "User")]
         [HttpPost]
         public override Task<ReservationResponse> Create([FromBody] ReservationInsertRequest request)

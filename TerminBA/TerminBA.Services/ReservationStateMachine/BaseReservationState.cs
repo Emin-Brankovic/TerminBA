@@ -40,7 +40,7 @@ namespace TerminBA.Services.ReservationStateMachine
             throw new UserException("Method not allowed");
         }
 
-        public virtual Task<ReservationResponse> ActivateAsync(int id)
+        public virtual Task<ReservationResponse> ConfirmOnSitePaymentAsync(int id)
         {
             throw new UserException("Method not allowed");
         }

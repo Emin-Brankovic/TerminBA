@@ -28,7 +28,9 @@ namespace TerminBA.Services.Service
 
         public override async Task<ReservationResponse> CreateAsync(ReservationInsertRequest request)
         {
-            string initialState = string.Equals(request.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase)
+            bool isSportCenter = _currentUser != null && _currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
+
+            string initialState = (request.PaymentMethod == Models.Enums.PaymentMethod.Stripe || !isSportCenter)
                 ? nameof(PendingReservationState)
                 : nameof(ActiveReservationState);
 
@@ -91,6 +93,28 @@ namespace TerminBA.Services.Service
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 
             return await baseState.CancelAsync(id, request.Reason ?? string.Empty);
+        }
+
+        public async Task<ReservationResponse> ConfirmOnSitePaymentAsync(int id)
+        {
+            var entity = await _context.Reservations
+                .Include(r => r.Facility)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (entity == null)
+                throw new UserException("Reservation was not found");
+
+            if (_currentUser["userRole"] == "User" && entity.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only modify your own reservations.");
+            }
+            if (_currentUser["userRole"] == "Sport center" && entity.Facility.SportCenterId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only modify reservations for your own facilities.");
+            }
+
+            var baseState = _baseReservationState.GetReservationState(entity.Status);
+            return await baseState.ConfirmOnSitePaymentAsync(id);
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)

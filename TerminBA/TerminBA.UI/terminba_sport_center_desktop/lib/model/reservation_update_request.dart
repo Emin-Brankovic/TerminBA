@@ -9,7 +9,6 @@ class ReservationUpdateRequest {
   DateTime reservationDate;
   String startTime;
   String endTime;
-  String status;
   double price;
   int? chosenSportId;
 
@@ -18,7 +17,6 @@ class ReservationUpdateRequest {
     required this.reservationDate,
     required this.startTime,
     required this.endTime,
-    required this.status,
     required this.price,
     this.chosenSportId,
   });

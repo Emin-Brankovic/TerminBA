@@ -13,7 +13,6 @@ ReservationUpdateRequest _$ReservationUpdateRequestFromJson(
   reservationDate: _dateOnlyFromJson(json['reservationDate'] as String),
   startTime: json['startTime'] as String,
   endTime: json['endTime'] as String,
-  status: json['status'] as String,
   price: (json['price'] as num).toDouble(),
   chosenSportId: (json['chosenSportId'] as num?)?.toInt(),
 );
@@ -25,7 +24,6 @@ Map<String, dynamic> _$ReservationUpdateRequestToJson(
   'reservationDate': _dateOnlyToJson(instance.reservationDate),
   'startTime': instance.startTime,
   'endTime': instance.endTime,
-  'status': instance.status,
   'price': instance.price,
   'chosenSportId': instance.chosenSportId,
 };

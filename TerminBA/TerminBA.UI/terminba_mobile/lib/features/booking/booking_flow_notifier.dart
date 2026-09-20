@@ -206,7 +206,6 @@ class BookingFlowNotifier extends ChangeNotifier {
         endTime: endTime,
         price: _state.grandTotal,
         chosenSportId: _state.sport?.id,
-        paymentMethod: 'Stripe',
       );
 
       final confirmation = await _reservationProvider.insert(request);
@@ -231,15 +230,7 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(isSubmitting: true, clearError: true));
 
     try {
-      final updateData = {
-        'status': 'ActiveReservationState',
-        'price': _state.grandTotal,
-        'reservationDate': _state.bookingConfirmation!.reservationDate,
-        'startTime': _state.bookingConfirmation!.startTime,
-        'endTime': _state.bookingConfirmation!.endTime,
-      };
-
-      await _reservationProvider.update(reservationId, updateData);
+      await _reservationProvider.confirmOnSitePayment(reservationId);
       _setState(_state.copyWith(isSubmitting: false));
     } on Exception catch (e) {
       _setState(_state.copyWith(

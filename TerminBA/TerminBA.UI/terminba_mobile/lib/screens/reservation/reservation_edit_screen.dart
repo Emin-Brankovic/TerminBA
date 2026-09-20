@@ -422,7 +422,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
       reservationDate: _selectedDate,
       startTime: _formatApiTime(_startTime!),
       endTime: _formatApiTime(_endTime!),
-      status: _status,
       price: parsedPrice,
       chosenSportId: _selectedSportId,
     );

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using TerminBA.Models.Enums;
 
 namespace TerminBA.Models.Request
 {
@@ -26,7 +28,8 @@ namespace TerminBA.Models.Request
 
         public int? ChosenSportId { get; set; }
 
-        public string? PaymentMethod { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public PaymentMethod? PaymentMethod { get; set; }
     }
 }
 

@@ -48,15 +48,6 @@ namespace TerminBA.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Reservation was not found");
 
-            if (request.Status == nameof(ActiveReservationState))
-            {
-                entity.Status = nameof(ActiveReservationState);
-                await _context.SaveChangesAsync();
-                var userId=entity.UserId ?? throw new UserException("UserId is null");
-                //await SendEmailAsync(entity.Id);
-                return _mapper.Map<ReservationResponse>(entity);
-            }
-
             _mapper.Map(request, entity);
             
             var fac = await _context.Facilities.Include(f => f.SportCenter).FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
@@ -180,6 +171,21 @@ namespace TerminBA.Services.ReservationStateMachine
             _context.Reservations.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public override async Task<ReservationResponse> ConfirmOnSitePaymentAsync(int id)
+        {
+            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+            if (entity == null)
+                throw new UserException("Reservation was not found");
+
+            entity.Status = nameof(ActiveReservationState);
+            entity.PaymentMethod = TerminBA.Models.Enums.PaymentMethod.OnSite.ToString();
+            await _context.SaveChangesAsync();
+            
+            //await SendEmailAsync(entity.Id);
+
+            return _mapper.Map<ReservationResponse>(entity);
         }
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)

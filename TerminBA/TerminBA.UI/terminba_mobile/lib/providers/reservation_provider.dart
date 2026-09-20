@@ -25,5 +25,18 @@ class ReservationProvider extends BaseProvider<ReservationResponse> {
     return CancellationResponse.fromJson(jsonDecode(response.body));
   }
 
+  Future<ReservationResponse> confirmOnSitePayment(int id) async {
+    var url = '$baseUrl$endpoint/$id/confirm-on-site';
+    var uri = Uri.parse(url);
+    var headers = await createHeaders();
+
+    var response = await http.post(uri, headers: headers);
+    if (!isValidResponse(response)) {
+      throw Exception('Failed to confirm on-site payment');
+    }
+
+    return ReservationResponse.fromJson(jsonDecode(response.body));
+  }
+
 }
 

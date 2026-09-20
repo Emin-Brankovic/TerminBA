@@ -187,7 +187,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
     final state = notifier.state;
 
-    if (state.paymentMethod == PaymentMethod.online) {
+    if (state.paymentMethod == PaymentMethod.stripe) {
       await _handleOnlinePayment(context, notifier, userId);
     } else {
       await _submitOnSiteBooking(context, notifier, userId);
@@ -387,8 +387,8 @@ class _PaymentToggle extends StatelessWidget {
         const SizedBox(width: 12),
         _PaymentOption(
           label: 'Online',
-          isActive: selected == PaymentMethod.online,
-          onTap: () => onChanged(PaymentMethod.online),
+          isActive: selected == PaymentMethod.stripe,
+          onTap: () => onChanged(PaymentMethod.stripe),
         ),
       ],
     );

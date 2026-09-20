@@ -9,6 +9,7 @@ using TerminBA.Models.Messages;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Database;
+using TerminBA.Models.Enums;
 
 namespace TerminBA.Services.Service
 {
@@ -186,6 +187,7 @@ namespace TerminBA.Services.Service
                 if (reservation != null && reservation.Status == nameof(PendingReservationState))
                 {
                     reservation.Status = nameof(ActiveReservationState);
+                    reservation.PaymentMethod = TerminBA.Models.Enums.PaymentMethod.Stripe.ToString();
 
                     //await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
                 }

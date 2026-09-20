@@ -1,1 +1,1 @@
-enum PaymentMethod { onSite, online }
+enum PaymentMethod { onSite, stripe }
