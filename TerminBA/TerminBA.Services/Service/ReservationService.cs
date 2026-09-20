@@ -114,7 +114,7 @@ namespace TerminBA.Services.Service
             }
 
             var baseState = _baseReservationState.GetReservationState(entity.Status);
-            return await baseState.ConfirmOnSitePaymentAsync(id);
+            return await baseState.ConfirmPaymentAsync(id, TerminBA.Models.Enums.PaymentMethod.OnSite.ToString());
         }
 
         public override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)

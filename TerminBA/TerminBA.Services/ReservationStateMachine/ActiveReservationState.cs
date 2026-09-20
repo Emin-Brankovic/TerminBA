@@ -461,101 +461,27 @@ namespace TerminBA.Services.ReservationStateMachine
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
-            ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
-
-            var timeSlots = await TimeSlotHelper.GenerateTimeSlots(request.FacilityId, request.ReservationDate, _context);
-
-            var exists = timeSlots.Any(t =>
-                t.Start == request.StartTime.ToTimeSpan() &&
-                t.End == request.EndTime.ToTimeSpan());
-
-            if (!exists)
-                throw new UserException("Can't pick a non existing time slot");
-
-            var hasConflict = await _context.Reservations
-                .AnyAsync(r => r.FacilityId == request.FacilityId
-                               && r.ReservationDate == request.ReservationDate
-                               && request.StartTime < r.EndTime
-                               && request.EndTime > r.StartTime
-                               && r.Status == nameof(ActiveReservationState));
-
-            if (hasConflict)
-                throw new UserException("Can't pick a booked time slot.");
-
-            var facility = await _context.Facilities
-                .Include(f => f.DynamicPrices)
-                .FirstOrDefaultAsync(f => f.Id == request.FacilityId);
-
-            if (facility == null)
-                throw new UserException("Facility not found.");
-
-            var expectedPrice = DynamicPriceHelper.GetExpectedPrice(
-                facility,
+            await ValidateReservationCoreAsync(
+                request.FacilityId ?? 0,
                 request.ReservationDate,
                 request.StartTime,
-                request.EndTime);
-
-            if (request.Price != expectedPrice)
-                throw new UserException($"Invalid price for selected time slot and reservation date.");
+                request.EndTime,
+                request.Price,
+                request.ChosenSportId);
         }
-
 
         private async Task ValidateReservationUpdateAsync(Reservation entity, ReservationUpdateRequest request)
         {
-            ValidateReservationNotInPast(request.ReservationDate, request.StartTime);
-
             var targetFacilityId = request.FacilityId ?? entity.FacilityId;
 
-            var allSlots = await TimeSlotHelper.GenerateTimeSlots(targetFacilityId, request.ReservationDate, _context);
-            var slot = allSlots.FirstOrDefault(t =>
-                t.Start == request.StartTime.ToTimeSpan() &&
-                t.End == request.EndTime.ToTimeSpan());
-
-            if (slot == default)
-                throw new UserException("Can't pick a non existing time slot.");
-
-            var hasConflict = await _context.Reservations
-                .AnyAsync(r => r.FacilityId == targetFacilityId
-                               && r.ReservationDate == request.ReservationDate
-                               && r.Id != entity.Id
-                               && request.StartTime < r.EndTime
-                               && request.EndTime > r.StartTime
-                               && r.Status == nameof(ActiveReservationState));
-
-            if (hasConflict)
-                throw new UserException("Can't pick a booked time slot.");
-
-            var facility = await _context.Facilities
-                .Include(f => f.DynamicPrices)
-                .FirstOrDefaultAsync(f => f.Id == targetFacilityId);
-
-            if (facility == null)
-                throw new UserException("Facility not found.");
-
-            var expectedPrice = DynamicPriceHelper.GetExpectedPrice(
-                facility,
+            await ValidateReservationCoreAsync(
+                targetFacilityId ?? 0,
                 request.ReservationDate,
                 request.StartTime,
-                request.EndTime);
-
-            if (request.Price != expectedPrice)
-                throw new UserException($"Invalid price for selected time slot and reservation date.");
-        }
-
-        private static void ValidateReservationNotInPast(DateOnly reservationDate, TimeOnly reservationStartTime)
-        {
-            var now = TimeHelper.GetFacilityNow();
-            var today = DateOnly.FromDateTime(now);
-
-            if (reservationDate < today)
-            {
-                throw new UserException("Can't make a reservation in the past.");
-            }
-
-            if (reservationDate == today && reservationStartTime.ToTimeSpan() <= now.TimeOfDay)
-            {
-                throw new UserException("Can't make a reservation in the past.");
-            }
+                request.EndTime,
+                request.Price,
+                request.ChosenSportId ?? entity.ChosenSportId,
+                entity.Id);
         }
     }
 }

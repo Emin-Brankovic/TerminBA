@@ -173,27 +173,62 @@ namespace TerminBA.Services.ReservationStateMachine
             return true;
         }
 
-        public override async Task<ReservationResponse> ConfirmOnSitePaymentAsync(int id)
+        public override async Task<ReservationResponse> ConfirmPaymentAsync(int id, string paymentMethod)
         {
-            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
-            if (entity == null)
-                throw new UserException("Reservation was not found");
+            using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+            try
+            {
+                var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+                if (entity == null)
+                    throw new UserException("Reservation was not found");
 
-            entity.Status = nameof(ActiveReservationState);
-            entity.PaymentMethod = TerminBA.Models.Enums.PaymentMethod.OnSite.ToString();
-            await _context.SaveChangesAsync();
-            
-            //await SendEmailAsync(entity.Id);
+                if (entity.Status != nameof(PendingReservationState))
+                    throw new UserException("Reservation is no longer pending.");
 
-            return _mapper.Map<ReservationResponse>(entity);
+                // Re-run validation to ensure slot wasn't booked by another confirmed reservation
+                await ValidateReservationCoreAsync(
+                    entity.FacilityId ?? 0,
+                    entity.ReservationDate,
+                    entity.StartTime,
+                    entity.EndTime,
+                    entity.Price,
+                    entity.ChosenSportId,
+                    entity.Id);
+
+                entity.Status = nameof(ActiveReservationState);
+                
+                if (Enum.TryParse<TerminBA.Models.Enums.PaymentMethod>(paymentMethod, out var parsedMethod))
+                {
+                    entity.PaymentMethod = parsedMethod.ToString();
+                }
+                else
+                {
+                    entity.PaymentMethod = paymentMethod;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                //await SendEmailAsync(entity.Id);
+
+                return _mapper.Map<ReservationResponse>(entity);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private async Task ValidateReservationInsertAsync(ReservationInsertRequest request)
         {
-            var now = TimeHelper.GetFacilityNow();
-            var today = DateOnly.FromDateTime(now);
-            if (request.ReservationDate < today || (request.ReservationDate == today && request.StartTime.ToTimeSpan() <= now.TimeOfDay))
-                throw new UserException("Can't make a reservation in the past.");
+            await ValidateReservationCoreAsync(
+                request.FacilityId ?? 0,
+                request.ReservationDate,
+                request.StartTime,
+                request.EndTime,
+                request.Price,
+                request.ChosenSportId);
         }
 
         private async Task SendEmailAsync(int reservationId)

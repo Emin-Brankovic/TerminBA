@@ -18,12 +18,14 @@ namespace TerminBA.Services.Service
         private readonly Database.TerminBaContext _context;
         private readonly IBus _bus;
         private readonly IAuthService<AccountBase> _authService;
+        private readonly BaseReservationState _baseReservationState;
 
-        public StripePaymentService(Database.TerminBaContext context, IBus bus, IAuthService<AccountBase> authService)
+        public StripePaymentService(Database.TerminBaContext context, IBus bus, IAuthService<AccountBase> authService, BaseReservationState baseReservationState)
         {
             _context = context;
             _bus = bus;
             _authService = authService;
+            _baseReservationState = baseReservationState;
             var secretKey = Environment.GetEnvironmentVariable("StripeSecretKey")
                 ?? throw new InvalidOperationException("StripeSecretKey environment variable is not set.");
 
@@ -186,12 +188,9 @@ namespace TerminBA.Services.Service
                 var reservation = await _context.Reservations.FindAsync(payment.ReservationId);
                 if (reservation != null && reservation.Status == nameof(PendingReservationState))
                 {
-                    reservation.Status = nameof(ActiveReservationState);
-                    reservation.PaymentMethod = TerminBA.Models.Enums.PaymentMethod.Stripe.ToString();
-
-                    //await EmailPublisherHelper.PublishReservationCreatedEmailAsync(_bus, _context, payment.ReservationId);
+                    var state = _baseReservationState.GetReservationState(reservation.Status);
+                    await state.ConfirmPaymentAsync(reservation.Id, TerminBA.Models.Enums.PaymentMethod.Stripe.ToString());
                 }
-                await _context.SaveChangesAsync();
             }
 
             return paymentIntent.Status;
