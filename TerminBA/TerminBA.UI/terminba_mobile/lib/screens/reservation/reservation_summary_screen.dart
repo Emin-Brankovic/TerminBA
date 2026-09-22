@@ -254,9 +254,19 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
       if (!mounted) return;
       
-      await notifier.confirmPaymentIntent(intentResponse.paymentIntentId);
+      final confirmationSuccess = await notifier.confirmPaymentIntent(intentResponse.paymentIntentId);
 
       if (!mounted) return;
+
+      if (!confirmationSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment verification failed. Please try again or contact support.'),
+            backgroundColor: Color(0xFFE53935),
+          ),
+        );
+        return;
+      }
 
       if (notifier.state.wantsToCreatePost) {
         final req = PostInsertRequest(
