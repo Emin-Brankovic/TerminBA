@@ -185,7 +185,6 @@ namespace TerminBA.Services.ReservationStateMachine
                 if (entity.Status != nameof(PendingReservationState))
                     throw new UserException("Reservation is no longer pending.");
 
-                // Re-run validation to ensure slot wasn't booked by another confirmed reservation
                 await ValidateReservationCoreAsync(
                     entity.FacilityId ?? 0,
                     entity.ReservationDate,

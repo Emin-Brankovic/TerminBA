@@ -34,99 +34,124 @@ namespace TerminBA.Services.Service
 
         public async Task<PaymentIntentResponse> CreatePaymentIntentAsync(PaymentIntentRequest request)
         {
-            var reservation = await _context.Reservations
-                .Include(r => r.Facility)
-                    .ThenInclude(f => f.DynamicPrices)
-                .FirstOrDefaultAsync(r => r.Id == request.ReservationId);
-
-            if (reservation == null)
-            {
-                throw new UserException($"Reservation with ID {request.ReservationId} not found.");
-            }
-
-            var isAlreadyPaid = await _context.Payments
-                .AnyAsync(p => p.ReservationId == request.ReservationId && p.Status == Enums.PaymentStatus.Paid);
-
-            if (isAlreadyPaid)
-            {
-                throw new UserException("This reservation has already been paid for.");
-            }
-
-            if (reservation.Facility == null)
-            {
-                throw new UserException($"Facility for Reservation {request.ReservationId} not found.");
-            }
-
-            var expectedPrice = TerminBA.Services.Helpers.DynamicPriceHelper.GetExpectedPrice(
-                reservation.Facility,
-                reservation.ReservationDate,
-                reservation.StartTime,
-                reservation.EndTime);
-
-            var expectedAmount = (long)(expectedPrice * 100);
-
-            if (expectedAmount != request.Amount)
-            {
-                throw new UserException("Amount mismatch between request and calculated price.");
-            }
-
             var currentUserIdStr = _authService.GetUserId();
             if (string.IsNullOrEmpty(currentUserIdStr) || !int.TryParse(currentUserIdStr, out int currentUserId))
             {
                 throw new UserException("User is not authenticated.");
             }
 
-            if (reservation.UserId != currentUserId)
-            {
-                throw new UserException("You are not authorized to pay for this reservation.");
-            }
-
-            Stripe.Customer customer = null;
-            var user = await _context.Users.FindAsync(currentUserId);
-            if (user != null && !string.IsNullOrEmpty(user.Email))
-            {
-                var customerService = new CustomerService();
-                var existingCustomers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email, Limit = 1 });
-                if (existingCustomers.Any())
-                {
-                    customer = existingCustomers.First();
-                }
-                else
-                {
-                    customer = await customerService.CreateAsync(new CustomerCreateOptions
-                    {
-                        Email = user.Email,
-                        Name = $"{user.FirstName} {user.LastName}",
-                        Metadata = new Dictionary<string, string> { { "userId", user.Id.ToString() } }
-                    });
-                }
-            }
-
-            var options = new PaymentIntentCreateOptions
-            {
-                Amount = request.Amount,
-                Currency = request.Currency.ToLowerInvariant(),
-                PaymentMethodTypes = new List<string> { "card" },
-                Metadata = new Dictionary<string, string>
-                {
-                    { "facilityId", request.FacilityId?.ToString() ?? string.Empty },
-                    { "userId",     currentUserId.ToString() },
-                    { "reservationId", request.ReservationId.ToString() },
-                    { "source",     "TerminBA-Mobile" },
-                },
-            };
-
-            if (customer != null)
-            {
-                options.Customer = customer.Id;
-                options.SetupFutureUsage = "off_session";
-            }
-
-            var service = new PaymentIntentService();
-
+            await using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
             try
             {
+                var reservation = await _context.Reservations
+                    .Include(r => r.Facility)
+                        .ThenInclude(f => f.DynamicPrices)
+                    .FirstOrDefaultAsync(r => r.Id == request.ReservationId);
+
+                if (reservation == null)
+                {
+                    throw new UserException($"Reservation with ID {request.ReservationId} not found.");
+                }
+
+                if (reservation.UserId != currentUserId)
+                {
+                    throw new UserException("You are not authorized to pay for this reservation.");
+                }
+
+                if (reservation.Status != nameof(PendingReservationState))
+                {
+                    throw new UserException("Payment can only be initiated for reservations in Pending state.");
+                }
+
+                if (!string.IsNullOrEmpty(reservation.PaymentMethod) && 
+                    !reservation.PaymentMethod.Equals(TerminBA.Models.Enums.PaymentMethod.Stripe.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new UserException("This reservation is not configured to use Stripe payments.");
+                }
+
+                if (reservation.Facility == null)
+                {
+                    throw new UserException($"Facility for Reservation {request.ReservationId} not found.");
+                }
+
+                var hasActiveOrCompletedPayment = await _context.Payments
+                    .AnyAsync(p => p.ReservationId == request.ReservationId && 
+                                  (p.Status == TerminBA.Services.Enums.PaymentStatus.Paid || 
+                                   p.Status == TerminBA.Services.Enums.PaymentStatus.RequiresPayment));
+
+                if (hasActiveOrCompletedPayment)
+                {
+                    throw new UserException("This reservation already has an active or completed payment attempt.");
+                }
+
+                var expectedPrice = TerminBA.Services.Helpers.DynamicPriceHelper.GetExpectedPrice(
+                    reservation.Facility,
+                    reservation.ReservationDate,
+                    reservation.StartTime,
+                    reservation.EndTime);
+
+                var expectedAmount = (long)(expectedPrice * 100);
+
+                Stripe.Customer customer = null;
+                var user = await _context.Users.FindAsync(currentUserId);
+                if (user != null && !string.IsNullOrEmpty(user.Email))
+                {
+                    var customerService = new CustomerService();
+                    var existingCustomers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email, Limit = 1 });
+                    if (existingCustomers.Any())
+                    {
+                        customer = existingCustomers.First();
+                    }
+                    else
+                    {
+                        customer = await customerService.CreateAsync(new CustomerCreateOptions
+                        {
+                            Email = user.Email,
+                            Name = $"{user.FirstName} {user.LastName}",
+                            Metadata = new Dictionary<string, string> { { "userId", user.Id.ToString() } }
+                        });
+                    }
+                }
+
+                var options = new PaymentIntentCreateOptions
+                {
+                    Amount = expectedAmount,
+                    Currency = "bam",
+                    PaymentMethodTypes = new List<string> { "card" },
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "facilityId", reservation.FacilityId?.ToString() ?? string.Empty },
+                        { "userId",     currentUserId.ToString() },
+                        { "reservationId", request.ReservationId.ToString() },
+                        { "source",     "TerminBA-Mobile" },
+                    },
+                };
+
+                if (customer != null)
+                {
+                    options.Customer = customer.Id;
+                    options.SetupFutureUsage = "off_session";
+                }
+
+                var service = new PaymentIntentService();
                 var paymentIntent = await service.CreateAsync(options);
+
+                var payment = new TerminBA.Services.Database.Payment
+                {
+                    ReservationId = reservation.Id,
+                    UserId = currentUserId,
+                    Provider = "stripe",
+                    StripePaymentIntentId = paymentIntent.Id,
+                    Amount = expectedAmount / 100m,
+                    Currency = "bam",
+                    Status = TerminBA.Services.Enums.PaymentStatus.RequiresPayment,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 return new PaymentIntentResponse
                 {
@@ -137,7 +162,13 @@ namespace TerminBA.Services.Service
             }
             catch (StripeException ex)
             {
+                await transaction.RollbackAsync();
                 throw new Exception($"Payment processing failed: {ex.StripeError?.Message ?? "unknown error"}");
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
         }
 

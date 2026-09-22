@@ -27,11 +27,6 @@ namespace TerminBA.WebAPI.Controllers
         public async Task<ActionResult<PaymentIntentResponse>> CreatePaymentIntent(
             [FromBody] PaymentIntentRequest request)
         {
-            if (request.Amount <= 0)
-            {
-                return BadRequest(new { message = "Amount must be greater than zero." });
-            }
-
             try
             {
                 var result = await _stripePaymentService.CreatePaymentIntentAsync(request);
