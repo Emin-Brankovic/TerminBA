@@ -12,6 +12,7 @@ using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PlayRequestStateMachine;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -74,8 +75,11 @@ namespace TerminBA.Services.Service
                 if (reservation == null)
                     throw new UserException("Reservation not found.");
 
+                if (reservation.Status != nameof(CompletedReservationState))
+                    throw new UserException("You can only leave a review for a completed reservation.");
+
                 var endDateTime = reservation.ReservationDate.ToDateTime(reservation.EndTime);
-                if (DateTime.UtcNow < endDateTime)
+                if (TerminBA.Services.Helpers.TimeHelper.GetFacilityNow() < endDateTime)
                     throw new UserException("You can only leave a review after the appointment has ended.");
 
                 var alreadyReviewed = await _context.UserReviews

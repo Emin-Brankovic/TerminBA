@@ -11,7 +11,10 @@ using TerminBA.Models.Model;
 using TerminBA.Models.Request;
 using TerminBA.Models.SearchObjects;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
+using TerminBA.Services.PlayRequestStateMachine;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -99,44 +102,49 @@ namespace TerminBA.Services.Service
         }
 
 
-        public override async Task<FacilityReviewResponse> CreateAsync(FacilityReviewInsertRequest request)
+        protected override async Task BeforeInsert(FacilityReview entity, FacilityReviewInsertRequest request)
         {
             var userId = int.Parse(_authService.GetUserId());
+            entity.UserId = userId; 
 
             if (request.ReservationId.HasValue)
             {
                 var reservation = await _context.Reservations
-                    .Include(r => r.Facility)
                     .FirstOrDefaultAsync(r => r.Id == request.ReservationId.Value);
 
                 if (reservation == null)
                     throw new UserException("Reservation not found.");
 
-                if (reservation.UserId != userId)
-                    throw new UserException("You can only review your own reservations.");
+                if (reservation.Status != nameof(CompletedReservationState))
+                    throw new UserException("You can only leave a review for a completed reservation.");
 
                 var endDateTime = reservation.ReservationDate.ToDateTime(reservation.EndTime);
-                if (DateTime.UtcNow < endDateTime)
+                if (TimeHelper.GetFacilityNow() < endDateTime)
                     throw new UserException("You can only leave a review after the appointment has ended.");
 
                 var alreadyReviewed = await _context.FacilityReviews
-                    .AnyAsync(fr => fr.ReservationId == request.ReservationId.Value);
+                    .AnyAsync(fr => fr.ReservationId == request.ReservationId.Value && fr.UserId == userId);
                 if (alreadyReviewed)
                     throw new UserException("You have already submitted a review for this reservation.");
 
+                bool isParticipant = reservation.UserId == userId ||
+                    await _context.PlayRequests.AnyAsync(pr => pr.Post!.ReservationId == request.ReservationId.Value && pr.RequesterId == userId && pr.PlayRequestState == nameof(AcceptedPlayRequestState));
+
+                if (!isParticipant)
+                    throw new UserException("You must be a participant in this reservation to leave a review.");
+
                 if (!request.FacilityId.HasValue)
-                    request.FacilityId = reservation.FacilityId;
+                {
+                    entity.FacilityId = reservation.FacilityId;
+                }
+                else if (request.FacilityId.Value != reservation.FacilityId)
+                {
+                    throw new UserException("The supplied FacilityId does not match the reservation's facility.");
+                }
             }
 
-            var entity = _mapper.Map<FacilityReview>(request);
-            entity.UserId = userId;
-
-            await _context.FacilityReviews.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            return _mapper.Map<FacilityReviewResponse>(entity);
+            await base.BeforeInsert(entity, request);
         }
-
 
         public async Task<double> GetAverageRatingAsync(int facilityId)
         {
