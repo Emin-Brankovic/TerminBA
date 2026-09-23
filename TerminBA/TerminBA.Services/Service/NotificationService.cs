@@ -65,6 +65,9 @@ namespace TerminBA.Services.Service
 
             int pageSize = search.PageSize ?? 10;
             int page = search.Page ?? 1;
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
 
             var items = await combinedQuery
                 .Skip((page - 1) * pageSize)
