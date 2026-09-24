@@ -18,10 +18,13 @@ namespace TerminBA.Services.Service
         private readonly IAuthService<AccountBase> _authService;
         private readonly Dictionary<string, string> _currentUser;
 
-        public WorkingHoursService(TerminBaContext context, IMapper mapper, IAuthService<AccountBase> authService) : base(context, mapper)
+        private readonly IPeriodValidatorService _periodValidator;
+
+        public WorkingHoursService(TerminBaContext context, IMapper mapper, IAuthService<AccountBase> authService, IPeriodValidatorService periodValidator) : base(context, mapper)
         {
             _authService = authService;
             _currentUser = _authService.GetCurrentUser();
+            _periodValidator = periodValidator;
         }
 
         public override IQueryable<WorkingHours> ApplyFilter(IQueryable<WorkingHours> query, WorkingHoursSearchObject search)
@@ -38,6 +41,8 @@ namespace TerminBA.Services.Service
             {
                 throw new UserException("You can only create working hours for your own sport center.");
             }
+
+            await _periodValidator.ValidateWorkingHoursInsertAsync(request.SportCenterId, request);
         }
 
         protected override async Task BeforeUpdate(WorkingHours entity, WorkingHoursUpdateRequest request)
@@ -48,12 +53,19 @@ namespace TerminBA.Services.Service
                 {
                     throw new UserException("You can only modify working hours for your own sport center.");
                 }
-
-                if (request.SportCenterId != entity.SportCenterId)
-                {
-                    throw new UserException("Changing SportCenterId is not allowed.");
-                }
             }
+            else
+            {
+                // Ensure request-supplied IDs cannot bypass validation for admins too
+                request.SportCenterId = entity.SportCenterId;
+            }
+
+            if (request.SportCenterId != entity.SportCenterId)
+            {
+                throw new UserException("Changing SportCenterId is not allowed.");
+            }
+
+            await _periodValidator.ValidateWorkingHoursUpdateAsync(entity.Id, request);
         }
 
         protected override async Task BeforeDelete(WorkingHours entity)

@@ -19,11 +19,13 @@ namespace TerminBA.Services.Service
     {
         private readonly IAuthService<AccountBase> _authService;
         private readonly Dictionary<string, string> _currentUser;
+        private readonly IPeriodValidatorService _periodValidator;
 
-        public FacilityDynamicPriceService(TerminBaContext context, IMapper mapper, IAuthService<AccountBase> authService) : base(context, mapper)
+        public FacilityDynamicPriceService(TerminBaContext context, IMapper mapper, IAuthService<AccountBase> authService, IPeriodValidatorService periodValidator) : base(context, mapper)
         {
             _authService = authService;
             _currentUser = _authService.GetCurrentUser();
+            _periodValidator = periodValidator;
         }
 
         public async Task<decimal> DynamicPriceForDateAsync(DynamicPriceForDateRequest request)
@@ -105,37 +107,50 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(FacilityDynamicPrice entity, FacilityDynamicPriceInsertRequest request)
         {
+            var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == request.FacilityId);
+            if (facility == null)
+            {
+                throw new UserException("Facility not found.");
+            }
+
             if (_currentUser["userRole"] == "Sport center")
             {
-                var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == request.FacilityId);
-                if (facility == null || facility.SportCenterId != int.Parse(_authService.GetUserId()))
+                if (facility.SportCenterId != int.Parse(_authService.GetUserId()))
                 {
                     throw new UserException("You can only create dynamic prices for your own facilities.");
                 }
             }
 
-            ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
-            await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
+            await _periodValidator.ValidateDynamicPriceInsertAsync(facility.SportCenterId, request);
         }
 
         protected override async Task BeforeUpdate(FacilityDynamicPrice entity, FacilityDynamicPriceUpdateRequest request)
         {
+            var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+            if (facility == null)
+            {
+                throw new UserException("Facility not found.");
+            }
+
             if (_currentUser["userRole"] == "Sport center")
             {
-                var existingFacility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
-                if (existingFacility == null || existingFacility.SportCenterId != int.Parse(_authService.GetUserId()))
+                if (facility.SportCenterId != int.Parse(_authService.GetUserId()))
                 {
                     throw new UserException("You can only modify dynamic prices for your own facilities.");
                 }
-
-                if (request.FacilityId != entity.FacilityId)
-                {
-                    throw new UserException("Changing FacilityId is not allowed.");
-                }
+            }
+            else
+            {
+                // Ensure request-supplied IDs cannot bypass validation for admins too
+                request.FacilityId = entity.FacilityId;
             }
 
-            ValidateFacilityDynamicPriceRequest(request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
-            await ValidateWithinSportCenterWorkingHours(request.FacilityId, request.StartDay, request.EndDay, request.StartTime, request.EndTime, request.ValidFrom, request.ValidTo);
+            if (request.FacilityId != entity.FacilityId)
+            {
+                throw new UserException("Changing FacilityId is not allowed.");
+            }
+
+            await _periodValidator.ValidateDynamicPriceUpdateAsync(entity.Id, facility.SportCenterId, request);
         }
 
         protected override async Task BeforeDelete(FacilityDynamicPrice entity)
@@ -156,121 +171,8 @@ namespace TerminBA.Services.Service
             return query;
         }
 
-        private void ValidateFacilityDynamicPriceRequest(TimeOnly startTime, TimeOnly endTime, DateOnly validFrom, DateOnly? validTo)
-        {
+        // Removed validation methods
 
-            if (startTime >= endTime)
-            {
-                throw new UserException("Start time must be before end time.");
-            }
-
-            if (validTo.HasValue && validFrom > validTo.Value)
-            {
-                throw new UserException("ValidFrom date must be before or equal to ValidTo date.");
-            }
-        }
-
-        private async Task ValidateWithinSportCenterWorkingHours(int facilityId, DayOfWeek startDay, DayOfWeek endDay, TimeOnly startTime, TimeOnly endTime, DateOnly validFrom, DateOnly? validTo)
-        {
-            var facility = await _context.Facilities
-                .AsNoTracking()
-                .Select(f => new { f.Id, f.SportCenterId })
-                .FirstOrDefaultAsync(f => f.Id == facilityId);
-
-            if (facility == null)
-            {
-                throw new UserException("Facility was not found.");
-            }
-
-            var workingHours = await _context.WorkingHours
-                .Where(wh => wh.SportCenterId == facility.SportCenterId)
-                .ToListAsync();
-
-            if (!workingHours.Any())
-            {
-                throw new UserException("Sport center does not have configured working hours.");
-            }
-
-            foreach (var day in GetDaysInRange(startDay, endDay))
-            {
-                var matchingWorkingHours = workingHours.Where(wh =>
-                    TimeSlotHelper.IsInDayRange(day, wh.StartDay, wh.EndDay)
-                    && wh.OpeningHours <= startTime
-                    && wh.CloseingHours >= endTime);
-
-                var hasMatchingWorkingHours = IsDateRangeCoveredByWorkingHours(validFrom, validTo, matchingWorkingHours);
-
-                if (!hasMatchingWorkingHours)
-                {
-                    throw new UserException($"Dynamic price time range {startTime:HH\\:mm}-{endTime:HH\\:mm} is outside active working hours for the selected date range.");
-                }
-            }
-        }
-
-        private static bool IsDateRangeCoveredByWorkingHours(DateOnly targetStart, DateOnly? targetEnd, IEnumerable<WorkingHours> workingHours)
-        {
-            var requiredEndDay = (targetEnd ?? DateOnly.MaxValue).DayNumber;
-            var cursorDay = targetStart.DayNumber;
-            var maxDayNumber = DateOnly.MaxValue.DayNumber;
-
-            var intervals = workingHours
-                .Select(wh => new
-                {
-                    StartDay = wh.ValidFrom.DayNumber,
-                    EndDay = (wh.ValidTo ?? DateOnly.MaxValue).DayNumber
-                })
-                .Where(x => x.EndDay >= x.StartDay)
-                .OrderBy(x => x.StartDay)
-                .ThenBy(x => x.EndDay)
-                .ToList();
-
-            foreach (var interval in intervals)
-            {
-                if (interval.EndDay < cursorDay)
-                {
-                    continue;
-                }
-
-                if (interval.StartDay > cursorDay)
-                {
-                    return false;
-                }
-
-                if (interval.EndDay >= requiredEndDay)
-                {
-                    return true;
-                }
-
-                if (interval.EndDay >= maxDayNumber)
-                {
-                    return true;
-                }
-
-                cursorDay = interval.EndDay + 1;
-            }
-
-            return false;
-        }
-
-        private static IEnumerable<DayOfWeek> GetDaysInRange(DayOfWeek startDay, DayOfWeek endDay)
-        {
-            var days = new List<DayOfWeek>();
-            var current = startDay;
-
-            while (true)
-            {
-                days.Add(current);
-
-                if (current == endDay)
-                {
-                    break;
-                }
-
-                current = (DayOfWeek)(((int)current + 1) % 7);
-            }
-
-            return days;
-        }
     }
 }
 

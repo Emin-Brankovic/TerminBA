@@ -27,8 +27,9 @@ namespace TerminBA.Services.Service
         private readonly IPhotoService _photoService;
         private readonly IGeocodingService _geocodingService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IPeriodValidatorService _periodValidator;
 
-        public SportCenterService(TerminBaContext context, IMapper mapper, IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService, IPhotoService photoService, IGeocodingService geocodingService, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
+        public SportCenterService(TerminBaContext context, IMapper mapper, IWorkingHoursService workingHoursService, IReportService reportService, IAuthService<SportCenter> authService, IPhotoService photoService, IGeocodingService geocodingService, IHttpContextAccessor httpContextAccessor, IPeriodValidatorService periodValidator) : base(context, mapper)
         {
             _workingHoursService = workingHoursService;
             _reportService = reportService;
@@ -36,6 +37,7 @@ namespace TerminBA.Services.Service
             _photoService = photoService;
             _geocodingService = geocodingService;
             _httpContextAccessor = httpContextAccessor;
+            _periodValidator = periodValidator;
         }
 
         public async Task<AuthResponse?> Login(SportCenterLoginRequest request)
@@ -313,7 +315,7 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(SportCenter entity, SportCenterInsertRequest request)
         {
-            ValidateWorkingHours(request.WorkingHours);
+            await _periodValidator.ValidateWorkingHoursListAsync(request.WorkingHours);
 
             var sameNameCenter = await _context.SportCenters.AnyAsync(sc => sc.Username!.ToLower() == request.Username!.ToLower());
 
@@ -358,7 +360,7 @@ namespace TerminBA.Services.Service
                 }
             }
 
-            ValidateWorkingHours(request.WorkingHours);
+            await _periodValidator.ValidateWorkingHoursListAsync(request.WorkingHours);
 
             if (entity.Username!.ToLower() != request.Username!.ToLower())
             {
@@ -510,85 +512,7 @@ namespace TerminBA.Services.Service
             return Convert.FromBase64String(trimmed);
         }
 
-        private void ValidateWorkingHours(List<WorkingHoursInsertRequest>? workingHours)
-        {
-            if (workingHours == null || !workingHours.Any())
-                return;
-
-            foreach (var wh in workingHours)
-            {
-                if (wh.ValidTo.HasValue && wh.ValidTo.Value < wh.ValidFrom)
-                {
-                    throw new UserException("ValidTo cannot be earlier than ValidFrom.");
-                }
-                if (wh.OpeningHours >= wh.CloseingHours)
-                {
-                    throw new UserException("Opening hours must precede closing hours.");
-                }
-            }
-
-            for (int i = 0; i < workingHours.Count; i++)
-            {
-                for (int j = i + 1; j < workingHours.Count; j++)
-                {
-                    var wh1 = workingHours[i];
-                    var wh2 = workingHours[j];
-
-                    if (AreWorkingHoursConflicting(wh1, wh2))
-                    {
-                        throw new UserException("Overlapping working-hour records are not allowed for the same sport center.");
-                    }
-                }
-            }
-        }
-
-        private bool AreWorkingHoursConflicting(WorkingHoursInsertRequest wh1, WorkingHoursInsertRequest wh2)
-        {
-            var maxValidFrom = wh1.ValidFrom > wh2.ValidFrom ? wh1.ValidFrom : wh2.ValidFrom;
-            var validTo1 = wh1.ValidTo ?? DateOnly.MaxValue;
-            var validTo2 = wh2.ValidTo ?? DateOnly.MaxValue;
-            var minValidTo = validTo1 < validTo2 ? validTo1 : validTo2;
-
-            if (maxValidFrom > minValidTo)
-            {
-                return false;
-            }
-
-            var days1 = GetDaysOfWeek(wh1.StartDay, wh1.EndDay);
-            var days2 = GetDaysOfWeek(wh2.StartDay, wh2.EndDay);
-
-            if (!days1.Intersect(days2).Any())
-            {
-                return false;
-            }
-
-            var maxStart = wh1.OpeningHours > wh2.OpeningHours ? wh1.OpeningHours : wh2.OpeningHours;
-            var minEnd = wh1.CloseingHours < wh2.CloseingHours ? wh1.CloseingHours : wh2.CloseingHours;
-
-            if (maxStart < minEnd)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private HashSet<DayOfWeek> GetDaysOfWeek(DayOfWeek start, DayOfWeek end)
-        {
-            var days = new HashSet<DayOfWeek>();
-            int current = (int)start;
-            int endInt = (int)end;
-            
-            while (true)
-            {
-                days.Add((DayOfWeek)current);
-                if (current == endInt)
-                    break;
-                current = (current + 1) % 7;
-            }
-
-            return days;
-        }
+        // Removed ValidateWorkingHours and helpers
 
         protected override Task BeforeDelete(SportCenter entity)
         {

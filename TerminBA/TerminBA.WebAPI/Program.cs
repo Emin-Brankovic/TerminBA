@@ -44,6 +44,7 @@ builder.Services.AddScoped<ICancelationNotificationService, CancelationNotificat
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped(typeof(IAuthService<>), typeof(AuthService<>));
 builder.Services.AddScoped<IFacilityDynamicPriceService, FacilityDynamicPriceService>();
+builder.Services.AddScoped<IPeriodValidatorService, PeriodValidatorService>();
 builder.Services.AddScoped<BasePostState>();
 builder.Services.AddScoped<DraftPostState>();
 builder.Services.AddScoped<PlayerSearchPostState>();
