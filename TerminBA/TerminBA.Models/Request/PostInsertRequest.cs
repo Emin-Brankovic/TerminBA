@@ -10,7 +10,7 @@ namespace TerminBA.Models.Request
     public class PostInsertRequest
     {
         [Required]
-        public string? SkillLevel { get; set; }
+        public int SkillLevelId { get; set; }
 
         [MaxLength(100)]
         public string? Text { get; set; }

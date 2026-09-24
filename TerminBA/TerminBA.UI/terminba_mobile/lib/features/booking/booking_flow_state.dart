@@ -38,7 +38,7 @@ class BookingFlowState {
   final ReservationResponse? bookingConfirmation;
 
   final bool wantsToCreatePost;
-  final String? postSkillLevel;
+  final int? postSkillLevelId;
   final String? postText;
   final int postPlayersWanted;
 
@@ -65,7 +65,7 @@ class BookingFlowState {
     this.isProcessingPayment = false,
     this.paymentError,
     this.wantsToCreatePost = false,
-    this.postSkillLevel,
+    this.postSkillLevelId,
     this.postText,
     this.postPlayersWanted = 1,
   });
@@ -115,7 +115,7 @@ class BookingFlowState {
     String? paymentError,
     bool clearPaymentError = false,
     bool? wantsToCreatePost,
-    String? postSkillLevel,
+    int? postSkillLevelId,
     String? postText,
     int? postPlayersWanted,
   }) {
@@ -144,7 +144,7 @@ class BookingFlowState {
       isProcessingPayment: isProcessingPayment ?? this.isProcessingPayment,
       paymentError: clearPaymentError ? null : paymentError ?? this.paymentError,
       wantsToCreatePost: wantsToCreatePost ?? this.wantsToCreatePost,
-      postSkillLevel: postSkillLevel ?? this.postSkillLevel,
+      postSkillLevelId: postSkillLevelId ?? this.postSkillLevelId,
       postText: postText ?? this.postText,
       postPlayersWanted: postPlayersWanted ?? this.postPlayersWanted,
     );

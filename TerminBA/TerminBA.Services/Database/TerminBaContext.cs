@@ -30,6 +30,7 @@ namespace TerminBA.Services.Database
         public DbSet<SportCenter> SportCenters { get; set; }
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<WorkingHours> WorkingHours { get; set; }
+        public DbSet<SkillLevel> SkillLevels { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<FacilityReview> FacilityReviews { get; set; }
         public DbSet<UserReview> UserReviews { get; set; }

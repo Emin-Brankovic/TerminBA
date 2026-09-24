@@ -56,7 +56,7 @@ namespace TerminBA.Services.Database
                 .OnDelete(DeleteBehavior.ClientCascade);
 
             modelBuilder.Entity<Post>()
-                .HasIndex(p => p.SkillLevel);
+                .HasIndex(p => p.SkillLevelId);
 
             modelBuilder.Entity<SportCenter>()
                 .HasMany(sc => sc.WorkingHours)

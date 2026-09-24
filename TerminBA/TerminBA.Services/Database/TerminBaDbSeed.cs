@@ -15,6 +15,7 @@ namespace TerminBA.Services.Database
             SeedRoles(modelBuilder);
             SeedCities(modelBuilder);
             SeedSports(modelBuilder);
+            SeedSkillLevels(modelBuilder);
             SeedTurfTypes(modelBuilder);
             SeedAmenities(modelBuilder);
             SeedUsers(modelBuilder);
@@ -67,6 +68,15 @@ namespace TerminBA.Services.Database
                 new Sport { Id = 3, Name = "Tennis"       },
                 new Sport { Id = 4, Name = "Volleyball"   },
                 new Sport { Id = 5, Name = "Handball"     }
+            );
+        }
+
+        private static void SeedSkillLevels(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SkillLevel>().HasData(
+                new SkillLevel { Id = 1, Name = "Beginner" },
+                new SkillLevel { Id = 2, Name = "Medium" },
+                new SkillLevel { Id = 3, Name = "Advanced" }
             );
         }
 
@@ -714,7 +724,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 1,
-            SkillLevel = "Medium",
+            SkillLevelId = 2, // Medium
             NumberOfPlayersWanted = 3,
             NumberOfPlayersFound = 1,
             Text = "Looking for players for a friendly match",
@@ -728,7 +738,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 2,
-            SkillLevel = "Beginner",
+            SkillLevelId = 1, // Beginner
             NumberOfPlayersWanted = 2,
             NumberOfPlayersFound = 0,
             Text = "Need players for basketball game",
@@ -742,7 +752,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 3,
-            SkillLevel = "Advanced",
+            SkillLevelId = 3, // Advanced
             NumberOfPlayersWanted = 1,
             NumberOfPlayersFound = 1,
             Text = "Looking for a tennis partner",
@@ -756,7 +766,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 4,
-            SkillLevel = "Medium",
+            SkillLevelId = 2, // Medium
             NumberOfPlayersWanted = 4,
             NumberOfPlayersFound = 2,
             Text = "Football match - need more players",
@@ -770,7 +780,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 5,
-            SkillLevel = "Medium",
+            SkillLevelId = 2, // Medium
             NumberOfPlayersWanted = 2,
             NumberOfPlayersFound = 0,
             Text = "Volleyball players needed",
@@ -784,7 +794,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         new Post
         {
             Id = 6,
-            SkillLevel = "Beginner",
+            SkillLevelId = 1, // Beginner
             NumberOfPlayersWanted = 5,
             NumberOfPlayersFound = 2,
             Text = "Casual basketball game",
@@ -808,7 +818,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         posts.Add(new Post
         {
             Id = 7 + i,
-            SkillLevel = "Medium",
+            SkillLevelId = 2, // Medium
             NumberOfPlayersWanted = playersWanted,
             NumberOfPlayersFound = playersFound,
             Text = "Looking for players for a friendly match",
@@ -832,7 +842,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         posts.Add(new Post
         {
             Id = 12 + i,
-            SkillLevel = "Medium",
+            SkillLevelId = 2, // Medium
             NumberOfPlayersWanted = playersWanted,
             NumberOfPlayersFound = playersFound,
             Text = "Looking for players for a friendly match",
@@ -859,9 +869,7 @@ private static void SeedPosts(ModelBuilder modelBuilder)
         posts.Add(new Post
         {
             Id = 17 + i,
-            SkillLevel = i == 0
-                ? "Beginner"
-                : "Medium",
+            SkillLevelId = i == 0 ? 1 : 2, // Beginner or Medium
             NumberOfPlayersWanted = playersWanted,
             NumberOfPlayersFound = playersFound,
             Text = i switch

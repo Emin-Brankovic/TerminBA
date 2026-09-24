@@ -107,7 +107,8 @@ namespace TerminBA.Services.Service
                 .Include(ur => ur.Reservation)
                     .ThenInclude(r => r.ChosenSport)
                 .Include(ur => ur.Reservation)
-                    .ThenInclude(r => r.Posts);
+                    .ThenInclude(r => r.Posts)
+                        .ThenInclude(p => p.SkillLevel);
         }
 
         protected override UserReviewResponse MapToResponse(UserReview entity)
@@ -116,7 +117,11 @@ namespace TerminBA.Services.Service
             if (entity.Reservation != null)
             {
                 response.SportName = entity.Reservation.ChosenSport?.Name;
-                response.SkillLevel = entity.Reservation.Posts?.FirstOrDefault()?.SkillLevel;
+                var skillLevel = entity.Reservation.Posts?.FirstOrDefault()?.SkillLevel;
+                if (skillLevel != null) 
+                {
+                    response.SkillLevel = _mapper.Map<SkillLevelResponse>(skillLevel);
+                }
             }
             return response;
         }

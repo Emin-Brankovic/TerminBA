@@ -7,6 +7,8 @@ import 'package:terminba_mobile/model/sport.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 import 'package:terminba_mobile/screens/edit_player_search_post_screen.dart';
 import 'package:terminba_mobile/widgets/filter_chip_bar.dart';
 import 'package:terminba_mobile/widgets/player_search_post_card.dart';
@@ -25,10 +27,11 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
   int? _currentUserId;
 
   int? _selectedSportId;
-  String? _selectedSkillLevel;
+  int? _selectedSkillLevelId;
   DateTime? _selectedDate;
   String _sortDirection = 'desc';
   List<Sport> _sports = [];
+  List<SkillLevel> _skillLevels = [];
 
   @override
   void initState() {
@@ -37,6 +40,19 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
     _pagingController.addPageRequestListener(_fetchPage);
     _loadUserId();
     _loadSports();
+    _loadSkillLevels();
+  }
+
+  Future<void> _loadSkillLevels() async {
+    try {
+      final result =
+          await context.read<SkillLevelProvider>().get();
+      if (mounted) {
+        setState(() {
+          _skillLevels = result.items ?? [];
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -85,7 +101,7 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
       };
 
       if (_selectedSportId != null) filter['SportId'] = _selectedSportId;
-      if (_selectedSkillLevel != null) filter['SkillLevel'] = _selectedSkillLevel;
+      if (_selectedSkillLevelId != null) filter['SkillLevelId'] = _selectedSkillLevelId;
       if (_selectedDate != null) {
         filter['ReservationDate'] = _selectedDate!.toIso8601String().split('T').first;
       }
@@ -204,15 +220,16 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
               Expanded(
                 child: FilterChipBar(
                   sports: _sports,
+                  skillLevels: _skillLevels,
                   selectedSportId: _selectedSportId,
-                  selectedSkillLevel: _selectedSkillLevel,
+                  selectedSkillLevelId: _selectedSkillLevelId,
                   selectedDate: _selectedDate,
                   onSportChanged: (id) {
                     setState(() => _selectedSportId = id);
                     _applyFilters();
                   },
-                  onSkillLevelChanged: (level) {
-                    setState(() => _selectedSkillLevel = level);
+                  onSkillLevelChanged: (id) {
+                    setState(() => _selectedSkillLevelId = id);
                     _applyFilters();
                   },
                   onDateChanged: (date) {

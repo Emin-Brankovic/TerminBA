@@ -133,10 +133,10 @@ class PlayerSearchPostCard extends StatelessWidget {
                               label: sport.name!.toUpperCase(),
                               color: _sportColor,
                             ),
-                          if (post.skillLevel != null)
+                          if (post.skillLevel != null && post.skillLevel!.name != null)
                             _Badge(
-                              label: post.skillLevel!.toUpperCase(),
-                              color: _skillColor(post.skillLevel),
+                              label: post.skillLevel!.name!.toUpperCase(),
+                              color: _skillColor(post.skillLevel!.name!),
                             ),
                         ],
                       ),

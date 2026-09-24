@@ -34,6 +34,7 @@ class ReservationOverviewScreen extends StatefulWidget {
 class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
   bool _isLoading = true;
   bool _isLoadingPlayers = false;
+  bool _localHasActivePost = false;
   ReservationResponse? _details;
   FacilityReview? _review;
   List<UserReview>? _userReviews;
@@ -85,6 +86,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
       if (mounted) {
         setState(() {
           _details = details;
+          _localHasActivePost = details?.hasActivePost ?? false;
           _review = review;
           _userReviews = userReviews;
           _isLoading = false;
@@ -358,20 +360,25 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             OutlinedButton.icon(
-                              onPressed: _details!.hasActivePost == true
+                              onPressed: _localHasActivePost
                                   ? null
-                                  : () {
-                                      Navigator.of(context).push(
+                                  : () async {
+                                      final result = await Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => CreatePlayerSearchPostScreen(
                                             reservation: _details!,
                                           ),
                                         ),
                                       );
+                                      if (result == true && mounted) {
+                                        setState(() {
+                                          _localHasActivePost = true;
+                                        });
+                                      }
                                     },
                               icon: Icon(
                                 Icons.people_outline,
-                                color: _details!.hasActivePost == true
+                                color: _localHasActivePost
                                     ? Colors.grey
                                     : const Color(0xFF00C875),
                               ),
@@ -380,14 +387,14 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: _details!.hasActivePost == true
+                                  color: _localHasActivePost
                                       ? Colors.grey
                                       : const Color(0xFF00C875),
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
                                 side: BorderSide(
-                                  color: _details!.hasActivePost == true
+                                  color: _localHasActivePost
                                       ? Colors.grey
                                       : const Color(0xFF00C875),
                                   width: 1.5,

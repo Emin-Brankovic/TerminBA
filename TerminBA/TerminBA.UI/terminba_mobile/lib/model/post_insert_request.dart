@@ -1,18 +1,18 @@
 class PostInsertRequest {
-  final String skillLevel;
+  final int skillLevelId;
   final String? text;
   final int reservationId;
   final int numberOfPlayersWanted;
 
   const PostInsertRequest({
-    required this.skillLevel,
+    required this.skillLevelId,
     this.text,
     required this.reservationId,
     required this.numberOfPlayersWanted,
   });
 
   Map<String, dynamic> toJson() => {
-        'skillLevel': skillLevel,
+        'skillLevelId': skillLevelId,
         'text': text,
         'reservationId': reservationId,
         'numberOfPlayersWanted': numberOfPlayersWanted,

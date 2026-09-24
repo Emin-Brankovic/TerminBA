@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:provider/provider.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 import 'package:terminba_mobile/features/booking/booking_flow_notifier.dart';
 import 'package:terminba_mobile/screens/reservation/reservation_summary_screen.dart';
 
@@ -14,11 +16,35 @@ class ReservationCreatePostStepScreen extends StatefulWidget {
 
 class _ReservationCreatePostStepScreenState
     extends State<ReservationCreatePostStepScreen> {
-  static const _skillLevels = ['Beginner', 'Medium', 'Advance'];
-
-  String? _selectedSkillLevel;
+  List<SkillLevel> _skillLevels = [];
+  SkillLevel? _selectedSkillLevel;
+  bool _isLoadingSkills = true;
+  
   final TextEditingController _descCtrl = TextEditingController();
   int _playersWanted = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSkillLevels();
+  }
+
+  Future<void> _fetchSkillLevels() async {
+    try {
+      final provider = context.read<SkillLevelProvider>();
+      final res = await provider.get();
+      if (mounted) {
+        setState(() {
+          _skillLevels = List<SkillLevel>.from(res.items ?? []);
+          _isLoadingSkills = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSkills = false);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +67,7 @@ class _ReservationCreatePostStepScreenState
 
     notifier.setPostDetails(
       wantsToCreate: true,
-      skillLevel: _selectedSkillLevel,
+      skillLevelId: _selectedSkillLevel?.id,
       text: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       playersWanted: _playersWanted,
     );
@@ -154,11 +180,13 @@ class _ReservationCreatePostStepScreenState
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
-                  children: _skillLevels.map((level) {
-                    final selected = _selectedSkillLevel == level;
+                  children: _isLoadingSkills
+                      ? [const CircularProgressIndicator()]
+                      : _skillLevels.map((level) {
+                    final selected = _selectedSkillLevel?.id == level.id;
                     return ChoiceChip(
                       showCheckmark: false,
-                      label: Text(level),
+                      label: Text(level.name ?? ''),
                       selected: selected,
                       onSelected: (_) =>
                           setState(() => _selectedSkillLevel = level),

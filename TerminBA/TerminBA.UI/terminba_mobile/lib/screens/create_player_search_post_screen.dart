@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/post_insert_request.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 
 /// Screen for creating a player-search post linked to an existing reservation.
 class CreatePlayerSearchPostScreen extends StatefulWidget {
@@ -20,12 +22,36 @@ class CreatePlayerSearchPostScreen extends StatefulWidget {
 
 class _CreatePlayerSearchPostScreenState
     extends State<CreatePlayerSearchPostScreen> {
-  static const _skillLevels = ['Beginner', 'Medium', 'Advance'];
-
-  String? _selectedSkillLevel;
+  List<SkillLevel> _skillLevels = [];
+  SkillLevel? _selectedSkillLevel;
+  bool _isLoadingSkills = true;
+  
   final TextEditingController _descCtrl = TextEditingController();
   int _playersWanted = 1;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSkillLevels();
+  }
+
+  Future<void> _fetchSkillLevels() async {
+    try {
+      final provider = context.read<SkillLevelProvider>();
+      final res = await provider.get();
+      if (mounted) {
+        setState(() {
+          _skillLevels = List<SkillLevel>.from(res.items ?? []);
+          _isLoadingSkills = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSkills = false);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -60,7 +86,7 @@ class _CreatePlayerSearchPostScreenState
 
     try {
       final req = PostInsertRequest(
-        skillLevel: _selectedSkillLevel!,
+        skillLevelId: _selectedSkillLevel!.id!,
         text: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         reservationId: widget.reservation.id,
         numberOfPlayersWanted: _playersWanted,
@@ -237,10 +263,12 @@ class _CreatePlayerSearchPostScreenState
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
-              children: _skillLevels.map((level) {
-                final selected = _selectedSkillLevel == level;
+              children: _isLoadingSkills
+                  ? [const CircularProgressIndicator()]
+                  : _skillLevels.map((level) {
+                final selected = _selectedSkillLevel?.id == level.id;
                 return ChoiceChip(
-                  label: Text(level),
+                  label: Text(level.name ?? ''),
                   selected: selected,
                   onSelected: (_) =>
                       setState(() => _selectedSkillLevel = level),

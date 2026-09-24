@@ -270,7 +270,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
 
       if (notifier.state.wantsToCreatePost) {
         final req = PostInsertRequest(
-          skillLevel: notifier.state.postSkillLevel!,
+          skillLevelId: notifier.state.postSkillLevelId!,
           text: notifier.state.postText,
           reservationId: notifier.state.bookingConfirmation!.id,
           numberOfPlayersWanted: notifier.state.postPlayersWanted,
@@ -320,7 +320,7 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
     if (state.error == null) {
       if (state.wantsToCreatePost) {
         final req = PostInsertRequest(
-          skillLevel: state.postSkillLevel!,
+          skillLevelId: state.postSkillLevelId!,
           text: state.postText,
           reservationId: state.bookingConfirmation!.id,
           numberOfPlayersWanted: state.postPlayersWanted,

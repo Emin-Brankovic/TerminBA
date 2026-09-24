@@ -6,11 +6,13 @@ import 'package:terminba_admin_desktop/model/city.dart';
 import 'package:terminba_admin_desktop/model/role.dart';
 import 'package:terminba_admin_desktop/model/sport.dart';
 import 'package:terminba_admin_desktop/model/turf_type.dart';
+import 'package:terminba_admin_desktop/model/skill_level.dart';
 import 'package:terminba_admin_desktop/providers/amenity_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_provider.dart';
 import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
+import 'package:terminba_admin_desktop/providers/skill_level_provider.dart';
 import 'package:terminba_admin_desktop/widgets/confirmation_dialog.dart';
 
 class ReferenceDataScreen extends StatefulWidget {
@@ -22,7 +24,7 @@ class ReferenceDataScreen extends StatefulWidget {
 
 class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   int? _selectedIndex = 0; 
-  List<String> categories = ['Turf Type', 'Amenity', 'City', 'Sport', 'Role'];
+  List<String> categories = ['Turf Type', 'Amenity', 'City', 'Sport', 'Role', 'Skill Level'];
   final List<String> data = [];
   late ReferenceDataDataSource<dynamic> _referenceDataDataSource;
   final TextEditingController _searchController = TextEditingController();
@@ -34,6 +36,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   late CityProvider cityProvider;
   late SportProvider sportProvider;
   late RoleProvider roleProvider;
+  late SkillLevelProvider skillLevelProvider;
 
   bool _providersInitialized = false;
 
@@ -45,6 +48,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     cityProvider = context.read<CityProvider>();
     sportProvider = context.read<SportProvider>();
     roleProvider = context.read<RoleProvider>();
+    skillLevelProvider = context.read<SkillLevelProvider>();
     if (!_providersInitialized) {
       _providersInitialized = true;
       _refreshTable();
@@ -150,6 +154,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                     await sportProvider.insert({"name": name});
                   } else if (categories[_selectedIndex!] == 'Role') {
                     await roleProvider.insert({"name": name});
+                  } else if (categories[_selectedIndex!] == 'Skill Level') {
+                    await skillLevelProvider.insert({"name": name});
                   }
 
                   Navigator.pop(ctx);
@@ -217,6 +223,10 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
                 await roleProvider.update(currentItem.id, {
                   "name": controller.text,
                 });
+              } else if (currentItem is SkillLevel) {
+                await skillLevelProvider.update(currentItem.id!, {
+                  "name": controller.text,
+                });
               }
 
               ScaffoldMessenger.of(context).showSnackBar(
@@ -260,6 +270,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       await sportProvider.delete(currentItem.id);
     } else if (currentItem is Role) {
       await roleProvider.delete(currentItem.id);
+    } else if (currentItem is SkillLevel) {
+      await skillLevelProvider.delete(currentItem.id!);
     }
 
     if (mounted) {
@@ -435,6 +447,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       else if (index == 2) filter['cityName'] = search;
       else if (index == 3) filter['sportName'] = search;
       else if (index == 4) filter['roleName'] = search;
+      else if (index == 5) filter['name'] = search;
     }
 
     switch (index) {
@@ -485,6 +498,16 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           result.totalCount ?? 0,
           firstRowIndex,
           (item) => (item as Role).name ?? '',
+          _onEdit,
+          _onDelete,
+        );
+      case 5:
+        var result = await skillLevelProvider.get(filter: filter);
+        return ReferenceDataDataSource<dynamic>(
+          List<dynamic>.from(result.items ?? []),
+          result.totalCount ?? 0,
+          firstRowIndex,
+          (item) => (item as SkillLevel).name ?? '',
           _onEdit,
           _onDelete,
         );

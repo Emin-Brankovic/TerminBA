@@ -19,6 +19,7 @@ import 'package:terminba_mobile/providers/play_request_provider.dart';
 import 'package:terminba_mobile/providers/unified_notification_provider.dart';
 import 'package:terminba_mobile/providers/user_review_provider.dart';
 import 'package:terminba_mobile/providers/recommendation_provider.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -65,6 +66,7 @@ void main() async {
         ChangeNotifierProvider<UnifiedNotificationProvider>(create: (_) => UnifiedNotificationProvider()),
         ChangeNotifierProvider<UserReviewProvider>(create: (_) => UserReviewProvider()),
         ChangeNotifierProvider<RecommendationProvider>(create: (_) => RecommendationProvider()),
+        ChangeNotifierProvider<SkillLevelProvider>(create: (_) => SkillLevelProvider()),
         ChangeNotifierProxyProvider2<PlayRequestProvider, UnifiedNotificationProvider, NotificationProvider>(
           create: (context) => NotificationProvider(
             Provider.of<PlayRequestProvider>(context, listen: false),

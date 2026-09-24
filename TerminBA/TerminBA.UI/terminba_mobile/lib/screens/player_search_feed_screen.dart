@@ -10,6 +10,8 @@ import 'package:terminba_mobile/providers/play_request_provider.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
 import 'package:terminba_mobile/providers/sport_provider.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 import 'package:terminba_mobile/screens/player_search_requests_screen.dart';
 import 'package:terminba_mobile/widgets/filter_chip_bar.dart';
 import 'package:terminba_mobile/widgets/player_search_post_card.dart';
@@ -27,10 +29,11 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
   static const _pageSize = 10;
 
   int? _selectedSportId;
-  String? _selectedSkillLevel;
+  int? _selectedSkillLevelId;
   DateTime? _selectedDate;
 
   List<Sport> _sports = [];
+  List<SkillLevel> _skillLevels = [];
   Map<int, String> _postRequestStatus = {};
 
   late PagingController<int, PostResponse> _pagingController;
@@ -41,7 +44,20 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
     _pagingController = PagingController(firstPageKey: 1);
     _pagingController.addPageRequestListener(_fetchPage);
     _loadSports();
+    _loadSkillLevels();
     _fetchSentRequests();
+  }
+
+  Future<void> _loadSkillLevels() async {
+    try {
+      final result =
+          await context.read<SkillLevelProvider>().get();
+      if (mounted) {
+        setState(() {
+          _skillLevels = result.items ?? [];
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _fetchSentRequests() async {
@@ -102,8 +118,8 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
       };
 
       if (_selectedSportId != null) filter['SportId'] = _selectedSportId;
-      if (_selectedSkillLevel != null) {
-        filter['SkillLevel'] = _selectedSkillLevel;
+      if (_selectedSkillLevelId != null) {
+        filter['SkillLevelId'] = _selectedSkillLevelId;
       }
       if (_selectedDate != null) {
         filter['ReservationDate'] =
@@ -328,15 +344,16 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
           // Filter bar
           FilterChipBar(
             sports: _sports,
+            skillLevels: _skillLevels,
             selectedSportId: _selectedSportId,
-            selectedSkillLevel: _selectedSkillLevel,
+            selectedSkillLevelId: _selectedSkillLevelId,
             selectedDate: _selectedDate,
             onSportChanged: (id) {
               setState(() => _selectedSportId = id);
               _applyFilters();
             },
-            onSkillLevelChanged: (level) {
-              setState(() => _selectedSkillLevel = level);
+            onSkillLevelChanged: (id) {
+              setState(() => _selectedSkillLevelId = id);
               _applyFilters();
             },
             onDateChanged: (date) {

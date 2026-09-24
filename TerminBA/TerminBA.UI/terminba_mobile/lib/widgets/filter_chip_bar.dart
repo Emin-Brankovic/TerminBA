@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
 import 'package:terminba_mobile/model/sport.dart';
 
 /// Horizontally-scrollable filter row for the player search feed.
 class FilterChipBar extends StatelessWidget {
   final List<Sport> sports;
+  final List<SkillLevel> skillLevels;
   final int? selectedSportId;
-  final String? selectedSkillLevel;
+  final int? selectedSkillLevelId;
   final DateTime? selectedDate;
   final ValueChanged<int?> onSportChanged;
-  final ValueChanged<String?> onSkillLevelChanged;
+  final ValueChanged<int?> onSkillLevelChanged;
   final ValueChanged<DateTime?> onDateChanged;
 
   const FilterChipBar({
     super.key,
     required this.sports,
+    required this.skillLevels,
     this.selectedSportId,
-    this.selectedSkillLevel,
+    this.selectedSkillLevelId,
     this.selectedDate,
     required this.onSportChanged,
     required this.onSkillLevelChanged,
     required this.onDateChanged,
   });
 
-  static const _skillLevels = ['Beginner', 'Medium', 'Advance'];
   static const _green = Color(0xFF00C875);
 
   String _formatDate(DateTime d) =>
@@ -86,7 +88,7 @@ class FilterChipBar extends StatelessWidget {
             ),
             ListTile(
               title: const Text('All Levels'),
-              trailing: selectedSkillLevel == null
+              trailing: selectedSkillLevelId == null
                   ? const Icon(Icons.check, color: _green)
                   : null,
               onTap: () {
@@ -94,13 +96,13 @@ class FilterChipBar extends StatelessWidget {
                 Navigator.pop(ctx);
               },
             ),
-            ..._skillLevels.map((level) => ListTile(
-                  title: Text(level),
-                  trailing: selectedSkillLevel == level
+            ...skillLevels.map((level) => ListTile(
+                  title: Text(level.name ?? ''),
+                  trailing: selectedSkillLevelId == level.id
                       ? const Icon(Icons.check, color: _green)
                       : null,
                   onTap: () {
-                    onSkillLevelChanged(level);
+                    onSkillLevelChanged(level.id);
                     Navigator.pop(ctx);
                   },
                 )),
@@ -120,7 +122,11 @@ class FilterChipBar extends StatelessWidget {
             )
             .name
         : 'All Sports';
-    final selectedLevelName = selectedSkillLevel ?? 'All Levels';
+    final selectedLevelName = selectedSkillLevelId != null
+        ? skillLevels
+            .firstWhere((sl) => sl.id == selectedSkillLevelId, orElse: () => SkillLevel()..name = 'All Levels')
+            .name ?? 'All Levels'
+        : 'All Levels';
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -140,9 +146,9 @@ class FilterChipBar extends StatelessWidget {
           // -- Skill level chip --
           _FilterGroupChip(
             label: selectedLevelName,
-            selected: selectedSkillLevel != null,
+            selected: selectedSkillLevelId != null,
             onTap: () => _showSkillLevelSelector(context),
-            onClear: selectedSkillLevel != null
+            onClear: selectedSkillLevelId != null
                 ? () => onSkillLevelChanged(null)
                 : null,
           ),

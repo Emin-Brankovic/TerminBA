@@ -63,8 +63,8 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<Post> ApplyFilter(IQueryable<Post> query, PostSearchObject search)
         {
-            if (!string.IsNullOrEmpty(search.SkillLevel))
-                query = query.Where(p => p.SkillLevel!.ToLower().Contains(search.SkillLevel.ToLower()));
+            if (search.SkillLevelId.HasValue)
+                query = query.Where(p => p.SkillLevelId == search.SkillLevelId);
 
             if (search.SportId.HasValue)
                 query = query
@@ -113,6 +113,7 @@ namespace TerminBA.Services.Service
         public override IQueryable<Post> ApplyIncludes(IQueryable<Post> query)
         {
             query = query
+                .Include(p => p.SkillLevel)
                 .Include(p => p.Reservation)
                     .ThenInclude(r => r.User)        
                 .Include(p => p.Reservation)

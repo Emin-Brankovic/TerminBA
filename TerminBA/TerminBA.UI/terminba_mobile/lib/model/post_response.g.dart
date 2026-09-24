@@ -8,7 +8,10 @@ part of 'post_response.dart';
 
 PostResponse _$PostResponseFromJson(Map<String, dynamic> json) => PostResponse(
   id: (json['id'] as num).toInt(),
-  skillLevel: json['skillLevel'] as String?,
+  skillLevelId: (json['skillLevelId'] as num).toInt(),
+  skillLevel: json['skillLevel'] == null
+      ? null
+      : SkillLevel.fromJson(json['skillLevel'] as Map<String, dynamic>),
   text: json['text'] as String?,
   reservationId: (json['reservationId'] as num).toInt(),
   reservation: json['reservation'] == null
@@ -24,7 +27,8 @@ PostResponse _$PostResponseFromJson(Map<String, dynamic> json) => PostResponse(
 Map<String, dynamic> _$PostResponseToJson(PostResponse instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'skillLevel': instance.skillLevel,
+      'skillLevelId': instance.skillLevelId,
+      'skillLevel': instance.skillLevel?.toJson(),
       'text': instance.text,
       'reservationId': instance.reservationId,
       'reservation': instance.reservation?.toJson(),

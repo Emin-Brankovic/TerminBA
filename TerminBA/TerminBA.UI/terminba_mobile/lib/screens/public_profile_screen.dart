@@ -286,8 +286,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 children: [
                   if (review.sportName != null)
                     _buildSmallBadge(review.sportName!, const Color(0xFF00C875)),
-                  if (review.skillLevel != null)
-                    _buildSmallBadge(review.skillLevel!, Colors.blueGrey),
+                  if (review.skillLevel != null && review.skillLevel!.name != null)
+                    _buildSmallBadge(review.skillLevel!.name!, Colors.blueGrey),
                 ],
               ),
             ]

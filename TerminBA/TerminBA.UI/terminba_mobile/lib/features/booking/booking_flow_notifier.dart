@@ -124,13 +124,13 @@ class BookingFlowNotifier extends ChangeNotifier {
 
   void setPostDetails({
     required bool wantsToCreate,
-    String? skillLevel,
+    int? skillLevelId,
     String? text,
     int playersWanted = 1,
   }) {
     _setState(_state.copyWith(
       wantsToCreatePost: wantsToCreate,
-      postSkillLevel: skillLevel,
+      postSkillLevelId: skillLevelId,
       postText: text,
       postPlayersWanted: playersWanted,
     ));

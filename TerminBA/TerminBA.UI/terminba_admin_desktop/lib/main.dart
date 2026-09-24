@@ -8,6 +8,7 @@ import 'package:terminba_admin_desktop/providers/base_provider.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/report_provider.dart';
 import 'package:terminba_admin_desktop/providers/role_provider.dart';
+import 'package:terminba_admin_desktop/providers/skill_level_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_center_provider.dart';
 import 'package:terminba_admin_desktop/providers/sport_provider.dart';
 import 'package:terminba_admin_desktop/providers/turf_type_provider.dart';
@@ -47,6 +48,7 @@ void main() async {
         ChangeNotifierProvider<CityProvider>(create: (_) => CityProvider()),
         ChangeNotifierProvider<SportProvider>(create: (_) => SportProvider()),
         ChangeNotifierProvider<RoleProvider>(create: (_) => RoleProvider()),
+        ChangeNotifierProvider<SkillLevelProvider>(create: (_) => SkillLevelProvider()),
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
         ChangeNotifierProvider<SportCenterProvider>(create: (_) => SportCenterProvider()),
         ChangeNotifierProvider<ReportProvider>(create: (_) => ReportProvider()),

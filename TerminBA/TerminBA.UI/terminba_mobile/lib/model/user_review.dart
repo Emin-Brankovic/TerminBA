@@ -1,4 +1,5 @@
 import 'package:terminba_mobile/model/user.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -17,7 +18,7 @@ class UserReview {
   User? reviewed;
   int? reservationId;
   String? sportName;
-  String? skillLevel;
+  SkillLevel? skillLevel;
 
   UserReview({
     required this.id,

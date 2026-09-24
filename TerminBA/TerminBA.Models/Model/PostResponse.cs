@@ -11,7 +11,8 @@ namespace TerminBA.Models.Model
     {
         public int Id { get; set; }
 
-        public string? SkillLevel { get; set; }
+        public int SkillLevelId { get; set; }
+        public SkillLevelResponse? SkillLevel { get; set; }
 
         public string? Text { get; set; }
 

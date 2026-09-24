@@ -1,12 +1,14 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:terminba_mobile/model/reservation_response.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
 
 part 'post_response.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PostResponse {
   final int id;
-  final String? skillLevel;
+  final int skillLevelId;
+  final SkillLevel? skillLevel;
   final String? text;
   final int reservationId;
   final ReservationResponse? reservation;
@@ -16,6 +18,7 @@ class PostResponse {
 
   const PostResponse({
     required this.id,
+    required this.skillLevelId,
     this.skillLevel,
     this.text,
     required this.reservationId,

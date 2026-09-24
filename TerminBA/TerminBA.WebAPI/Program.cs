@@ -28,6 +28,7 @@ builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
 builder.Services.AddScoped<ITurfTypeService, TurfTypeService>();
+builder.Services.AddScoped<ISkillLevelService, SkillLevelService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IPostService, PostService>();

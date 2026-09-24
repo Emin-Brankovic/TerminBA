@@ -7,20 +7,11 @@ using System.Threading.Tasks;
 
 namespace TerminBA.Models.Request
 {
-    public class PostUpdateRequest
+    public class SkillLevelUpdateRequest
     {
         [Required]
-        public int SkillLevelId { get; set; }
-
-        [MaxLength(100)]
-        public string? Text { get; set; }
-
-        [Required]
-        public int NumberOfPlayersWanted { get; set; }
-
+        [MaxLength(50)]
+        [MinLength(2)]
+        public string? Name { get; set; }
     }
 }
-
-
-
-

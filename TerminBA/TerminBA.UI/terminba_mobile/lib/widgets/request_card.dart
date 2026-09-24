@@ -246,7 +246,7 @@ class ReceivedRequestCard extends StatelessWidget {
                 if (sport != null)
                   _SmallBadge(label: sport.name!.toUpperCase()),
                 if (post?.skillLevel != null)
-                  _SmallBadge(label: post!.skillLevel!.toUpperCase()),
+                  _SmallBadge(label: post!.skillLevel!.name!.toUpperCase()),
               ],
             ),
 
@@ -440,7 +440,7 @@ class SentRequestCard extends StatelessWidget {
                 if (sport != null)
                   _SmallBadge(label: sport.name!.toUpperCase()),
                 if (post?.skillLevel != null)
-                  _SmallBadge(label: post!.skillLevel!.toUpperCase()),
+                  _SmallBadge(label: post!.skillLevel!.name!.toUpperCase()),
               ],
             ),
 

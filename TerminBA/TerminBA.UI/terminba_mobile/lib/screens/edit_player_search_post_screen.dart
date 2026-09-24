@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/model/post_response.dart';
+import 'package:terminba_mobile/model/skill_level.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/providers/skill_level_provider.dart';
 
 class EditPlayerSearchPostScreen extends StatefulWidget {
   final PostResponse post;
@@ -14,9 +16,10 @@ class EditPlayerSearchPostScreen extends StatefulWidget {
 }
 
 class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen> {
-  static const _skillLevels = ['Beginner', 'Medium', 'Advance'];
-
-  String? _selectedSkillLevel;
+  List<SkillLevel> _skillLevels = [];
+  SkillLevel? _selectedSkillLevel;
+  bool _isLoadingSkills = true;
+  
   late TextEditingController _descCtrl;
   int _playersWanted = 1;
   bool _isSubmitting = false;
@@ -25,12 +28,35 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
   void initState() {
     super.initState();
     // Pre-fill with existing post details
-    _selectedSkillLevel = widget.post.skillLevel?.capitalizeFirstLetter();
-    if (!_skillLevels.contains(_selectedSkillLevel)) {
-      _selectedSkillLevel = null;
-    }
     _descCtrl = TextEditingController(text: widget.post.text ?? '');
-    _playersWanted = widget.post.numberOfPlayersWanted ?? 1;
+    _playersWanted = widget.post.numberOfPlayersWanted; // updated
+
+    _fetchSkillLevels();
+  }
+
+  Future<void> _fetchSkillLevels() async {
+    try {
+      final provider = context.read<SkillLevelProvider>();
+      final res = await provider.get();
+      if (mounted) {
+        setState(() {
+          _skillLevels = List<SkillLevel>.from(res.items ?? []);
+          _isLoadingSkills = false;
+          
+          if (widget.post.skillLevelId != null) {
+            try {
+              _selectedSkillLevel = _skillLevels.firstWhere(
+                (sl) => sl.id == widget.post.skillLevelId
+              );
+            } catch (_) {}
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSkills = false);
+      }
+    }
   }
 
   @override
@@ -53,7 +79,7 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
 
     try {
       final req = {
-        'SkillLevel': _selectedSkillLevel,
+        'SkillLevelId': _selectedSkillLevel!.id,
         'Text': _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         'NumberOfPlayersWanted': _playersWanted,
       };
@@ -129,11 +155,13 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
-              children: _skillLevels.map((level) {
-                final selected = _selectedSkillLevel == level;
+              children: _isLoadingSkills
+                  ? [const CircularProgressIndicator()]
+                  : _skillLevels.map((level) {
+                final selected = _selectedSkillLevel?.id == level.id;
                 return ChoiceChip(
                   showCheckmark: false,
-                  label: Text(level),
+                  label: Text(level.name ?? ''),
                   selected: selected,
                   onSelected: (_) =>
                       setState(() => _selectedSkillLevel = level),
@@ -263,9 +291,3 @@ class _CounterButton extends StatelessWidget {
   }
 }
 
-extension StringExtension on String {
-  String capitalizeFirstLetter() {
-    if (isEmpty) return this;
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
-  }
-}
