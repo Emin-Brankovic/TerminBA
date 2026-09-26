@@ -261,7 +261,7 @@ namespace TerminBA.Services.Service
                 throw new UserException($"Facility with name {request.Name} already exits in your sport center.");
 
 
-            await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
+            await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId, request.Duration);
             ValidatePricingRequest(request.IsDynamicPricing, request.StaticPrice);
             await _periodValidator.ValidateDynamicPricesListInsertAsync(request.IsDynamicPricing, request.SportCenterId, request.DynamicPrices);
 
@@ -285,7 +285,7 @@ namespace TerminBA.Services.Service
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId);
+                await ValidateFacilityRequest(request.SportCenterId, request.Name, request.AvailableSportsIds, request.TurfTypeId, request.Duration);
 
                 if (entity.Name!.ToLower() != request.Name!.ToLower())
                 {
@@ -423,8 +423,36 @@ namespace TerminBA.Services.Service
 
         }
 
-        private async Task ValidateFacilityRequest(int sportCenterId, string name, List<int> availableSportsIds, int turfTypeId)
+        private async Task ValidateFacilityRequest(int sportCenterId, string name, List<int> availableSportsIds, int turfTypeId, TimeSpan duration)
         {
+            if (duration <= TimeSpan.Zero)
+            {
+                throw new UserException("Duration must be greater than zero.");
+            }
+
+            var workingHours = await _context.WorkingHours
+                .Where(wh => wh.SportCenterId == sportCenterId)
+                .ToListAsync();
+
+            if (workingHours.Any())
+            {
+                var maxDuration = workingHours.Max(wh => 
+                {
+                    var opening = wh.OpeningHours.ToTimeSpan();
+                    var closing = wh.CloseingHours.ToTimeSpan();
+                    if (closing <= opening)
+                    {
+                        return closing.Add(TimeSpan.FromHours(24)) - opening;
+                    }
+                    return closing - opening;
+                });
+
+                if (duration > maxDuration)
+                {
+                    throw new UserException($"Duration cannot exceed the maximum working hours duration.");
+                }
+            }
+
             var sportCenter = await _context.SportCenters
                 .Select(sc => new { sc.Id, AvailableSportIds = sc.AvailableSports.Select(s => s.Id).ToList() })
                 .FirstOrDefaultAsync(sc => sc.Id == sportCenterId);

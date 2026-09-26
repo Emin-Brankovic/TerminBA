@@ -30,10 +30,23 @@ namespace TerminBA.Services.PostStateMachine
 
         public async override Task<PostResponse> UpdateAsync(int id,PostUpdateRequest request)
         {
-            var entity = await _context.Posts.FindAsync(id);
+            if (request.NumberOfPlayersWanted < 1)
+            {
+                throw new UserException("Number of players wanted must be at least 1.");
+            }
+
+            var entity = await _context.Posts
+                .Include(p => p.Reservation)
+                    .ThenInclude(r => r.Facility)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (entity == null)
                 throw new UserException("Post was not found");
+
+            if (entity.Reservation?.Facility != null && request.NumberOfPlayersWanted > entity.Reservation.Facility.MaxCapacity)
+            {
+                throw new UserException($"Number of players wanted cannot exceed the facility's maximum capacity ({entity.Reservation.Facility.MaxCapacity}).");
+            }
 
             if (request.NumberOfPlayersWanted < entity.NumberOfPlayersFound)
                 throw new UserException("Cannot decrease wanted players below already accepted players.");

@@ -106,6 +106,8 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
 
   @override
   Widget build(BuildContext context) {
+    final maxCapacity = widget.post.reservation?.facility?.maxCapacity ?? 20;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Post'),
@@ -138,7 +140,7 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
                 const SizedBox(width: 16),
                 _CounterButton(
                   icon: Icons.add,
-                  onTap: _playersWanted < 20
+                  onTap: _playersWanted < maxCapacity
                       ? () => setState(() => _playersWanted++)
                       : null,
                 ),

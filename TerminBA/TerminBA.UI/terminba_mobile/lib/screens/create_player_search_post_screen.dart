@@ -120,6 +120,7 @@ class _CreatePlayerSearchPostScreenState
     final facility = res.facility;
     final sport = res.chosenSport;
     final city = facility?.sportCenter?.city?.name ?? '';
+    final maxCapacity = facility?.maxCapacity ?? 20;
 
     return Scaffold(
       appBar: AppBar(
@@ -246,7 +247,7 @@ class _CreatePlayerSearchPostScreenState
                 const SizedBox(width: 16),
                 _CounterButton(
                   icon: Icons.add,
-                  onTap: _playersWanted < 20
+                  onTap: _playersWanted < maxCapacity
                       ? () => setState(() => _playersWanted++)
                       : null,
                 ),

@@ -12,6 +12,7 @@ import 'package:terminba_sport_center_desktop/model/facility_dynamic_price_inser
 import 'package:terminba_sport_center_desktop/model/facility_insert_request.dart';
 import 'package:terminba_sport_center_desktop/model/facility_photo_response.dart';
 import 'package:terminba_sport_center_desktop/model/sport.dart';
+import 'package:terminba_sport_center_desktop/model/sport_center.dart';
 import 'package:terminba_sport_center_desktop/model/turf_type.dart';
 import 'package:terminba_sport_center_desktop/providers/auth_provider.dart';
 import 'package:terminba_sport_center_desktop/providers/facility_provider.dart';
@@ -50,6 +51,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   bool _isSaving = false;
   late bool _isFormValid = widget.facility != null;
   int? _sportCenterId;
+  SportCenter? _sportCenter;
 
   @override
   void dispose() {
@@ -119,6 +121,7 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
 
       setState(() {
         _sportCenterId = userId;
+        _sportCenter = results[0] as SportCenter?;
         _sports
           ..clear()
           ..addAll((results[0] as dynamic)?.availableSports?.cast<Sport>() ?? <Sport>[]);
@@ -166,6 +169,37 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
         ),
       );
       return;
+    }
+
+    final durationInMinutes = (hours * 60) + minutes;
+    if (_sportCenter != null && _sportCenter!.workingHours.isNotEmpty) {
+      int maxWorkingMinutes = 0;
+      for (var wh in _sportCenter!.workingHours) {
+        final openingParts = wh.openingHours.split(':');
+        final closingParts = wh.closeingHours.split(':');
+        
+        if (openingParts.length >= 2 && closingParts.length >= 2) {
+          final openingMins = (int.tryParse(openingParts[0]) ?? 0) * 60 + (int.tryParse(openingParts[1]) ?? 0);
+          var closingMins = (int.tryParse(closingParts[0]) ?? 0) * 60 + (int.tryParse(closingParts[1]) ?? 0);
+          
+          if (closingMins <= openingMins) {
+            closingMins += 24 * 60;
+          }
+          final diff = closingMins - openingMins;
+          if (diff > maxWorkingMinutes) {
+            maxWorkingMinutes = diff;
+          }
+        }
+      }
+      
+      if (maxWorkingMinutes > 0 && durationInMinutes > maxWorkingMinutes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Duration cannot exceed the maximum working hours duration.'),
+          ),
+        );
+        return;
+      }
     }
 
     if (_sportCenterId == null) {

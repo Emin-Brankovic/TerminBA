@@ -37,11 +37,22 @@ namespace TerminBA.Services.PostStateMachine
 
         private async Task ValidatePostInsertAsync(PostInsertRequest request)
         {
+            if (request.NumberOfPlayersWanted < 1)
+            {
+                throw new UserException("Number of players wanted must be at least 1.");
+            }
+
             var reservation = await _context.Reservations
+                .Include(r => r.Facility)
                 .FirstOrDefaultAsync(r => r.Id == request.ReservationId);
 
             if (reservation == null)
                 throw new UserException("Reservation was not found.");
+
+            if (reservation.Facility != null && request.NumberOfPlayersWanted > reservation.Facility.MaxCapacity)
+            {
+                throw new UserException($"Number of players wanted cannot exceed the facility's maximum capacity ({reservation.Facility.MaxCapacity}).");
+            }
 
             var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
             var currentTime = TimeOnly.FromDateTime(DateTime.UtcNow);
