@@ -85,8 +85,8 @@ namespace TerminBA.Services.Service
                     .Where(fr =>
                     (!string.IsNullOrWhiteSpace(fr.Comment) && fr.Comment.ToLower().Contains(search.FTS.ToLower())) ||
                     (!string.IsNullOrWhiteSpace(fr.User.FirstName) && fr.User.FirstName.ToLower().Contains(search.FTS.ToLower())) ||
-                    (!string.IsNullOrWhiteSpace(fr.User.LastName) && fr.User.FirstName.ToLower().Contains(search.FTS.ToLower())) ||
-                    (!string.IsNullOrWhiteSpace(fr.User.Username) && fr.User.FirstName.ToLower().Contains(search.FTS.ToLower())));
+                    (!string.IsNullOrWhiteSpace(fr.User.LastName) && fr.User.LastName.ToLower().Contains(search.FTS.ToLower())) ||
+                    (!string.IsNullOrWhiteSpace(fr.User.Username) && fr.User.Username.ToLower().Contains(search.FTS.ToLower())));
 
 
             return query;

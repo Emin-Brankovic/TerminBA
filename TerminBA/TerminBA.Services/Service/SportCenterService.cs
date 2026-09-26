@@ -304,11 +304,14 @@ namespace TerminBA.Services.Service
                 bookedReservations.Select(ts => ts.ToTimeSpan())
             );
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var now = TimeHelper.GetFacilityNow();
+            var today = DateOnly.FromDateTime(now);
+            var currentTime = now.TimeOfDay;
 
             return allSlots.Any(t =>
                 !occupiedStartTimes.Contains(t.Start)
                 && pickedDate >= today
+                && (pickedDate != today || t.Start > currentTime)
             );
         }
 
