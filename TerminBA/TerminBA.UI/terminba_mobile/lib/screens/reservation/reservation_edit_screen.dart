@@ -355,36 +355,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
       return;
     }
 
-    if (_selectedFacilityId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a facility.')),
-      );
-      return;
-    }
-
-    if (_selectedSportId == null && _availableSports.isNotEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a sport.')));
-      return;
-    }
-
-    if (_availableTimeSlots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No time slots are available for selected date.'),
-        ),
-      );
-      return;
-    }
-
-    if (_startTime == null || _endTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a time slot.')),
-      );
-      return;
-    }
-
     final parsedPrice = double.parse(
       _priceController.text.replaceAll(',', '.'),
     );
@@ -566,52 +536,83 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Time slots',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            if (_availableTimeSlots.isEmpty)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: const Color(0xFFF3F4F6),
-                                ),
-                                child: const Text(
-                                  'No time slots found for this date.',
-                                ),
-                              )
-                            else
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _availableTimeSlots
-                                    .map(
-                                      (slot) => ChoiceChip(
-                                        label: Text(_formatSlotLabel(slot)),
-                                        selected: _isSlotSelected(slot),
-                                        onSelected: slot.isFree
-                                            ? (_) {
-                                                setState(() {
-                                                  _startTime = _parseTimeOfDay(
-                                                    slot.startTime,
-                                                  );
-                                                  _endTime = _parseTimeOfDay(
-                                                    slot.endTime,
-                                                  );
-                                                });
-                                                _updateDynamicPrice();
-                                              }
-                                            : null,
+                            FormBuilderField<String>(
+                              name: 'timeSlot',
+                              validator: (value) {
+                                if (_availableTimeSlots.isEmpty) {
+                                  return 'No time slots are available for selected date.';
+                                }
+                                if (_startTime == null || _endTime == null) {
+                                  return 'Please select a time slot.';
+                                }
+                                return null;
+                              },
+                              builder: (FormFieldState<String> field) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Time slots',
+                                        style: Theme.of(context).textTheme.titleMedium,
                                       ),
-                                    )
-                                    .toList(),
-                              ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (_availableTimeSlots.isEmpty)
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          color: const Color(0xFFF3F4F6),
+                                        ),
+                                        child: const Text(
+                                          'No time slots found for this date.',
+                                        ),
+                                      )
+                                    else
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _availableTimeSlots
+                                            .map(
+                                              (slot) => ChoiceChip(
+                                                label: Text(_formatSlotLabel(slot)),
+                                                selected: _isSlotSelected(slot),
+                                                onSelected: slot.isFree
+                                                    ? (_) {
+                                                        setState(() {
+                                                          _startTime = _parseTimeOfDay(
+                                                            slot.startTime,
+                                                          );
+                                                          _endTime = _parseTimeOfDay(
+                                                            slot.endTime,
+                                                          );
+                                                        });
+                                                        field.didChange(_formatSlotLabel(slot));
+                                                        _updateDynamicPrice();
+                                                      }
+                                                    : null,
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    if (field.hasError)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8, left: 12),
+                                        child: Text(
+                                          field.errorText!,
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.error,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
                             const SizedBox(height: 16),
                             FormBuilderTextField(
                               name: 'price',

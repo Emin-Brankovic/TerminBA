@@ -195,14 +195,6 @@ class _SportCenterEditScreenState extends State<SportCenterEditScreen> {
     if (!(_formKey.currentState?.saveAndValidate() ?? false)) {
       return;
     }
-
-    if (_workingHoursList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one working hours entry.')),
-      );
-      return;
-    }
-
     final values = _formKey.currentState!.value;
 
     final workingHours = _workingHoursList

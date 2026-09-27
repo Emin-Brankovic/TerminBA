@@ -22,6 +22,7 @@ class _ReservationCreatePostStepScreenState
   
   final TextEditingController _descCtrl = TextEditingController();
   int _playersWanted = 1;
+  bool _showSkillError = false;
 
   @override
   void initState() {
@@ -59,9 +60,9 @@ class _ReservationCreatePostStepScreenState
 
   void _onNext(BookingFlowNotifier notifier) {
     if (_selectedSkillLevel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a skill level or skip.')),
-      );
+      setState(() {
+        _showSkillError = true;
+      });
       return;
     }
 
@@ -189,7 +190,10 @@ class _ReservationCreatePostStepScreenState
                       label: Text(level.name ?? ''),
                       selected: selected,
                       onSelected: (_) =>
-                          setState(() => _selectedSkillLevel = level),
+                          setState(() {
+                            _selectedSkillLevel = level;
+                            _showSkillError = false;
+                          }),
                       selectedColor: const Color(0xFF00C875),
                       labelStyle: TextStyle(
                         color: selected ? Colors.white : Colors.black87,
@@ -207,6 +211,17 @@ class _ReservationCreatePostStepScreenState
                     );
                   }).toList(),
                 ),
+                if (_showSkillError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 4),
+                    child: Text(
+                      'Please select a skill level or skip.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
 
                 const SizedBox(height: 24),
 

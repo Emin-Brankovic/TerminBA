@@ -7,6 +7,7 @@ import 'package:terminba_admin_desktop/model/user.dart';
 import 'package:terminba_admin_desktop/providers/city_provider.dart';
 import 'package:terminba_admin_desktop/providers/user_provider.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:intl/intl.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -117,7 +118,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
                     columns: const [
-                      DataColumn(label: Text("Id")),
                       DataColumn(label: Text("First Name")),
                       DataColumn(label: Text("Last Name")),
                       DataColumn(label: Text("Username")),
@@ -132,17 +132,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     rows: _users.map((user) {
                       return DataRow(
                         cells: [
-                          DataCell(Text(user.id.toString())),
                           DataCell(Text(user.firstName)),
                           DataCell(Text(user.lastName)),
                           DataCell(Text(user.username)),
                           DataCell(Text(user.email)),
                           DataCell(Text(user.phoneNumber)),
                           DataCell(Text(user.instagramAccount ?? 'Not provided')),
-                          DataCell(Text(user.birthDate.toLocal().toString().split(' ')[0])),
+                          DataCell(Text(DateFormat('yyyy-MM-dd').format(user.birthDate.toLocal()))),
                           DataCell(Text(user.city?.name ?? '')),
-                          DataCell(Text(user.createdAt?.toLocal().toString().split(' ')[0] ?? '')),
-                          DataCell(Text(user.updatedAt?.toLocal().toString().split(' ')[0] ?? '')),
+                          DataCell(Text(user.createdAt != null ? DateFormat('yyyy-MM-dd').format(user.createdAt!.toLocal()) : '')),
+                          DataCell(Text(user.updatedAt != null ? DateFormat('yyyy-MM-dd').format(user.updatedAt!.toLocal()) : '')),
                         ],
                       );
                     }).toList(),

@@ -49,6 +49,9 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
   bool _prefilled = false;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _showDurationError = false;
+  String _durationErrorText = '';
+  bool _showDynamicPricesError = false;
   late bool _isFormValid = widget.facility != null;
   int? _sportCenterId;
   SportCenter? _sportCenter;
@@ -163,13 +166,16 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     final minutes = int.tryParse(_minutesController.text.trim()) ?? 0;
 
     if (hours < 0 || minutes < 0 || minutes > 59 || (hours == 0 && minutes == 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter a valid duration (minutes must be 0-59).'),
-        ),
-      );
+      setState(() {
+        _showDurationError = true;
+        _durationErrorText = 'Enter a valid duration (minutes must be 0-59, total > 0).';
+      });
       return;
     }
+    
+    setState(() {
+      _showDurationError = false;
+    });
 
     final durationInMinutes = (hours * 60) + minutes;
     if (_sportCenter != null && _sportCenter!.workingHours.isNotEmpty) {
@@ -193,11 +199,10 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
       }
       
       if (maxWorkingMinutes > 0 && durationInMinutes > maxWorkingMinutes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Duration cannot exceed the maximum working hours duration.'),
-          ),
-        );
+        setState(() {
+          _showDurationError = true;
+          _durationErrorText = 'Duration cannot exceed the maximum working hours duration.';
+        });
         return;
       }
     }
@@ -215,13 +220,15 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
     final bool isDynamicPricing = values['isDynamicPricing'] as bool? ?? false;
 
     if (isDynamicPricing && _dynamicPrices.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Add at least one dynamic price rule.'),
-        ),
-      );
+      setState(() {
+        _showDynamicPricesError = true;
+      });
       return;
     }
+    
+    setState(() {
+      _showDynamicPricesError = false;
+    });
 
     setState(() => _isSaving = true);
 
@@ -788,6 +795,17 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
               fontSize: 12,
             ),
           ),
+        if (_showDynamicPricesError && _dynamicPrices.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Add at least one dynamic price rule.',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 12,
+              ),
+            ),
+          ),
         const SizedBox(height: 8),
         ..._dynamicPrices.asMap().entries.map((entry) {
           final index = entry.key;
@@ -1119,6 +1137,17 @@ class _FacilityInsertScreenState extends State<FacilityInsertScreen> {
                                       ),
                                     ],
                                   ),
+                                  if (_showDurationError)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        _durationErrorText,
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.error,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),

@@ -29,6 +29,7 @@ class _CreatePlayerSearchPostScreenState
   final TextEditingController _descCtrl = TextEditingController();
   int _playersWanted = 1;
   bool _isSubmitting = false;
+  bool _showSkillError = false;
 
   @override
   void initState() {
@@ -76,9 +77,9 @@ class _CreatePlayerSearchPostScreenState
 
   Future<void> _submit() async {
     if (_selectedSkillLevel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a skill level.')),
-      );
+      setState(() {
+        _showSkillError = true;
+      });
       return;
     }
 
@@ -272,7 +273,10 @@ class _CreatePlayerSearchPostScreenState
                   label: Text(level.name ?? ''),
                   selected: selected,
                   onSelected: (_) =>
-                      setState(() => _selectedSkillLevel = level),
+                      setState(() {
+                        _selectedSkillLevel = level;
+                        _showSkillError = false;
+                      }),
                   selectedColor: const Color(0xFF00C875),
                   labelStyle: TextStyle(
                     color: selected ? Colors.white : Colors.black87,
@@ -290,6 +294,17 @@ class _CreatePlayerSearchPostScreenState
                 );
               }).toList(),
             ),
+            if (_showSkillError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 4),
+                child: Text(
+                  'Please select a skill level.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
 
             const SizedBox(height: 24),
 

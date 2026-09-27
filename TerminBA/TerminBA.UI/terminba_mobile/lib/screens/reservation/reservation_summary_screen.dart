@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:terminba_mobile/model/payment_method.dart';
 import 'package:terminba_mobile/model/post_insert_request.dart';
 import 'package:terminba_mobile/providers/post_provider.dart';
+import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 
 class ReservationSummaryScreen extends StatefulWidget {
   const ReservationSummaryScreen({super.key});
@@ -184,6 +185,14 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
       );
       return;
     }
+
+    final bool confirm = await ConfirmationDialog.show(
+      context,
+      title: 'Confirm Reservation',
+      message: 'Are you sure you want to proceed with this reservation?',
+    );
+
+    if (!confirm) return;
 
     final state = notifier.state;
 

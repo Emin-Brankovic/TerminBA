@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:terminba_sport_center_desktop/helpers/currency_helper.dart';
 import 'package:terminba_sport_center_desktop/helpers/date_helper.dart';
 import 'package:terminba_sport_center_desktop/layouts/master_screen.dart';
@@ -696,8 +697,9 @@ class _ReservationsOverviewScreenState
                   IconButton(
                     onPressed: () {
                       String auditInfo = '';
+                      final df = DateFormat('dd.MM.yyyy HH:mm:ss');
                       if (isCanceled) {
-                        if (row.canceledAt != null) auditInfo += 'Canceled At: ${row.canceledAt!.toLocal().toString().split('.')[0]}\n';
+                        if (row.canceledAt != null) auditInfo += 'Canceled At: ${df.format(row.canceledAt!.toLocal())}\n';
                         
                         if (row.cancellationReason != null && row.cancellationReason!.isNotEmpty) {
                           auditInfo += 'Reason: ${row.cancellationReason}\n';
@@ -705,7 +707,7 @@ class _ReservationsOverviewScreenState
                           auditInfo += 'Reason: Not provided\n';
                         }
                       } else if (isCompleted) {
-                        if (row.completedAt != null) auditInfo += 'Completed At: ${row.completedAt!.toLocal().toString().split('.')[0]}\n';
+                        if (row.completedAt != null) auditInfo += 'Completed At: ${df.format(row.completedAt!.toLocal())}\n';
                       }
 
                       showDialog(
