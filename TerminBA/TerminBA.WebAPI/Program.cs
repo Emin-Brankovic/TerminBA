@@ -180,11 +180,35 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("DevelopmentPolicy", policy =>
     {
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
+    });
+
+    options.AddPolicy("ProductionPolicy", policy =>
+    {
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        if (origins == null || origins.Length == 0)
+        {
+            throw new InvalidOperationException("CORS allowed origins are missing or empty in configuration.");
+        }
+
+        var methods = builder.Configuration.GetSection("Cors:AllowedMethods").Get<string[]>() ?? Array.Empty<string>();
+        var headers = builder.Configuration.GetSection("Cors:AllowedHeaders").Get<string[]>() ?? Array.Empty<string>();
+
+        policy.WithOrigins(origins);
+
+        if (methods.Length > 0)
+        {
+            policy.WithMethods(methods);
+        }
+
+        if (headers.Length > 0)
+        {
+            policy.WithHeaders(headers);
+        }
     });
 });
 
@@ -202,9 +226,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("DevelopmentPolicy");
 }
-
-app.UseCors("AllowAll");
+else
+{
+    app.UseCors("ProductionPolicy");
+}
 
 app.UseAuthentication();
 
