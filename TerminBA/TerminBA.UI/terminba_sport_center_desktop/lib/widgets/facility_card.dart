@@ -52,7 +52,7 @@ class _FacilityCardState extends State<FacilityCard> {
           children: [
 
             SizedBox(
-              height: 150,
+              height: 120,
               width: double.infinity,
               child: _buildPhoto(),
             ),
@@ -62,45 +62,76 @@ class _FacilityCardState extends State<FacilityCard> {
                 child: SizedBox(
                   width: double.infinity,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0 ,horizontal: 16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.facility.name ?? '',
-                          style: TextStyle(
-                            fontSize: 20,
+                          style: const TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 12),
-                        _buildDetailRow(
-                          'Surface Type:',
-                          widget.facility.turfType?.name ?? '',
+                        Row(
+                          children: [
+                            _buildIconDetail(Icons.timer_outlined, '${widget.facility.durationHms} h'),
+                            _buildIconDetail(Icons.groups_outlined, '${widget.facility.maxCapacity} max'),
+                          ],
                         ),
-                        _buildDetailRow('Duration:', widget.facility.durationHms + ' h'),
-                        _buildDetailRow(
-                          'Indoor:',
-                          widget.facility.isIndoor ? 'Yes' : 'No',
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildIconDetail(Icons.grass_outlined, widget.facility.turfType?.name ?? ''),
+                            _buildIconDetail(
+                              widget.facility.isIndoor ? Icons.roofing_outlined : Icons.wb_sunny_outlined,
+                              widget.facility.isIndoor ? 'Indoor' : 'Outdoor',
+                            ),
+                          ],
                         ),
-                        _buildDetailRow(
-                          'Max players on court:',
-                          widget.facility.maxCapacity.toString(),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: widget.facility.availableSports.map((s) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.blue.shade100),
+                              ),
+                              child: Text(
+                                s.name ?? '',
+                                style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.w500),
+                              ),
+                            );
+                          }).toList(),
                         ),
-                        _buildDetailRow(
-                          'Available Sports:',
-                          widget.facility.availableSports
-                              .map((s) => s.name ?? '')
-                              .join(', '),
-                        ),
-
+                        const SizedBox(height: 16),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
                         if (widget.facility.isDynamicPricing)
-                          ..._buildDynamicPrices(widget.facility.dynamicPrices)
+                          _buildDynamicPrices(widget.facility.dynamicPrices)
                         else
-                           _buildDetailRow(
-                             'Price:',
-                             widget.facility.staticPrice.toString() + ' KM',
-                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Text('Price', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
+                              Text(
+                                '${widget.facility.staticPrice?.toStringAsFixed(2)} KM',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 75, 204, 103),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
@@ -189,49 +220,62 @@ class _FacilityCardState extends State<FacilityCard> {
     return true;
   }
 
-  List<Widget> _buildDynamicPrices(List<FacilityDynamicPrice> prices) {
+  Widget _buildDynamicPrices(List<FacilityDynamicPrice> prices) {
     final activePrices = prices.where(_isActiveToday).toList();
-    if (activePrices.isEmpty) return [];
+    if (activePrices.isEmpty) return const SizedBox.shrink();
 
-    return [
-      const Text(
-        'Price:',
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
-      const SizedBox(height: 2),
-      ...activePrices.map(
-        (dp) => Padding(
-          padding: const EdgeInsets.only(bottom: 2),
-          child: Text(
-            '${_dayName(dp.startDay)} – ${_dayName(dp.endDay)}: '
-            '${_timeStr(dp.startTime)} – ${_timeStr(dp.endTime)} '
-            '(${dp.price.toStringAsFixed(2)} KM)',
-            style: const TextStyle(fontSize: 13, color: Colors.black87),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Active Prices',
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
-    ];
+        const SizedBox(height: 6),
+        ...activePrices.map(
+          (dp) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${_dayName(dp.startDay)}–${_dayName(dp.endDay)}: ${_timeStr(dp.startTime)}–${_timeStr(dp.endTime)}',
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  ),
+                ),
+                const SizedBox(width: 17),
+                Text(
+                  '${dp.price.toStringAsFixed(2)} KM',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color:Color.fromARGB(255, 75, 204, 103)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  // Helper method to create the info lines
-  Widget _buildDetailRow(String label, [String value = '']) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
-          children: [
-            TextSpan(
-              text: '$label ',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+  Widget _buildIconDetail(IconData icon, String text) {
+    return Expanded(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade600),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade800),
+              overflow: TextOverflow.ellipsis,
             ),
-            TextSpan(text: value),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -442,16 +442,6 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
       );
     }
 
-    var screenWidth = MediaQuery.of(context).size.width;
-    int itemCount;
-    if (screenWidth < 1000) {
-      itemCount = 2;
-    } else if (screenWidth < 1400) {
-      itemCount = 3;
-    } else {
-      itemCount = 4;
-    }
-
     return Expanded(
       child: Column(
         children: [
@@ -460,10 +450,10 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: GridView.builder(
                 padding: const EdgeInsets.only(bottom: 14),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: itemCount,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 16,
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 420,
+                  mainAxisExtent: 483,
+                  crossAxisSpacing: 10,
                   mainAxisSpacing: 16,
                 ),
                 itemCount: _facilities.length,
