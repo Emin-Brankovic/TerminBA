@@ -233,7 +233,7 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: itemCount,
-                childAspectRatio: 0.8,
+                mainAxisExtent: 480,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
