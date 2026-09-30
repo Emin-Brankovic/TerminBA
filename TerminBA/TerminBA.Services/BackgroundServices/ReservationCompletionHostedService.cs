@@ -13,6 +13,7 @@ using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Helpers;
 using TerminBA.Services.PlayRequestStateMachine;
 using TerminBA.Services.PostStateMachine;
+using TerminBA.Services.Interfaces;
 
 namespace TerminBA.Services.BackgroundServices
 {
@@ -54,34 +55,87 @@ namespace TerminBA.Services.BackgroundServices
                 var timeNow = TimeOnly.FromDateTime(now);
 
 
-                var reservationsQuery = context.Reservations
+                // Process Started Reservations (Expire Play Requests & Finish Posts)
+                var startedReservationsQuery = context.Reservations
                     .Where(r => r.Status == nameof(ActiveReservationState)
                         && (r.ReservationDate < today
                             || (r.ReservationDate == today && r.StartTime <= timeNow)));
 
-                var reservationIdsToComplete = await reservationsQuery.Select(r => r.Id).ToListAsync(ct);
+                var startedReservationIds = await startedReservationsQuery.Select(r => r.Id).ToListAsync(ct);
 
-                if (reservationIdsToComplete.Any())
+                if (startedReservationIds.Any())
                 {
-                    await context.PlayRequests
-                        .Where(pr => pr.PlayRequestState == nameof(PendingPlayRequestState) && pr.Post != null && reservationIdsToComplete.Contains(pr.Post.ReservationId))
+                    var notificationsHub = scope.ServiceProvider.GetService<INotificationsHubService>();
+                    
+                    var requestsToExpire = await context.PlayRequests
+                        .Where(pr => pr.PlayRequestState == nameof(PendingPlayRequestState) && pr.Post != null && startedReservationIds.Contains(pr.Post.ReservationId))
+                        .Select(pr => new 
+                        {
+                            pr.Id,
+                            pr.PostId,
+                            pr.RequesterId,
+                            PostOwnerId = pr.Post!.Reservation!.UserId,
+                            PostOwnerFirstName = pr.Post.Reservation.User!.FirstName,
+                            PostOwnerLastName = pr.Post.Reservation.User.LastName
+                        })
+                        .ToListAsync(ct);
+
+                    var expiredRequestsCount = await context.PlayRequests
+                        .Where(pr => pr.PlayRequestState == nameof(PendingPlayRequestState) && pr.Post != null && startedReservationIds.Contains(pr.Post.ReservationId))
                         .ExecuteUpdateAsync(setters => setters
                             .SetProperty(pr => pr.PlayRequestState, nameof(ExpiredPlayRequestState))
                             .SetProperty(pr => pr.Reason, "The reservation began before the post owner evaluated your request.")
                             .SetProperty(pr => pr.DateOfResponse, DateTime.UtcNow), ct);
 
-                    await context.Posts
-                        .Where(p => reservationIdsToComplete.Contains(p.ReservationId))
+                    var finishedPostsCount = await context.Posts
+                        .Where(p => p.PostState != nameof(FinishedPostState) && startedReservationIds.Contains(p.ReservationId))
                         .ExecuteUpdateAsync(setters => setters
                             .SetProperty(p => p.PostState, nameof(FinishedPostState)), ct);
 
+                    if (expiredRequestsCount > 0 || finishedPostsCount > 0)
+                    {
+                        _logger.LogInformation("Transitioned {PostCount} posts and {RequestCount} requests for started reservations.", finishedPostsCount, expiredRequestsCount);
+                    }
+
+                    if (notificationsHub != null && requestsToExpire.Any())
+                    {
+                        var nowStr = DateTime.UtcNow.ToString("o");
+                        foreach (var req in requestsToExpire)
+                        {
+                            var ownerName = req.PostOwnerId != null ? $"{req.PostOwnerFirstName} {req.PostOwnerLastName}" : "A user";
+                            var payload = new
+                            {
+                                type = "join_request_responded",
+                                requestId = req.Id,
+                                postId = req.PostId,
+                                isAccepted = false,
+                                reason = "The reservation began before the post owner evaluated your request.",
+                                fromUserId = req.PostOwnerId,
+                                fromUserDisplayName = ownerName,
+                                respondedAt = nowStr
+                            };
+                            await notificationsHub.SendJoinRequestRespondedNotificationAsync(req.RequesterId, payload);
+                        }
+                    }
+                }
+
+                // Process Ended Reservations (Complete Reservations)
+                var endedReservationsQuery = context.Reservations
+                    .Where(r => r.Status == nameof(ActiveReservationState)
+                        && (r.ReservationDate < today
+                            || (r.ReservationDate == today && r.EndTime <= timeNow)));
+
+                var endedReservationIds = await endedReservationsQuery.Select(r => r.Id).ToListAsync(ct);
+
+                if (endedReservationIds.Any())
+                {
                     var updated = await context.Reservations
-                        .Where(r => reservationIdsToComplete.Contains(r.Id))
+                        .Where(r => endedReservationIds.Contains(r.Id))
                         .ExecuteUpdateAsync(setters => setters
                             .SetProperty(r => r.Status, nameof(CompletedReservationState))
-                            .SetProperty(r=>r.CompletedAt,DateTime.UtcNow), ct);
+                            .SetProperty(r => r.CompletedAt, DateTime.UtcNow), ct);
 
-                    _logger.LogInformation("Auto-completed {Count} reservations, and transitioned related posts and requests.", updated);
+                    _logger.LogInformation("Auto-completed {Count} reservations.", updated);
                 }
             }
             catch (Exception ex)

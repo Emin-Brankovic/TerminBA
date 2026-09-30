@@ -13,6 +13,8 @@ using TerminBA.Models.Request;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PlayRequestStateMachine;
+using TerminBA.Services.Helpers;
+
 namespace TerminBA.Services.PostStateMachine
 {
     public class PlayerSearchPostState : BasePostState
@@ -122,6 +124,19 @@ namespace TerminBA.Services.PostStateMachine
             var post = await _context.Posts
                 .Include(p=>p.Reservation)
                 .FirstOrDefaultAsync(p=>request.PostId==p.Id);
+
+            if (post?.Reservation != null)
+            {
+                var now = TimeHelper.GetFacilityNow();
+                var today = DateOnly.FromDateTime(now);
+                var timeNow = TimeOnly.FromDateTime(now);
+
+                if (post.Reservation.ReservationDate < today ||
+                    (post.Reservation.ReservationDate == today && post.Reservation.StartTime <= timeNow))
+                {
+                    throw new UserException("You cannot send a request because the reservation has already started.");
+                }
+            }
 
             if (post?.Reservation?.UserId == requesterId)
                 throw new UserException("You cannot send a request to your own post.");

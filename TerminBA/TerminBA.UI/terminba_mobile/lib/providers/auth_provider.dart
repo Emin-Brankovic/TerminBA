@@ -137,9 +137,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoggedIn = false;
     _currentUsername = null;
     notifyListeners();
-    navigatorKey.currentState?.pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+    navigatorKey.currentState?.popUntil((route) => route.isFirst);
   }
 
   Future<void> changePassword(

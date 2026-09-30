@@ -329,7 +329,7 @@ class SentRequestCard extends StatelessWidget {
         ? '${postOwner.firstName} ${postOwner.lastName}'
         : 'Unknown';
 
-    final bool isUnseen = request.isSeenByRequester == false && request.isAccepted != null;
+    final bool isUnseen = request.isSeenByRequester == false && request.playRequestState != 'PendingPlayRequestState';
 
     return Card(
       color: isUnseen ? Colors.blue.shade50 : Colors.white,
@@ -377,7 +377,7 @@ class SentRequestCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.end,
                   spacing: 4.0,
                   children: [
-                    if (request.isSeenByRequester == false && request.isAccepted != null)
+                    if (request.isSeenByRequester == false && request.playRequestState != 'PendingPlayRequestState')
                       _StatusChip(
                         label: 'New',
                         color: Colors.blue.shade600,

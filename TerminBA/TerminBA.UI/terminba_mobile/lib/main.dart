@@ -41,10 +41,6 @@ void main() async {
 
   BaseProvider.onUnauthorized = () async {
     await authProvider.logout();
-    navigatorKey.currentState?.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
   };
 
   runApp(
