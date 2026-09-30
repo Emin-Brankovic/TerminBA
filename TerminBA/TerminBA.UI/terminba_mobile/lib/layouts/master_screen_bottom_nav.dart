@@ -40,6 +40,8 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 	late StreamSubscription _notificationSubscription;
 	late StreamSubscription _respondedSubscription;
 	late StreamSubscription _cancelledSubscription;
+	late StreamSubscription _reservationCanceledSubscription;
+	late StreamSubscription _reservationUpdatedSubscription;
 
 	@override
 	void initState() {
@@ -66,6 +68,14 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 				notificationProvider.incrementUnseenCancelationCount(); 
 			});
 
+			_reservationCanceledSubscription = NotificationService().onReservationCanceled.listen((payload) {
+				notificationProvider.incrementUnseenCancelationCount(); 
+			});
+
+			_reservationUpdatedSubscription = NotificationService().onReservationUpdated.listen((payload) {
+				notificationProvider.incrementUnseenCancelationCount(); 
+			});
+
 		});
 	}
 
@@ -77,6 +87,8 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 		_notificationSubscription.cancel();
 		_respondedSubscription.cancel();
 		_cancelledSubscription.cancel();
+		_reservationCanceledSubscription.cancel();
+		_reservationUpdatedSubscription.cancel();
 		NotificationService().stop();
 		super.dispose();
 	}

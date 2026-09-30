@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:terminba_mobile/widgets/confirmation_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -6,6 +8,7 @@ import 'package:terminba_mobile/model/notification_response.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/providers/unified_notification_provider.dart';
 import 'package:terminba_mobile/providers/notification_provider.dart';
+import 'package:terminba_mobile/providers/notification_service.dart';
 import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -23,11 +26,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   final PagingController<int, NotificationResponse> _pagingController =
       PagingController(firstPageKey: 1);
 
+  late StreamSubscription _reservationCanceledSubscription;
+  late StreamSubscription _reservationUpdatedSubscription;
+  late StreamSubscription _joinRequestCancelledSubscription;
+
   @override
   void initState() {
     super.initState();
     _pagingController.addPageRequestListener((pageKey) {
       _fetchPage(pageKey);
+    });
+
+    _reservationCanceledSubscription = NotificationService().onReservationCanceled.listen((_) {
+      if (mounted) _pagingController.refresh();
+    });
+    _reservationUpdatedSubscription = NotificationService().onReservationUpdated.listen((_) {
+      if (mounted) _pagingController.refresh();
+    });
+    _joinRequestCancelledSubscription = NotificationService().onJoinRequestCancelled.listen((_) {
+      if (mounted) _pagingController.refresh();
     });
   }
 
@@ -149,6 +166,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   void dispose() {
+    _reservationCanceledSubscription.cancel();
+    _reservationUpdatedSubscription.cancel();
+    _joinRequestCancelledSubscription.cancel();
     _pagingController.dispose();
     super.dispose();
   }

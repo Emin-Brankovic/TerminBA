@@ -28,6 +28,10 @@ class NotificationService {
   final _reservationCanceledController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get onReservationCanceled => _reservationCanceledController.stream;
 
+  final _reservationUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get onReservationUpdated => _reservationUpdatedController.stream;
+
+
   Future<void> init() async {
     await stop();
 
@@ -85,6 +89,18 @@ class NotificationService {
         }
       }
     });
+
+    _hubConnection?.on('reservation_updated', (arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        final payload = arguments.first;
+        if (payload is Map<String, dynamic>) {
+          _reservationUpdatedController.add(payload);
+        } else if (payload is Map) {
+          _reservationUpdatedController.add(Map<String, dynamic>.from(payload));
+        }
+      }
+    });
+
 
     try {
       await _hubConnection?.start();

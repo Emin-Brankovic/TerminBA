@@ -72,7 +72,7 @@ void main() async {
             Provider.of<PlayRequestProvider>(context, listen: false),
             Provider.of<UnifiedNotificationProvider>(context, listen: false),
           ),
-          update: (context, playRequestProvider, unifiedProvider, previous) => NotificationProvider(playRequestProvider, unifiedProvider),
+          update: (context, playRequestProvider, unifiedProvider, previous) => previous ?? NotificationProvider(playRequestProvider, unifiedProvider),
         ),
       ],
       child: const MyApp(),

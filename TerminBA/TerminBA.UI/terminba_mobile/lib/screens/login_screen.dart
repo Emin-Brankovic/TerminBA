@@ -46,12 +46,7 @@ class _LoginPageState extends State<LoginPage> {
 			await authProvider.login(username, password, roleId);
 
 			if (!mounted) return;
-			Navigator.pushReplacement(
-				context,
-				MaterialPageRoute(
-					builder: (context) => const MasterScreenBottomNav(),
-				),
-			);
+
 		} on Exception catch (e) {
 			if (!mounted) return;
 			var message = e.toString();
