@@ -21,9 +21,12 @@ class ReservationResponse {
   int? chosenSportId;
   Sport? chosenSport;
   bool? isPaid;
+  String? paymentMethod;
   DateTime? cancellationDeadline;
   String? cancellationReason;
   DateTime? canceledAt;
+  int? canceledByUserId;
+  int? canceledBySportCenterId;
   DateTime? completedAt;
 
   ReservationResponse({
@@ -40,9 +43,12 @@ class ReservationResponse {
     this.chosenSportId,
     this.chosenSport,
     this.isPaid,
+    this.paymentMethod,
     this.cancellationDeadline,
     this.cancellationReason,
     this.canceledAt,
+    this.canceledByUserId,
+    this.canceledBySportCenterId,
     this.completedAt,
   });
 

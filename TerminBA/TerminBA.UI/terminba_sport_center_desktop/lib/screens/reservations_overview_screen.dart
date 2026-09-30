@@ -36,6 +36,7 @@ class _ReservationsOverviewScreenState
   static const int _statusFlex = 2;
   static const int _slotFlex = 2;
   static const int _priceFlex = 2;
+  static const int _paymentFlex = 2;
   static const int _pageSize = 10;
 
   bool _initialized = false;
@@ -268,8 +269,11 @@ class _ReservationsOverviewScreenState
       slot:
           '${_toHourMinute(reservation.startTime)} - ${_toHourMinute(reservation.endTime)}',
       price: reservation.price,
+      paymentMethod: _formatPaymentMethod(reservation.paymentMethod),
       cancellationReason: reservation.cancellationReason,
       canceledAt: reservation.canceledAt,
+      canceledByUserId: reservation.canceledByUserId,
+      canceledBySportCenterId: reservation.canceledBySportCenterId,
       completedAt: reservation.completedAt,
     );
   }
@@ -285,6 +289,13 @@ class _ReservationsOverviewScreenState
       return 'Canceled';
     }
     return status.split('Reservation')[0];
+  }
+
+  String _formatPaymentMethod(String? method) {
+    if (method == null || method.trim().isEmpty) return 'N/A';
+    if (method.toLowerCase() == 'stripe') return 'Online';
+    if (method.toLowerCase() == 'onsite') return 'On site';
+    return method;
   }
 
   String _toDateOnly(DateTime date) {
@@ -585,6 +596,7 @@ class _ReservationsOverviewScreenState
         _buildHeaderCell('Sport', _chosenSportFlex, headerStyle),
         _buildHeaderCell('Slot', _slotFlex, headerStyle),
         _buildHeaderCell('Price', _priceFlex, headerStyle),
+        _buildHeaderCell('Payment', _paymentFlex, headerStyle),
         _buildHeaderCell('Booked on', _bookedOnFlex, headerStyle),
         _buildHeaderCell('Status', _statusFlex, headerStyle),
         const SizedBox(width: 100),
@@ -632,6 +644,7 @@ class _ReservationsOverviewScreenState
             _priceFlex,
             rowTextStyle,
           ),
+          _buildDataCell(row.paymentMethod, _paymentFlex, rowTextStyle),
           _buildDataCell(row.bookedOn, _bookedOnFlex, rowTextStyle),
           _buildDataCell(row.status, _statusFlex, rowTextStyle),
           SizedBox(
@@ -700,6 +713,12 @@ class _ReservationsOverviewScreenState
                       final df = DateFormat('dd.MM.yyyy HH:mm:ss');
                       if (isCanceled) {
                         if (row.canceledAt != null) auditInfo += 'Canceled At: ${df.format(row.canceledAt!.toLocal())}\n';
+                        
+                        if (row.canceledByUserId != null) {
+                          auditInfo += 'Canceled By: User\n';
+                        } else if (row.canceledBySportCenterId != null) {
+                          auditInfo += 'Canceled By: Sport Center\n';
+                        }
                         
                         if (row.cancellationReason != null && row.cancellationReason!.isNotEmpty) {
                           auditInfo += 'Reason: ${row.cancellationReason}\n';
@@ -783,8 +802,11 @@ class _ReservationRowData {
   final String status;
   final String slot;
   final double price;
+  final String paymentMethod;
   final String? cancellationReason;
   final DateTime? canceledAt;
+  final int? canceledByUserId;
+  final int? canceledBySportCenterId;
   final DateTime? completedAt;
 
   const _ReservationRowData({
@@ -797,8 +819,11 @@ class _ReservationRowData {
     required this.status,
     required this.slot,
     required this.price,
+    required this.paymentMethod,
     this.cancellationReason,
     this.canceledAt,
+    this.canceledByUserId,
+    this.canceledBySportCenterId,
     this.completedAt,
   });
 }

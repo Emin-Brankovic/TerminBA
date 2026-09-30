@@ -20,10 +20,13 @@ class ReservationResponse {
   final int? chosenSportId;
   final Sport? chosenSport;
   final bool? isPaid;
+  final String? paymentMethod;
   final bool? hasActivePost;
   final DateTime? cancellationDeadline;
   final String? cancellationReason;
   final DateTime? canceledAt;
+  final int? canceledByUserId;
+  final int? canceledBySportCenterId;
   final DateTime? completedAt;
 
   const ReservationResponse({
@@ -40,10 +43,13 @@ class ReservationResponse {
     this.chosenSportId,
     this.chosenSport,
     this.isPaid,
+    this.paymentMethod,
     this.hasActivePost,
     this.cancellationDeadline,
     this.cancellationReason,
     this.canceledAt,
+    this.canceledByUserId,
+    this.canceledBySportCenterId,
     this.completedAt,
   });
 

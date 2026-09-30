@@ -60,6 +60,14 @@ namespace TerminBA.Services.Database
         public DateTime? CanceledAt { get; set; }
         public DateTime? CompletedAt { get; set; }
 
+        [ForeignKey(nameof(CanceledByUser))]
+        public int? CanceledByUserId { get; set; }
+        public User? CanceledByUser { get; set; }
+
+        [ForeignKey(nameof(CanceledBySportCenter))]
+        public int? CanceledBySportCenterId { get; set; }
+        public SportCenter? CanceledBySportCenter { get; set; }
+
 
 
         [MaxLength(500)]

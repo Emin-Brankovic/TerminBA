@@ -359,11 +359,25 @@ namespace TerminBA.Services.ReservationStateMachine
                 entity.CanceledAt = DateTime.UtcNow;
                 entity.CancellationReason = reason;
 
-                await _context.SaveChangesAsync();
-
                 var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
                 var currentUser = authService?.GetCurrentUser();
                 bool isSportCenter = currentUser != null && currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
+
+                var userIdStr = authService?.GetUserId();
+                if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
+                {
+                    if (isSportCenter)
+                    {
+                        entity.CanceledBySportCenterId = userId;
+                    }
+                    else
+                    {
+                        entity.CanceledByUserId = userId;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
                 var notificationHubService = _serviceProvider.GetService<TerminBA.Services.Interfaces.INotificationsHubService>();
 
                 if (isSportCenter && notificationHubService != null && entity.UserId.HasValue)

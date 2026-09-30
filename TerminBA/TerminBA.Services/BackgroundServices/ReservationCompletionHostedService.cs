@@ -73,7 +73,7 @@ namespace TerminBA.Services.BackgroundServices
                         {
                             pr.Id,
                             pr.PostId,
-                            pr.RequesterId,
+                            pr.RequesterId, 
                             PostOwnerId = pr.Post!.Reservation!.UserId,
                             PostOwnerFirstName = pr.Post.Reservation.User!.FirstName,
                             PostOwnerLastName = pr.Post.Reservation.User.LastName

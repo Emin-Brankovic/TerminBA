@@ -81,6 +81,18 @@ namespace TerminBA.Services.Database
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.ClientCascade);
 
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.CanceledByUser)
+                .WithMany()
+                .HasForeignKey(r => r.CanceledByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r => r.CanceledBySportCenter)
+                .WithMany()
+                .HasForeignKey(r => r.CanceledBySportCenterId)
+                .OnDelete(DeleteBehavior.NoAction);
+
 
 
             modelBuilder.Entity<Facility>()

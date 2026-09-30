@@ -38,11 +38,15 @@ namespace TerminBA.Models.Model
 
         public bool HasActivePost { get; set; }
 
+        public string? PaymentMethod { get; set; }
+
         public DateTime? CancellationDeadline { get; set; }
 
         public string? CancellationReason { get; set; }
 
         public DateTime? CanceledAt { get; set; }
+        public int? CanceledByUserId { get; set; }
+        public int? CanceledBySportCenterId { get; set; }
 
         public DateTime? CompletedAt { get; set; }
     }
