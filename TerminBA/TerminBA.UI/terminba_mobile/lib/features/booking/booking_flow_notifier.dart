@@ -240,14 +240,21 @@ class BookingFlowNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> cancelPendingReservation() async {
+  Future<void> cancelPendingReservation(BuildContext context) async {
     final reservationId = _state.bookingConfirmation?.id;
     if (reservationId == null) return;
 
     try {
       await _reservationProvider.delete(reservationId);
       _setState(_state.copyWith(bookingConfirmation: null));
-    } catch (e) {
+    } on Exception catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to cancel pending reservation: ${_messageFrom(e)}'),
+          backgroundColor: const Color(0xFFE53935),
+        ),
+      );
     }
   }
 

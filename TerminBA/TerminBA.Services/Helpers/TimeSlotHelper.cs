@@ -21,7 +21,7 @@ namespace TerminBA.Services.Helpers
                 .FirstOrDefaultAsync(f => f.Id == facilityId);
 
             if (facility == null)
-                throw new Exception("Facility was not found");
+                throw new UserException("Facility was not found");
 
             var reservationDayOfWeek = pickedDate.DayOfWeek;
             var workingHours = facility.SportCenter.WorkingHours.ToList();

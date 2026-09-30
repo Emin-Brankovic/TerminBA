@@ -105,6 +105,7 @@ class NotificationService {
     try {
       await _hubConnection?.start();
     } catch (e) {
+      print('SignalR connection failed: $e');
     }
   }
 

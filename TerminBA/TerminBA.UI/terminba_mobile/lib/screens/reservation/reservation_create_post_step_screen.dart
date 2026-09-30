@@ -97,7 +97,8 @@ class _ReservationCreatePostStepScreenState
     );
 
     if (result == true) {
-      await notifier.cancelPendingReservation();
+      if (!context.mounted) return false;
+      await notifier.cancelPendingReservation(context);
       return true;
     }
     return false;

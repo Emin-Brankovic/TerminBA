@@ -286,7 +286,16 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         );
         try {
           await context.read<PostProvider>().insert(req.toJson());
-        } catch (_) {}
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to create post. Please try again.'),
+              backgroundColor: Color(0xFFE53935),
+            ),
+          );
+          return;
+        }
       }
 
       Navigator.of(context).pushReplacement(
@@ -336,7 +345,16 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         );
         try {
           await context.read<PostProvider>().insert(req.toJson());
-        } catch (_) {}
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to create post. Please try again.'),
+              backgroundColor: Color(0xFFE53935),
+            ),
+          );
+          return;
+        }
       }
 
       Navigator.of(context).pushReplacement(

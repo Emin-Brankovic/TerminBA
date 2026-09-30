@@ -27,29 +27,15 @@ namespace TerminBA.WebAPI.Controllers
         public async Task<ActionResult<PaymentIntentResponse>> CreatePaymentIntent(
             [FromBody] PaymentIntentRequest request)
         {
-            try
-            {
-                var result = await _stripePaymentService.CreatePaymentIntentAsync(request);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var result = await _stripePaymentService.CreatePaymentIntentAsync(request);
+            return Ok(result);
         }
 
         [HttpPost("confirm/{paymentIntentId}")]
         public async Task<IActionResult> ConfirmPaymentIntent(string paymentIntentId)
         {
-            try
-            {
-                var status = await _stripePaymentService.ConfirmPaymentAsync(paymentIntentId);
-                return Ok(new { status = status });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            var status = await _stripePaymentService.ConfirmPaymentAsync(paymentIntentId);
+            return Ok(new { status = status });
         }
     }
 }
