@@ -1696,7 +1696,7 @@ namespace TerminBA.Services.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -4510,9 +4510,7 @@ namespace TerminBA.Services.Migrations
 
                     b.HasOne("TerminBA.Services.Database.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Reservation");
 

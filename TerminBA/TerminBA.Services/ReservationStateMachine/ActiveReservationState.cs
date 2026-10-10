@@ -424,6 +424,11 @@ namespace TerminBA.Services.ReservationStateMachine
                         .Where(pr => pr.PostId == post.Id && pr.PlayRequestState == nameof(AcceptedPlayRequestState))
                         .ToListAsync();
 
+                    foreach (var ar in acceptedRequests)
+                    {
+                        ar.PlayRequestState = nameof(CanceledPlayRequestState);
+                        ar.Reason = "The reservation was canceled.";
+                    }
 
                     if (notificationHubService != null && acceptedRequests.Any())
                     {

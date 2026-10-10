@@ -426,7 +426,7 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: widget.reservation.user?.username ?? 'N/A',
+                                          text: widget.reservation.user?.username ?? 'Deleted User',
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Color(0xFF111827),

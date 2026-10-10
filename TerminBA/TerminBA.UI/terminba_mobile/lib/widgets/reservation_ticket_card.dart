@@ -49,9 +49,9 @@ class ReservationTicketCard extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                _buildRow('Name', '${details.user?.firstName ?? ''} ${details.user?.lastName ?? ''}'.trim()),
-                _buildDivider(),
-                _buildRow('Mobile', details.user?.phoneNumber ?? ''),
+              _buildRow('Name', details.user != null ? '${details.user?.firstName ?? ''} ${details.user?.lastName ?? ''}'.trim() : 'Deleted User'),
+              _buildDivider(),
+                _buildRow('Mobile', details.user?.phoneNumber ?? 'N/A'),
                 _buildDivider(),
                 _buildRow('Sport', details.chosenSport?.name ?? ''),
                 _buildDivider(),

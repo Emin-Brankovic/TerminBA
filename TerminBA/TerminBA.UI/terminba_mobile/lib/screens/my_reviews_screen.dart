@@ -474,7 +474,7 @@ class _UserReviewCard extends StatelessWidget {
     final reviewed = review.reviewed;
     final name = reviewed != null
         ? '${reviewed.firstName} ${reviewed.lastName}'.trim()
-        : 'Unknown Player';
+        : 'Deleted User';
     final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
     final dateLabel = DateFormat('d.M.yyyy.').format(review.ratingDate);
 

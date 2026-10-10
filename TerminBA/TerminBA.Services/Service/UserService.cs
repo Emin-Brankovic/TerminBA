@@ -14,6 +14,7 @@ using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PlayRequestStateMachine;
 using TerminBA.Services.PostStateMachine;
+using TerminBA.Services.ReservationStateMachine;
 
 namespace TerminBA.Services.Service
 {
@@ -85,45 +86,126 @@ namespace TerminBA.Services.Service
         {
             var currentUser = _authService.GetCurrentUser();
             var currentUserIdStr = currentUser["userId"];
+            var currentUserRole = currentUser.ContainsKey("userRole") ? currentUser["userRole"] : null;
 
-            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+            if (currentUserRole != "Administrator")
             {
-                throw new UserException("You are not authorized to update this profile.");
+                if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+                {
+                    throw new UserException("You are not authorized to update this profile.");
+                }
             }
 
             if (entity.Email!.ToLower()!=request.Email!.ToLower())
             {
                 if(await _context.Users.AnyAsync(u=>u.Email!.ToLower() == request.Email.ToLower()))
                  throw new UserException("Email is already taken");
-
             }
-
 
             if (entity.Username!.ToLower() != request.Username!.ToLower())
             {
                 if (await _context.Users.AnyAsync(u => u.Username!.ToLower() == request.Username.ToLower()))
                     throw new UserException("Username is already taken");
-
             }
 
+            entity.UpdatedAt = DateTime.UtcNow;
         }
 
         protected override async Task BeforeDelete(User entity)
         {
             var currentUser = _authService.GetCurrentUser();
             var currentUserIdStr = currentUser["userId"];
+            var currentUserRole = currentUser.ContainsKey("userRole") ? currentUser["userRole"] : null;
 
-            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+            if (currentUserRole != "Administrator")
             {
-                throw new UserException("You are not authorized to delete this profile.");
+                if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId != entity.Id)
+                {
+                    throw new UserException("You are not authorized to delete this profile.");
+                }
+            }
+            else
+            {
+                var activeReservationStates = new[] { nameof(ActiveReservationState), nameof(PendingReservationState) };
+                if (await _context.Reservations.AnyAsync(r => r.UserId == entity.Id && activeReservationStates.Contains(r.Status)))
+                    throw new UserException("Cannot delete user because they have active reservations.");
+
+                if (await _context.PlayRequests.AnyAsync(pr => 
+                    pr.RequesterId == entity.Id && 
+                    (pr.PlayRequestState == nameof(PendingPlayRequestState) || 
+                    (pr.PlayRequestState == nameof(AcceptedPlayRequestState) && pr.Post!.Reservation!.Status != nameof(CompletedReservationState)))))
+                {
+                    throw new UserException("Cannot delete user because they have active play requests.");
+                }
+                    
+                var activePostStates = new[] { nameof(PlayerSearchPostState), nameof(PlayerFoundPostState), nameof(DraftPostState) };
+                if (await _context.Posts.AnyAsync(p => p.Reservation!.UserId == entity.Id && activePostStates.Contains(p.PostState)))
+                    throw new UserException("Cannot delete user because they have active posts.");
             }
 
-            var recievedRewies=await _context.UserReviews
-                .Where(ur=>ur.ReviewedId==entity.Id)
-                .ToListAsync();
+            // Cleanup dependent records
+            // 1. PlayRequests: Delete
+            var playRequests = await _context.PlayRequests.Where(pr => pr.RequesterId == entity.Id).ToListAsync();
+            if (playRequests.Any())
+                _context.RemoveRange(playRequests);
 
-            if(recievedRewies.Any())
-                _context.RemoveRange(recievedRewies);
+            var respondedRequests = await _context.PlayRequests.Where(pr => pr.RespondedById == entity.Id).ToListAsync();
+            foreach (var pr in respondedRequests) pr.RespondedById = null;
+
+            var canceledRequests = await _context.PlayRequests.Where(pr => pr.CanceledById == entity.Id).ToListAsync();
+            foreach (var pr in canceledRequests) pr.CanceledById = null;
+
+            // 2. Reservations: Persist (nullify UserId)
+            var reservations = await _context.Reservations.Where(r => r.UserId == entity.Id).ToListAsync();
+            foreach (var r in reservations)
+            {
+                r.UserId = null;
+            }
+
+            // 3. Payments: Persist (nullify UserId)
+            var payments = await _context.Payments.Where(p => p.UserId == entity.Id).ToListAsync();
+            foreach(var p in payments)
+            {
+                p.UserId = null;
+            }
+
+            // 4. RecommendationEvents: Delete
+            var recEvents = await _context.RecommendationEvents.Where(re => re.UserId == entity.Id).ToListAsync();
+            if (recEvents.Any())
+                _context.RemoveRange(recEvents);
+
+            // 5. UserReviews (Received): Delete
+            var recievedReviews = await _context.UserReviews.Where(ur => ur.ReviewedId == entity.Id).ToListAsync();
+            if (recievedReviews.Any())
+                _context.RemoveRange(recievedReviews);
+
+            // 6. UserReviews (Given): Persist (nullify ReviewerId)
+            var givenReviews = await _context.UserReviews.Where(ur => ur.ReviewerId == entity.Id).ToListAsync();
+            foreach(var gr in givenReviews)
+            {
+                gr.ReviewerId = null;
+            }
+
+            // 7. FacilityReviews (Given): Persist (nullify UserId)
+            var facilityReviews = await _context.FacilityReviews.Where(fr => fr.UserId == entity.Id).ToListAsync();
+            foreach(var fr in facilityReviews)
+            {
+                fr.UserId = null;
+            }
+
+            // 8. FavoriteSportCenters: Delete
+            var favorites = await _context.FavoriteSportCenters.Where(fsc => fsc.UserId == entity.Id).ToListAsync();
+            if (favorites.Any())
+                _context.RemoveRange(favorites);
+
+            // 9. Notifications: Delete
+            var cancelNotifications = await _context.CancelationNotifications.Where(cn => cn.PostOwnerId == entity.Id).ToListAsync();
+            if (cancelNotifications.Any())
+                _context.RemoveRange(cancelNotifications);
+
+            var updateNotifications = await _context.UpdateNotifications.Where(un => un.PostOwnerId == entity.Id).ToListAsync();
+            if (updateNotifications.Any())
+                _context.RemoveRange(updateNotifications);
         }
 
         public override IQueryable<User> ApplyIncludes(IQueryable<User> query)
@@ -172,6 +254,7 @@ namespace TerminBA.Services.Service
         {
             await _authService.ChangePassword(request);
         }
+
     }
 }
 

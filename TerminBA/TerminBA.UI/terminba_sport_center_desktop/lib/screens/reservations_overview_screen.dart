@@ -262,7 +262,7 @@ class _ReservationsOverviewScreenState
       reservationId: reservation.id,
       reservationNo: reservation.id.toString(),
       courtPitch: reservation.facility?.name ?? 'N/A',
-      bookedBy: reservation.user?.username ?? 'N/A',
+      bookedBy: reservation.user?.username ?? 'Deleted User',
       bookedOn: DateHelper.toLocalDateStatic(reservation.reservationDate),
       chosenSport: reservation.chosenSport?.name ?? 'N/A',
       status: _formatStatus(reservation.status),

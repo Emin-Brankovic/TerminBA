@@ -256,7 +256,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        review.reviewer?.firstName ?? 'Unknown',
+                        review.reviewer?.firstName ?? 'Deleted User',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       Text(

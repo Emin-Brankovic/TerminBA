@@ -170,7 +170,7 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final name = review.user?.username ?? 'Anonymous';
+    final name = review.user?.username ?? 'Deleted User';
     final facilityName = review.facility?.name ?? 'Unknown Facility';
     final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
     final date = review.ratingDate;
