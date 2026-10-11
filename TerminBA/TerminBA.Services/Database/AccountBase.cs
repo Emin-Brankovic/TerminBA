@@ -41,5 +41,8 @@ namespace TerminBA.Services.Database
         [Required]
         public int CityId { get; set; }
         public City? City { get; set; }
+
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiresAt { get; set; }
     }
 }

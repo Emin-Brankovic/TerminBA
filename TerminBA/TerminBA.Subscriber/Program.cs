@@ -56,7 +56,14 @@ await bus.PubSub.SubscribeAsync<EmailMessage>("email_sender", async msg =>
 
             if (msg.RecipientEmail != null && msg.MessageBody != null)
             {
-                 await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody);
+                 if (!string.IsNullOrEmpty(msg.Subject))
+                 {
+                     await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody, msg.Subject);
+                 }
+                 else
+                 {
+                     await emailService.SendEmailAsync(msg.RecipientEmail, msg.MessageBody);
+                 }
             }
 
             logger.LogInformation("Email sent to: {RecipientEmail}", msg.RecipientEmail);

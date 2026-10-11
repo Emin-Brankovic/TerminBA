@@ -17,5 +17,7 @@ namespace TerminBA.Services.Interfaces
         public Task<int> GetMyPlayedMatches();
         public Task Logout();
         public Task ChangePassword(ChangePasswordRequest request);
+        public Task<string> RequestPasswordReset(PasswordResetRequest request);
+        public Task ConfirmPasswordReset(ConfirmPasswordResetRequest request);
     }
 }

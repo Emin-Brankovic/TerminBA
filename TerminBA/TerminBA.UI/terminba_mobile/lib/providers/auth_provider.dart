@@ -176,4 +176,72 @@ class AuthProvider extends ChangeNotifier {
       throw Exception(errorMessage);
     }
   }
+
+  String _extractError(http.Response response, String fallbackMessage) {
+    if (response.body.isEmpty) return fallbackMessage;
+    try {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        if (body.containsKey('errors') && body['errors'] is Map) {
+          final errorsMap = body['errors'] as Map;
+          if (errorsMap.containsKey('userError')) {
+            final userErrors = errorsMap['userError'];
+            if (userErrors is List && userErrors.isNotEmpty) {
+              return userErrors.first.toString();
+            }
+          }
+          for (final val in errorsMap.values) {
+            if (val is List && val.isNotEmpty) {
+              return val.first.toString();
+            }
+            if (val is String && val.isNotEmpty) {
+              return val;
+            }
+          }
+        }
+        if (body.containsKey('message') && body['message'] is String) {
+          return body['message'] as String;
+        }
+      } else if (body is String) {
+        return body;
+      }
+    } catch (_) {}
+    return fallbackMessage;
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/User/requestPasswordReset'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode != 200) {
+      final errorMessage = _extractError(response, 'Failed to request password reset');
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<void> confirmPasswordReset(
+    String email,
+    String token,
+    String newPassword,
+    String confirmNewPassword,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/User/confirmPasswordReset'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'token': token,
+        'newPassword': newPassword,
+        'confirmNewPassword': confirmNewPassword,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final errorMessage = _extractError(response, 'Failed to reset password');
+      throw Exception(errorMessage);
+    }
+  }
 }

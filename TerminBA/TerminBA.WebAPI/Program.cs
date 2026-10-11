@@ -59,7 +59,7 @@ builder.Services.AddScoped<PendingReservationState>();
 builder.Services.AddScoped<CanceledWithRefundReservationState>();
 builder.Services.AddScoped<CanceledWithoutRefundReservationState>();
 
-builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IReportService,ReportService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddHttpContextAccessor();

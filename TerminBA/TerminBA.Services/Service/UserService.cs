@@ -15,16 +15,20 @@ using TerminBA.Services.Interfaces;
 using TerminBA.Services.PlayRequestStateMachine;
 using TerminBA.Services.PostStateMachine;
 using TerminBA.Services.ReservationStateMachine;
+using EasyNetQ;
+using System.Security.Cryptography;
 
 namespace TerminBA.Services.Service
 {
     public class UserService : BaseCRUDService<UserResponse, User, UserSearchObject, UserInsertRequest, UserUpdateRequest>, IUserService
     {
         private readonly IAuthService<User> _authService;
+        private readonly IBus _bus;
 
-        public UserService(TerminBaContext context, IMapper mapper,IAuthService<User> authService) : base(context, mapper)
+        public UserService(TerminBaContext context, IMapper mapper, IAuthService<User> authService, IBus bus) : base(context, mapper)
         {
             this._authService = authService;
+            this._bus = bus;
         }
 
         public override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
@@ -143,8 +147,6 @@ namespace TerminBA.Services.Service
                     throw new UserException("Cannot delete user because they have active posts.");
             }
 
-            // Cleanup dependent records
-            // 1. PlayRequests: Delete
             var playRequests = await _context.PlayRequests.Where(pr => pr.RequesterId == entity.Id).ToListAsync();
             if (playRequests.Any())
                 _context.RemoveRange(playRequests);
@@ -155,50 +157,42 @@ namespace TerminBA.Services.Service
             var canceledRequests = await _context.PlayRequests.Where(pr => pr.CanceledById == entity.Id).ToListAsync();
             foreach (var pr in canceledRequests) pr.CanceledById = null;
 
-            // 2. Reservations: Persist (nullify UserId)
             var reservations = await _context.Reservations.Where(r => r.UserId == entity.Id).ToListAsync();
             foreach (var r in reservations)
             {
                 r.UserId = null;
             }
 
-            // 3. Payments: Persist (nullify UserId)
             var payments = await _context.Payments.Where(p => p.UserId == entity.Id).ToListAsync();
             foreach(var p in payments)
             {
                 p.UserId = null;
             }
 
-            // 4. RecommendationEvents: Delete
             var recEvents = await _context.RecommendationEvents.Where(re => re.UserId == entity.Id).ToListAsync();
             if (recEvents.Any())
                 _context.RemoveRange(recEvents);
 
-            // 5. UserReviews (Received): Delete
             var recievedReviews = await _context.UserReviews.Where(ur => ur.ReviewedId == entity.Id).ToListAsync();
             if (recievedReviews.Any())
                 _context.RemoveRange(recievedReviews);
 
-            // 6. UserReviews (Given): Persist (nullify ReviewerId)
             var givenReviews = await _context.UserReviews.Where(ur => ur.ReviewerId == entity.Id).ToListAsync();
             foreach(var gr in givenReviews)
             {
                 gr.ReviewerId = null;
             }
 
-            // 7. FacilityReviews (Given): Persist (nullify UserId)
             var facilityReviews = await _context.FacilityReviews.Where(fr => fr.UserId == entity.Id).ToListAsync();
             foreach(var fr in facilityReviews)
             {
                 fr.UserId = null;
             }
 
-            // 8. FavoriteSportCenters: Delete
             var favorites = await _context.FavoriteSportCenters.Where(fsc => fsc.UserId == entity.Id).ToListAsync();
             if (favorites.Any())
                 _context.RemoveRange(favorites);
 
-            // 9. Notifications: Delete
             var cancelNotifications = await _context.CancelationNotifications.Where(cn => cn.PostOwnerId == entity.Id).ToListAsync();
             if (cancelNotifications.Any())
                 _context.RemoveRange(cancelNotifications);
@@ -255,6 +249,88 @@ namespace TerminBA.Services.Service
             await _authService.ChangePassword(request);
         }
 
+        public async Task<string> RequestPasswordReset(PasswordResetRequest request)
+        {
+            var email = request.Email?.Trim().ToLower();
+            if (string.IsNullOrEmpty(email))
+                throw new UserException("Email is required.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == email);
+            if (user == null)
+                throw new UserException("User with that email not found.");
+
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
+
+            var salt = HashingHelper.GenerateSalt();
+            var hash = HashingHelper.GenerateHash(salt, code);
+
+            user.PasswordResetToken = $"{salt}:{hash}";
+            user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddMinutes(15);
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            await EmailPublisherHelper.PublishPasswordResetEmailAsync(_bus, user.Email!, code);
+
+            return code;
+        }
+
+        public async Task ConfirmPasswordReset(ConfirmPasswordResetRequest request)
+        {
+            if (request.NewPassword != request.ConfirmNewPassword)
+                throw new UserException("New passwords do not match.");
+
+            var hasNumber = new System.Text.RegularExpressions.Regex(@"[0-9]+");
+            var hasUpperChar = new System.Text.RegularExpressions.Regex(@"[A-Z]+");
+            var hasLowerChar = new System.Text.RegularExpressions.Regex(@"[a-z]+");
+            var hasMinimum8Chars = new System.Text.RegularExpressions.Regex(@".{8,}");
+            var hasSpecialChar = new System.Text.RegularExpressions.Regex(@"[!@#$%^&*()_+=\[{\]};:<>|./?,-]");
+
+            if (!hasMinimum8Chars.IsMatch(request.NewPassword) ||
+                !hasNumber.IsMatch(request.NewPassword) ||
+                !hasUpperChar.IsMatch(request.NewPassword) ||
+                !hasLowerChar.IsMatch(request.NewPassword) ||
+                !hasSpecialChar.IsMatch(request.NewPassword))
+            {
+                throw new UserException("Password does not meet the security policy.");
+            }
+
+            var email = request.Email?.Trim().ToLower();
+            if (string.IsNullOrEmpty(email))
+                throw new UserException("Email is required.");
+
+            var token = request.Token?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(token))
+                throw new UserException("Token is required.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == email);
+            if (user == null)
+                throw new UserException("User not found.");
+
+            if (string.IsNullOrEmpty(user.PasswordResetToken) || !user.PasswordResetToken.Contains(':'))
+                throw new UserException("Invalid token.");
+
+            if (user.PasswordResetTokenExpiresAt == null || user.PasswordResetTokenExpiresAt < DateTime.UtcNow)
+                throw new UserException("Token has expired.");
+
+            var tokenParts = user.PasswordResetToken.Split(':', 2);
+            var tokenSalt = tokenParts[0];
+            var expectedHash = tokenParts[1];
+
+            var actualHash = HashingHelper.GenerateHash(tokenSalt, token);
+            if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(actualHash), Encoding.UTF8.GetBytes(expectedHash)))
+                throw new UserException("Invalid token.");
+
+            user.PasswordSalt = HashingHelper.GenerateSalt();
+            user.PasswordHash = HashingHelper.GenerateHash(user.PasswordSalt, request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiresAt = null;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

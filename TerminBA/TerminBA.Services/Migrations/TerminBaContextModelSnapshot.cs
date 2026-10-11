@@ -2061,7 +2061,7 @@ namespace TerminBA.Services.Migrations
                             Id = 11,
                             NumberOfPlayersFound = 1,
                             NumberOfPlayersWanted = 2,
-                            PostState = "PlayerSearchPostState",
+                            PostState = "FinishedPostState",
                             ReservationId = 25,
                             SkillLevelId = 2,
                             Text = "Looking for players for a friendly match"
@@ -2467,24 +2467,26 @@ namespace TerminBA.Services.Migrations
                         {
                             Id = 16,
                             ChosenSportId = 5,
+                            CompletedAt = new DateTime(2026, 10, 10, 18, 0, 0, 0, DateTimeKind.Utc),
                             EndTime = new TimeOnly(19, 30, 0),
                             FacilityId = 15,
                             Price = 45.00m,
                             ReservationDate = new DateOnly(2026, 10, 10),
                             StartTime = new TimeOnly(18, 0, 0),
-                            Status = "ActiveReservationState",
+                            Status = "CompletedReservationState",
                             UserId = 7
                         },
                         new
                         {
                             Id = 17,
                             ChosenSportId = 2,
+                            CompletedAt = new DateTime(2026, 10, 10, 19, 0, 0, 0, DateTimeKind.Utc),
                             EndTime = new TimeOnly(20, 0, 0),
                             FacilityId = 16,
                             Price = 100.00m,
                             ReservationDate = new DateOnly(2026, 10, 10),
                             StartTime = new TimeOnly(19, 0, 0),
-                            Status = "ActiveReservationState",
+                            Status = "CompletedReservationState",
                             UserId = 8
                         },
                         new
@@ -2579,12 +2581,13 @@ namespace TerminBA.Services.Migrations
                         {
                             Id = 25,
                             ChosenSportId = 2,
+                            CompletedAt = new DateTime(2026, 10, 5, 20, 0, 0, 0, DateTimeKind.Utc),
                             EndTime = new TimeOnly(21, 0, 0),
                             FacilityId = 5,
                             Price = 30.00m,
                             ReservationDate = new DateOnly(2026, 10, 5),
                             StartTime = new TimeOnly(20, 0, 0),
-                            Status = "ActiveReservationState",
+                            Status = "CompletedReservationState",
                             UserId = 2
                         },
                         new
@@ -3333,6 +3336,12 @@ namespace TerminBA.Services.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -3845,6 +3854,12 @@ namespace TerminBA.Services.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiresAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordSalt")
                         .IsRequired()

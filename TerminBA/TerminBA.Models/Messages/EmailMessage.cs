@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +10,6 @@ namespace TerminBA.Models.Messages
     {
         public string? RecipientEmail { get; set; }
         public string? MessageBody { get; set; }
+        public string? Subject { get; set; }
     }
 }

@@ -77,5 +77,21 @@ namespace TerminBA.WebAPI.Controllers
             await _userService.ChangePassword(request);
             return Ok();
         }
+
+        [AllowAnonymous]
+        [HttpPost("requestPasswordReset")]
+        public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequest request)
+        {
+            await _userService.RequestPasswordReset(request);
+            return Ok(new { message = "Reset code has been sent to your email." });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("confirmPasswordReset")]
+        public async Task<IActionResult> ConfirmPasswordReset([FromBody] ConfirmPasswordResetRequest request)
+        {
+            await _userService.ConfirmPasswordReset(request);
+            return Ok();
+        }
     }
 }

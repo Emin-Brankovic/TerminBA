@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
 import 'package:terminba_mobile/providers/auth_provider.dart';
 import 'package:terminba_mobile/screens/sign_up_screen.dart';
+import 'package:terminba_mobile/screens/forgot_password_screen.dart';
 
 class LoginPage extends StatefulWidget {
 	const LoginPage({super.key});
@@ -178,7 +179,26 @@ class _LoginPageState extends State<LoginPage> {
 										: const Text('Login'),
 								),
 							),
-							const SizedBox(height: 20),
+							const SizedBox(height: 12),
+							TextButton(
+								onPressed: () {
+									Navigator.push(
+										context,
+										MaterialPageRoute(
+											builder: (context) => const ForgotPasswordScreen(),
+										),
+									);
+								},
+								child: Text(
+									'Forgot your password?',
+									style: theme.textTheme.bodyMedium?.copyWith(
+										color: const Color(0xFF00C875),
+										fontWeight: FontWeight.w600,
+										fontSize: 15,
+									),
+								),
+							),
+							const SizedBox(height: 8),
 							Row(
 								mainAxisAlignment: MainAxisAlignment.center,
 								children: [
