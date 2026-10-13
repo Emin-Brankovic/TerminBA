@@ -101,10 +101,10 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
@@ -113,57 +113,95 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
               );
               _loadSportCenters(page: _currentPage);
             },
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: const Text("Add Sport Center"),
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size(100, 46),
+              minimumSize: const Size(120, 42),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               textStyle: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            child: const Text("Add Sport Center"),
           ),
-
           Expanded(
             child: Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                    width: 400,
+                    width: 380,
+                    height: 42,
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: "Search sport centers...",
-                        suffixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(),
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF64748B)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
+                        ),
                       ),
                       controller: _searchController,
+                      onSubmitted: (_) => _onSearch(),
                     ),
                   ),
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 180,
+                    height: 42,
                     child: DropdownButtonFormField<int?>(
                       value: _selectedCityId,
                       style: const TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B),
                       ),
-                      iconSize: _citySelected ? 0 : 24,
+                      iconSize: _citySelected ? 0 : 20,
                       decoration: InputDecoration(
-                        hintText: 'City',
-                        border: const OutlineInputBorder(),
+                        hintText: 'All Cities',
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.location_on_outlined, size: 17, color: Color(0xFF64748B)),
+                        filled: true,
+                        fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
-                          vertical: 14,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
                         ),
                         suffixIcon: _citySelected
                             ? IconButton(
-                                icon: const Icon(Icons.close, size: 18),
+                                icon: const Icon(Icons.close_rounded, size: 16),
                                 onPressed: () {
                                   setState(() {
                                     _selectedCityId = null;
                                     _citySelected = false;
                                   });
+                                  _onSearch();
                                 },
                               )
                             : null,
@@ -181,15 +219,25 @@ class _SportCenterScreenState extends State<SportCenterScreen> {
                           _selectedCityId = value;
                           _citySelected = value != null;
                         });
+                        _onSearch();
                       },
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      _onSearch();
-                    },
-                    child: Text("Search"),
+                  ElevatedButton.icon(
+                    onPressed: _onSearch,
+                    icon: const Icon(Icons.search_rounded, size: 16),
+                    label: const Text("Search"),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(96, 42),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),

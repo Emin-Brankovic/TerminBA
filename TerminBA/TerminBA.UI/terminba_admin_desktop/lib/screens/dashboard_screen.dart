@@ -47,28 +47,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                spacing: 100,
                 children: [
                   Expanded(
                     child: _reportCard(
                       "Total Users",
                       "${_dashboardData?.appUserCount ?? 0}",
-                      Icons.person,
+                      Icons.people_alt_outlined,
+                      const Color(0xFFEFF6FF),
+                      const Color(0xFF2563EB),
                     ),
                   ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: _reportCard(
                       "Sport Centers",
                       "${_dashboardData?.appSportCenterCount ?? 0}",
-                      Icons.location_city,
+                      Icons.location_city_outlined,
+                      const Color(0xFFECFDF5),
+                      const Color(0xFF059669),
                     ),
                   ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: _reportCard(
                       "Reservations",
                       "${_dashboardData?.appReservationCount ?? 0}",
-                      Icons.event_available,
+                      Icons.event_available_outlined,
+                      const Color(0xFFF5F3FF),
+                      const Color(0xFF7C3AED),
                     ),
                   ),
                 ],
@@ -153,33 +159,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _reportCard(String title, String value, IconData iconData) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+  Widget _reportCard(
+    String title,
+    String value,
+    IconData iconData, [
+    Color iconBgColor = const Color(0xFFEFF6FF),
+    Color iconColor = const Color(0xFF2563EB),
+  ]) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300, width: 1), // Light border
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(iconData, color: Colors.greenAccent.shade700, size: 40),
-            const SizedBox(height: 12),
-            // The Label
-            Text(
-              title,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                  letterSpacing: 0.6,
+                ),
+              ),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(iconData, color: iconColor, size: 20),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.5,
             ),
-            const SizedBox(height: 8),
-            // The Value
-            Text(
-              value,
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

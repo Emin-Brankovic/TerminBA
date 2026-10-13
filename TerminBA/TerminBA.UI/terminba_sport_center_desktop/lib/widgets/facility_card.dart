@@ -43,108 +43,194 @@ class _FacilityCardState extends State<FacilityCard> {
     return SizedBox(
       width: 300,
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        elevation: 1,
         clipBehavior: Clip.antiAlias,
+        color: Colors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-
+            // Photo Section
             SizedBox(
-              height: 120,
+              height: 130,
               width: double.infinity,
               child: _buildPhoto(),
             ),
 
+            // Content Section
             Expanded(
               child: SingleChildScrollView(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.facility.name ?? '',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            _buildIconDetail(Icons.timer_outlined, '${widget.facility.durationHms} h'),
-                            _buildIconDetail(Icons.groups_outlined, '${widget.facility.maxCapacity} max'),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _buildIconDetail(Icons.grass_outlined, widget.facility.turfType?.name ?? ''),
-                            _buildIconDetail(
-                              widget.facility.isIndoor ? Icons.roofing_outlined : Icons.wb_sunny_outlined,
-                              widget.facility.isIndoor ? 'Indoor' : 'Outdoor',
+                child: Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Facility Header: Name + Indoor/Outdoor badge
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.facility.name ?? '',
+                              style: const TextStyle(
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A),
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: widget.facility.isIndoor ? const Color(0xFFEFF6FF) : const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: widget.facility.isIndoor ? const Color(0xFFBFDBFE) : const Color(0xFFFDE68A),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  widget.facility.isIndoor ? Icons.roofing_outlined : Icons.wb_sunny_outlined,
+                                  size: 12,
+                                  color: widget.facility.isIndoor ? const Color(0xFF1D4ED8) : const Color(0xFFB45309),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  widget.facility.isIndoor ? 'Indoor' : 'Outdoor',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: widget.facility.isIndoor ? const Color(0xFF1D4ED8) : const Color(0xFFB45309),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Grouped Specifications Unit
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                _buildSpecItem(Icons.schedule_rounded, '${widget.facility.durationHms} h'),
+                                const SizedBox(width: 8),
+                                _buildSpecItem(Icons.groups_outlined, '${widget.facility.maxCapacity} players'),
+                              ],
+                            ),
+                            if ((widget.facility.turfType?.name ?? '').isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  _buildSpecItem(Icons.grass_outlined, widget.facility.turfType!.name),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 12),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Sports Tags
+                      if (widget.facility.availableSports.isNotEmpty) ...[
                         Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
+                          spacing: 5,
+                          runSpacing: 5,
                           children: widget.facility.availableSports.map((s) {
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                               decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.blue.shade100),
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: const Color(0xFFBFDBFE)),
                               ),
                               child: Text(
                                 s.name ?? '',
-                                style: TextStyle(fontSize: 12, color: Colors.blue.shade800, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF1D4ED8),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 16),
-                        const Divider(height: 1),
                         const SizedBox(height: 12),
-                        if (widget.facility.isDynamicPricing)
-                          _buildDynamicPrices(widget.facility.dynamicPrices)
-                        else
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('Price', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500)),
-                              Text(
-                                '${widget.facility.staticPrice?.toStringAsFixed(2)} KM',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 75, 204, 103),
-                                ),
-                              ),
-                            ],
-                          ),
                       ],
-                    ),
+
+                      // Pricing Section
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                      const SizedBox(height: 10),
+                      if (widget.facility.isDynamicPricing)
+                        _buildDynamicPrices(widget.facility.dynamicPrices)
+                      else
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PRICE',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  'per slot',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${widget.facility.staticPrice?.toStringAsFixed(2)} KM',
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF059669),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ),
               ),
             ),
 
+            // Action Buttons
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               child: Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       onPressed: () async {
                         final updated = await Navigator.of(context).push<bool>(
                           MaterialPageRoute(
@@ -158,19 +244,23 @@ class _FacilityCardState extends State<FacilityCard> {
                           widget.onRefresh();
                         }
                       },
+                      icon: const Icon(Icons.edit_outlined, size: 15),
+                      label: const Text('Edit', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00C853),
+                        backgroundColor: const Color(0xFF10B981),
                         foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        minimumSize: const Size(0, 36),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Edit'),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: ElevatedButton(
+                    child: OutlinedButton.icon(
                       onPressed: () async {
                         final confirmed = await ConfirmationDialog.show(
                           context,
@@ -178,21 +268,25 @@ class _FacilityCardState extends State<FacilityCard> {
                           message: 'Are you sure you want to delete this facility? This action cannot be undone.',
                           confirmText: 'Delete',
                           cancelText: 'Cancel',
-                          confirmButtonColor: const Color(0xFFFF3D00),
+                          confirmButtonColor: const Color(0xFFDC2626),
                         );
 
                         if (confirmed) {
                           widget.onDelete(widget.facility.id);
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF3D00),
-                        foregroundColor: Colors.white,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 15),
+                      label: const Text('Delete', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFDC2626),
+                        backgroundColor: const Color(0xFFFEF2F2),
+                        side: const BorderSide(color: Color(0xFFFECACA)),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        minimumSize: const Size(0, 36),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Delete'),
                     ),
                   ),
                 ],
@@ -228,30 +322,31 @@ class _FacilityCardState extends State<FacilityCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Active Prices',
+          'ACTIVE PRICES',
           style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey,
-            fontWeight: FontWeight.w500,
+            fontSize: 10.5,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 6),
         ...activePrices.map(
           (dp) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
-                    '${_dayName(dp.startDay)}–${_dayName(dp.endDay)}: ${_timeStr(dp.startTime)}–${_timeStr(dp.endTime)}',
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    '${_dayName(dp.startDay)}–${_dayName(dp.endDay)} ${_timeStr(dp.startTime)}–${_timeStr(dp.endTime)}',
+                    style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155), fontWeight: FontWeight.w500),
                   ),
                 ),
-                const SizedBox(width: 17),
+                const SizedBox(width: 8),
                 Text(
                   '${dp.price.toStringAsFixed(2)} KM',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color:Color.fromARGB(255, 75, 204, 103)),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF059669)),
                 ),
               ],
             ),
@@ -261,17 +356,21 @@ class _FacilityCardState extends State<FacilityCard> {
     );
   }
 
-  Widget _buildIconDetail(IconData icon, String text) {
+  Widget _buildSpecItem(IconData icon, String text) {
     return Expanded(
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 8),
+          Icon(icon, size: 14, color: const Color(0xFF64748B)),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               text,
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade800),
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: Color(0xFF334155),
+                fontWeight: FontWeight.w500,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

@@ -10,15 +10,15 @@ class ReportCard extends StatelessWidget {
     this.backgroundColor,
     this.borderColor,
     this.borderRadius = 12,
-    this.padding = const EdgeInsets.all(12),
+    this.padding = const EdgeInsets.all(16),
     this.iconColor,
-    this.iconSize = 40,
+    this.iconSize = 20,
     this.iconBackgroundColor,
-    this.iconContainerSize = 28,
-    this.iconToTitleSpacing = 12,
+    this.iconContainerSize = 36,
+    this.iconToTitleSpacing = 10,
     this.titleToValueSpacing = 8,
-    this.titleStyle = const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-    this.valueStyle = const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+    this.titleStyle,
+    this.valueStyle,
   });
 
   final String title;
@@ -35,61 +35,91 @@ class ReportCard extends StatelessWidget {
   final double iconContainerSize;
   final double iconToTitleSpacing;
   final double titleToValueSpacing;
-  final TextStyle titleStyle;
-  final TextStyle valueStyle;
+  final TextStyle? titleStyle;
+  final TextStyle? valueStyle;
 
   @override
   Widget build(BuildContext context) {
-    final iconWidget = iconBackgroundColor == null
-        ? Icon(
-            iconData,
-            color: iconColor ?? Colors.greenAccent.shade700,
-            size: iconSize,
-          )
-        : Container(
-            width: iconContainerSize,
-            height: iconContainerSize,
-            decoration: BoxDecoration(
-              color: iconBackgroundColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              iconData,
-              color: iconColor ?? Colors.white,
-              size: iconSize,
-            ),
-          );
+    const defaultTitleStyle = TextStyle(
+      fontSize: 13.2,
+      fontWeight: FontWeight.w700,
+      color: Color(0xFF64748B),
+      letterSpacing: 0.6,
+    );
+
+    const defaultValueStyle = TextStyle(
+      fontSize: 26,
+      fontWeight: FontWeight.w800,
+      color: Color(0xFF0F172A),
+      letterSpacing: -0.5,
+    );
+
+    final effectiveTitleStyle = titleStyle ?? defaultTitleStyle;
+    final effectiveValueStyle = valueStyle ?? defaultValueStyle;
+
+    final iconWidget = Container(
+      width: iconContainerSize,
+      height: iconContainerSize,
+      decoration: BoxDecoration(
+        color: iconBackgroundColor ?? const Color(0xFFECFDF5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Icon(
+          iconData,
+          color: iconColor ?? const Color(0xFF059669),
+          size: iconSize,
+        ),
+      ),
+    );
 
     return SizedBox(
       width: width,
-      child: Card(
-        elevation: 0,
-        color: backgroundColor,
-        shape: RoundedRectangleBorder(
+      child: Container(
+        decoration: BoxDecoration(
+          color: backgroundColor ?? Colors.white,
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(
-            color: borderColor ?? Colors.grey.shade300,
+          border: Border.all(
+            color: borderColor ?? const Color(0xFFE2E8F0),
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: padding,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              iconWidget,
-              SizedBox(height: iconToTitleSpacing),
-              Text(
-                title,
-                style: titleStyle,
-              ),
-              SizedBox(height: titleToValueSpacing),
-              Text(
-                value,
-                style: valueStyle,
-              ),
-            ],
-          ),
+        padding: padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    title.toUpperCase(),
+                    style: effectiveTitleStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                iconWidget,
+              ],
+            ),
+            SizedBox(height: titleToValueSpacing),
+            Text(
+              value,
+              style: effectiveValueStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

@@ -291,47 +291,18 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       title: 'Reference Data',
-      child: Center(
+      child: Container(
+        color: const Color(0xFFF8FAFC),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [_buildHeaderChips(), _buildSearchSection(), _buildListSection()],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: SizedBox(
-        width: 800,
-        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildCategorySelector(),
+            const SizedBox(height: 16),
+            _buildActionBar(),
+            const SizedBox(height: 16),
             Expanded(
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search by name',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      _refreshTable();
-                    },
-                  ),
-                ),
-                onSubmitted: (value) {
-                  _refreshTable();
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            ElevatedButton(
-              onPressed: () {
-                _refreshTable();
-              },
-              child: const Text('Search'),
+              child: _buildTableCard(),
             ),
           ],
         ),
@@ -339,97 +310,245 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
     );
   }
 
-  Widget _buildListSection() {
-    return Expanded(
-      child: Container(
-        width: 800,
-        padding: const EdgeInsets.all(10.0),
-        child: SingleChildScrollView(
-          child: PaginatedDataTable(
-            rowsPerPage: _rowsPerPage,
-            availableRowsPerPage: const [10, 20, 50],
-            onRowsPerPageChanged: (value) {
-              setState(() {
-                _rowsPerPage = value ?? 10;
-                _currentFirstRowIndex = 0;
-              });
-              _refreshTable();
-            },
-            onPageChanged: (firstRowIndex) {
-              _refreshTable(firstRowIndex: firstRowIndex);
-            },
-            columns: [
-              DataColumn(label: Text("Name")),
-              DataColumn(
-                columnWidth: const FixedColumnWidth(20),
-                headingRowAlignment: MainAxisAlignment.end,
-                label: SizedBox(
-                  width: 140,
-                  child: Center(child: Text("Actions")),
+  IconData _categoryIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.grass;
+      case 1:
+        return Icons.star_outline_rounded;
+      case 2:
+        return Icons.location_city_outlined;
+      case 3:
+        return Icons.sports_soccer_outlined;
+      case 4:
+        return Icons.badge_outlined;
+      case 5:
+        return Icons.bar_chart_outlined;
+      default:
+        return Icons.category_outlined;
+    }
+  }
+
+  Widget _buildCategorySelector() {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: List<Widget>.generate(categories.length, (int index) {
+          final isSelected = _selectedIndex == index;
+          return Material(
+            color: isSelected ? const Color(0xFF10B981) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () async {
+                if (_selectedIndex != index) {
+                  setState(() {
+                    _selectedIndex = index;
+                    _searchController.clear();
+                    _currentFirstRowIndex = 0;
+                  });
+                  final source = await _getReferenceData(index, _currentFirstRowIndex);
+                  setState(() {
+                    _referenceDataDataSource = source;
+                  });
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _categoryIcon(index),
+                      size: 15,
+                      color: isSelected ? Colors.white : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      categories[index],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-            source: _referenceDataDataSource,
-          ),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildHeaderChips() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ElevatedButton(
-              onPressed: () {
-                _onAdd();
-              },
-              child: const Text('Add New'),
-            ),
+  Widget _buildActionBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ElevatedButton.icon(
+          onPressed: _onAdd,
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: Text(
+            'Add ${categories[_selectedIndex!]}',
+            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
           ),
-          Center(
-            child: Wrap(
-              spacing: 12,
-              children: List<Widget>.generate(categories.length, (int index) {
-                return ChoiceChip(
-                  label: Text(categories[index]),
-                  selected: _selectedIndex == index,
-                  onSelected: _selectedIndex == index
-                      ? null
-                      : (bool selected) async {
-                          setState(() {
-                            _selectedIndex = index;
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            minimumSize: const Size(0, 40),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 320,
+              height: 40,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search ${categories[_selectedIndex!].toLowerCase()}s...',
+                  hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF64748B)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF10B981), width: 1.5),
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 16, color: Color(0xFF94A3B8)),
+                          onPressed: () {
                             _searchController.clear();
-                          });
-                          if (selected) {
-                            _currentFirstRowIndex = 0;
-                            var source = await _getReferenceData(index, _currentFirstRowIndex);
-                            setState(() {
-                              _referenceDataDataSource = source;
-                            });
-                          } else {
-                            setState(() {
-                              _referenceDataDataSource =
-                                  ReferenceDataDataSource<dynamic>(
-                                    [],
-                                    0,
-                                    0,
-                                    (item) => '',
-                                    _onEdit,
-                                    _onDelete,
-                                  );
-                            });
-                          }
-                        },
-                );
-              }),
+                            _refreshTable();
+                          },
+                        )
+                      : null,
+                ),
+                onSubmitted: (_) => _refreshTable(),
+              ),
             ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () => _refreshTable(),
+              icon: const Icon(Icons.search_rounded, size: 16),
+              label: const Text('Search', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                minimumSize: const Size(0, 40),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTableCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: const Color(0xFFF1F5F9),
+          cardTheme: const CardThemeData(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            color: Colors.transparent,
+          ),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: PaginatedDataTable(
+                  rowsPerPage: _rowsPerPage,
+                  availableRowsPerPage: const [10, 20, 50],
+                  headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
+                  onRowsPerPageChanged: (value) {
+                    setState(() {
+                      _rowsPerPage = value ?? 10;
+                      _currentFirstRowIndex = 0;
+                    });
+                    _refreshTable();
+                  },
+                  onPageChanged: (firstRowIndex) {
+                    _refreshTable(firstRowIndex: firstRowIndex);
+                  },
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        "NAME",
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      headingRowAlignment: MainAxisAlignment.end,
+                      label: SizedBox(
+                        width: 170,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            "ACTIONS",
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.6,
+                              color: Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  source: _referenceDataDataSource,
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -450,6 +569,8 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
       else if (index == 5) filter['name'] = search;
     }
 
+    final catIcon = _categoryIcon(index);
+
     switch (index) {
       case 0:
         var result = await turfTypeProvider.get(filter: filter);
@@ -460,6 +581,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as TurfType).name,
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       case 1:
         var result = await amenityProvider.get(filter: filter);
@@ -470,6 +592,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as Amenity).name,
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       case 2:
         var result = await cityProvider.get(filter: filter);
@@ -480,6 +603,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as City).name,
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       case 3:
         var result = await sportProvider.get(filter: filter);
@@ -490,6 +614,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as Sport).name ?? '',
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       case 4:
         var result = await roleProvider.get(filter: filter);
@@ -500,6 +625,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as Role).name ?? '',
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       case 5:
         var result = await skillLevelProvider.get(filter: filter);
@@ -510,6 +636,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => (item as SkillLevel).name ?? '',
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
       default:
         return ReferenceDataDataSource<dynamic>(
@@ -519,6 +646,7 @@ class _ReferenceDataScreenState extends State<ReferenceDataScreen> {
           (item) => '',
           _onEdit,
           _onDelete,
+          iconData: catIcon,
         );
     }
   }
@@ -531,6 +659,7 @@ class ReferenceDataDataSource<T> extends DataTableSource {
   final String Function(T) _nameExtractor;
   final Function(int) _onEdit;
   final Function(int) _onDelete;
+  final IconData? iconData;
 
   ReferenceDataDataSource(
     this._items,
@@ -538,8 +667,9 @@ class ReferenceDataDataSource<T> extends DataTableSource {
     this._startingIndex,
     this._nameExtractor,
     this._onEdit,
-    this._onDelete,
-  );
+    this._onDelete, {
+    this.iconData,
+  });
 
   @override
   DataRow? getRow(int index) {
@@ -548,35 +678,78 @@ class ReferenceDataDataSource<T> extends DataTableSource {
     final item = _items[localIndex];
     return DataRow(
       cells: [
-        DataCell(Text(_nameExtractor(item))),
+        DataCell(
+          Text(
+            _nameExtractor(item),
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+        ),
         DataCell(
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             mainAxisSize: MainAxisSize.max,
             children: [
-              TextButton(
-                onPressed: () => _onEdit(index),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  minimumSize: Size(80, 36),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFDBEAFE)),
                 ),
-                child: Text("Edit", style: TextStyle(color: Colors.grey)),
+                child: InkWell(
+                  onTap: () => _onEdit(index),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.edit_outlined, size: 14, color: Color(0xFF2563EB)),
+                        SizedBox(width: 4),
+                        Text(
+                          'Edit',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2563EB),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              TextButton(
-                onPressed: () => _onDelete(index),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  minimumSize: Size(80, 36),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFFECACA)),
                 ),
-                child: Text(
-                  "Delete",
-                  style: TextStyle(color: Colors.redAccent),
+                child: InkWell(
+                  onTap: () => _onDelete(index),
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.delete_outline_rounded, size: 14, color: Color(0xFFDC2626)),
+                        SizedBox(width: 4),
+                        Text(
+                          'Delete',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -19,8 +19,8 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
-  static const double _tableMinWidth = 0;
-  static const int _nameFlex = 3;
+  static const double _tableMinWidth = 850;
+  static const int _nameFlex = 4;
   static const int _usernameFlex = 2;
   static const int _emailFlex = 3;
   static const int _cityFlex = 2;
@@ -299,30 +299,34 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                      ),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: _buildHeaderRow(),
                     ),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
                     Expanded(
                       child: _users.isEmpty
                           ? const Center(
                               child: Text(
                                 'No users found.',
-                                style: TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
+                                style: TextStyle(fontSize: 15, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                               ),
                             )
                           : ListView.separated(
@@ -330,7 +334,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               separatorBuilder: (_, __) => const Divider(
                                 height: 1,
                                 thickness: 1,
-                                color: Color(0xFFF3F4F6),
+                                color: Color(0xFFF1F5F9),
                               ),
                               itemBuilder: (context, index) {
                                 return _buildDataRow(_users[index], index);
@@ -338,7 +342,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             ),
                     ),
                     if (_users.isNotEmpty) ...[
-                      const Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Align(
@@ -363,10 +367,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Widget _buildHeaderRow() {
     const headerStyle = TextStyle(
-      fontSize: 13,
-      color: Color(0xFF6B7280),
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.5,
+      fontSize: 11.5,
+      color: Color(0xFF475569),
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.6,
     );
 
     return Row(
@@ -382,14 +386,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _buildDataRow(User user, int index) {
-    final bgColor = index % 2 == 0 ? Colors.white : const Color(0xFFFAFAFA);
+    final bgColor = index % 2 == 0 ? Colors.white : const Color(0xFFFAFBFC);
 
     return Container(
       color: bgColor,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // User column with Full name + Subtitle info
           Expanded(
             flex: _nameFlex,
             child: Column(
@@ -398,79 +403,196 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               children: [
                 Text(
                   '${user.firstName} ${user.lastName}'.trim(),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF111827)),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                    color: Color(0xFF0F172A),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  'Born: ${_formatDate(user.birthDate)}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user.phoneNumber.isNotEmpty ? user.phoneNumber : 'No phone',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    if (user.birthDate != null) ...[
+                      const Icon(Icons.cake_outlined, size: 11, color: Color(0xFF94A3B8)),
+                      const SizedBox(width: 3),
+                      Text(
+                        _formatDate(user.birthDate),
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (user.phoneNumber.isNotEmpty) ...[
+                      const Icon(Icons.phone_outlined, size: 11, color: Color(0xFF94A3B8)),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          user.phoneNumber,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
-          _buildDataCell(user.username, _usernameFlex, isHighlighted: true),
-          _buildDataCell(user.email, _emailFlex, isHighlighted: true),
-          _buildDataCell(user.city?.name ?? 'Unknown', _cityFlex, isHighlighted: true),
+          // Username column
+          Expanded(
+            flex: _usernameFlex,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                child: Text(
+                  user.username,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF334155),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ),
+          // Email column
+          Expanded(
+            flex: _emailFlex,
+            child: Row(
+              children: [
+                const Icon(Icons.mail_outline_rounded, size: 13.5, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    user.email,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: Color(0xFF334155),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // City column
+          Expanded(
+            flex: _cityFlex,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF2563EB)),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        user.city?.name ?? 'Unknown',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF1E293B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Dates column
           Expanded(
             flex: _datesFlex,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Joined: ${_formatDate(user.createdAt)}',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF374151)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 11, color: Color(0xFF64748B)),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatDate(user.createdAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Updated: ${_formatDate(user.updatedAt)}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+          // Actions column
           Expanded(
             flex: _actionsFlex,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  onPressed: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => UserEditScreen(user: user)),
-                    );
-                    if (result == true) {
-                      _loadUsers();
-                    }
-                  },
-                  tooltip: 'Edit User',
-                  iconSize: 20,
-                  color: const Color(0xFF1570EF),
-                  icon: const Icon(Icons.edit_outlined),
-                  splashRadius: 20,
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFDBEAFE)),
+                  ),
+                  child: IconButton(
+                    onPressed: () async {
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => UserEditScreen(user: user)),
+                      );
+                      if (result == true) {
+                        _loadUsers();
+                      }
+                    },
+                    tooltip: 'Edit User',
+                    iconSize: 16,
+                    color: const Color(0xFF2563EB),
+                    icon: const Icon(Icons.edit_outlined),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
-                IconButton(
-                  onPressed: () => _deleteUser(user),
-                  tooltip: 'Delete User',
-                  iconSize: 20,
-                  color: Colors.redAccent,
-                  icon: const Icon(Icons.delete_outline),
-                  splashRadius: 20,
+                const SizedBox(width: 6),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: IconButton(
+                    onPressed: () => _deleteUser(user),
+                    tooltip: 'Delete User',
+                    iconSize: 16,
+                    color: const Color(0xFFDC2626),
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
               ],
             ),
@@ -497,9 +619,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
-          color: isHighlighted ? const Color(0xFF111827) : const Color(0xFF4B5563),
-          fontWeight: isHighlighted ? FontWeight.w500 : FontWeight.normal,
+          fontSize: 13,
+          color: isHighlighted ? const Color(0xFF0F172A) : const Color(0xFF475569),
+          fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.normal,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,

@@ -197,7 +197,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: () async {
                 final created = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(builder: (_) => const FacilityInsertScreen()),
@@ -207,14 +207,18 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   _loadFacilities(page: 1);
                 }
               },
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text("Add Facility"),
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(100, 40),
+                minimumSize: const Size(120, 42),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 textStyle: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text("Add Facility"),
             ),
           ),
           Row(
@@ -222,7 +226,7 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
             children: [
               SizedBox(
                 width: 430,
-                height: 40,
+                height: 42,
                 child: TextField(
                   controller: _searchController,
                   onChanged: _onSearchChanged,
@@ -231,42 +235,41 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                     _loadFacilities(page: 1);
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search keywords',
+                    hintText: 'Search facilities by keyword...',
                     hintStyle: const TextStyle(
-                      color: Color(0xFF97A1AF),
-                      fontSize: 14,
+                      color: Color(0xFF94A3B8),
+                      fontSize: 13,
                     ),
-                    suffixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF7F8895),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFF64748B),
                       size: 18,
                     ),
                     filled: true,
                     fillColor: Colors.white,
-                    isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFDFE3E8)),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFDFE3E8)),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFA9B3BF)),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.2),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               SizedBox(
-                width: 34,
-                height: 34,
+                width: 42,
+                height: 42,
                 child: OutlinedButton(
                   onPressed: () {
                     setState(() {
@@ -275,13 +278,20 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
-                    side: const BorderSide(color: Color(0xFFD1D6DD)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
+                    side: BorderSide(
+                      color: _showFilters ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
+                      width: _showFilters ? 1.5 : 1,
                     ),
-                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    backgroundColor: _showFilters ? const Color(0xFFEFF6FF) : Colors.white,
                   ),
-                  child: const Icon(Icons.filter_list, color: Color(0xFF4B5563), size: 16),
+                  child: Icon(
+                    Icons.filter_list_rounded,
+                    color: _showFilters ? const Color(0xFF2563EB) : const Color(0xFF475569),
+                    size: 18,
+                  ),
                 ),
               ),
             ],
@@ -293,24 +303,47 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
 
   Widget _buildFilterForm() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
-        child: SizedBox(
+        child: Container(
           width: 1000,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _formSportId,
-                  iconSize: _formSportId != null ? 0 : 24,
+                  iconSize: _formSportId != null ? 0 : 20,
                   decoration: InputDecoration(
-                    hintText: 'Sport',
-                    border: const OutlineInputBorder(),
+                    labelText: 'Sport',
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     suffixIcon: _formSportId != null
                         ? IconButton(
-                            icon: const Icon(Icons.close, size: 18),
+                            icon: const Icon(Icons.close_rounded, size: 16),
                             onPressed: () {
                               setState(() {
                                 _formSportId = null;
@@ -334,18 +367,28 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<int?>(
                   value: _formTurfTypeId,
-                  iconSize: _formTurfTypeId != null ? 0 : 24,
+                  iconSize: _formTurfTypeId != null ? 0 : 20,
                   decoration: InputDecoration(
-                    hintText: 'Turf type',
-                    border: const OutlineInputBorder(),
+                    labelText: 'Turf Type',
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     suffixIcon: _formTurfTypeId != null
                         ? IconButton(
-                            icon: const Icon(Icons.close, size: 18),
+                            icon: const Icon(Icons.close_rounded, size: 16),
                             onPressed: () {
                               setState(() {
                                 _formTurfTypeId = null;
@@ -369,18 +412,28 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<bool?>(
                   value: _formIsIndoor,
-                  iconSize: _formIsIndoor != null ? 0 : 24,
+                  iconSize: _formIsIndoor != null ? 0 : 20,
                   decoration: InputDecoration(
-                    hintText: 'Indoor/Outdoor',
-                    border: const OutlineInputBorder(),
+                    labelText: 'Environment',
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     suffixIcon: _formIsIndoor != null
                         ? IconButton(
-                            icon: const Icon(Icons.close, size: 18),
+                            icon: const Icon(Icons.close_rounded, size: 16),
                             onPressed: () {
                               setState(() {
                                 _formIsIndoor = null;
@@ -406,14 +459,26 @@ class _FacilitiescreenState extends State<FacilitiesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: _applyFilters,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(80, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: const Text('Apply'),
               ),
               const SizedBox(width: 8),
               OutlinedButton(
                 onPressed: _clearFilters,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(80, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: const Text('Clear'),
               ),
             ],

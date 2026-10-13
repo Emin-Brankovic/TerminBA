@@ -219,15 +219,22 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
             Expanded(
               child: _isLoading && stats == null
                   ? const Center(child: CircularProgressIndicator())
-                  : Screenshot(
+                    : Screenshot(
                       controller: _screenshotController,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE6E9ED)),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
@@ -265,20 +272,23 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
             Row(
               children: [
                 const Spacer(),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: _isExporting ? null : _exportReport,
+                  icon: const Icon(Icons.file_download_outlined, size: 18),
+                  label: Text(_isExporting ? 'Exporting...' : 'Export Report'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF12B76A),
+                    backgroundColor: const Color(0xFF10B981),
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
+                      horizontal: 22,
                       vertical: 12,
                     ),
+                    textStyle: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  child: Text(_isExporting ? 'Exporting...' : 'Export'),
                 ),
               ],
             ),
@@ -291,21 +301,39 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
   Widget _buildFilterRow() {
     return Row(
       children: [
+        const Icon(Icons.date_range_rounded, size: 20, color: Color(0xFF2563EB)),
+        const SizedBox(width: 8),
         const Text(
-          'Select date range',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          'Date Range',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+          ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         OutlinedButton.icon(
           onPressed: _pickFromDate,
-          icon: const Icon(Icons.date_range, size: 18),
+          icon: const Icon(Icons.calendar_today_rounded, size: 14),
           label: Text('From: ${_formatDate(_fromDate)}'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF334155),
+            side: const BorderSide(color: Color(0xFFCBD5E1)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
         ),
         const SizedBox(width: 10),
         OutlinedButton.icon(
           onPressed: _pickToDate,
-          icon: const Icon(Icons.event, size: 18),
+          icon: const Icon(Icons.event_available_rounded, size: 14),
           label: Text('To: ${_formatDate(_toDate)}'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF334155),
+            side: const BorderSide(color: Color(0xFFCBD5E1)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
         ),
         const Spacer(),
         if (_isLoading)
@@ -325,12 +353,12 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPieCard(
-            title: 'Distribution by sport',
+            title: 'Distribution by Sport',
             data: stats?.reservationCountBySport ?? const <String, int>{},
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           _buildPieCard(
-            title: 'Distribution by facaility',
+            title: 'Distribution by Facility',
             data: stats?.reservationCountByFacility ?? const <String, int>{},
           ),
         ],
@@ -351,38 +379,64 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10.0),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+        ),
         SizedBox(
-          height: 190,
+          height: 185,
           child: total == 0
-              ? const Center(child: Text('No data available'))
+              ? Container(
+                  height: 100,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Text(
+                    'No data available',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
+                  ),
+                )
               : Row(
                   children: [
                     SizedBox(
-                      width: 180,
+                      width: 175,
                       child: PieChart(
                         PieChartData(
                           centerSpaceRadius: 0,
-                          sectionsSpace: 0,
+                          sectionsSpace: 1.5,
                           borderData: FlBorderData(show: false),
                           sections: [
                             for (int i = 0; i < entries.length; i++)
                               PieChartSectionData(
                                 color: palette[i % palette.length],
                                 value: entries[i].value.toDouble(),
-                                radius: 88,
+                                radius: 85,
                                 title:
                                     '${((entries[i].value / total) * 100).round()}%',
                                 titleStyle: const TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
                                   fontSize: 11,
+                                  shadows: [
+                                    Shadow(color: Colors.black26, blurRadius: 2),
+                                  ],
                                 ),
                               ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: ListView.builder(
                         itemCount: entries.length,
@@ -390,6 +444,7 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                         itemBuilder: (context, index) {
                           final color = palette[index % palette.length];
                           final key = entries[index].key;
+                          final count = entries[index].value;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 5),
                             child: Row(
@@ -406,8 +461,20 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                                 Expanded(
                                   child: Text(
                                     key,
-                                    style: const TextStyle(fontSize: 10),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF334155),
+                                    ),
                                     overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  '$count',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -418,14 +485,6 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                     ),
                   ],
                 ),
-        ),
-        const SizedBox(height: 6),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28.0),
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
         ),
       ],
     );
@@ -450,6 +509,17 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            'Distribution of Reservations by Weekday',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+        ),
         SizedBox(
           height: height,
           child: hasData
@@ -463,7 +533,7 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                       show: true,
                       drawVerticalLine: false,
                       getDrawingHorizontalLine: (value) => FlLine(
-                        color: const Color(0xFFE8ECF2),
+                        color: const Color(0xFFF1F5F9),
                         strokeWidth: 1,
                       ),
                     ),
@@ -548,13 +618,13 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: weeklyData[i].value.toDouble(),
-                              width: 30,
-                              borderRadius: BorderRadius.circular(0),
-                              color: const Color(0xFF2F80ED),
+                              width: 28,
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                              color: const Color(0xFF2563EB),
                               backDrawRodData: BackgroundBarChartRodData(
                                 show: true,
                                 toY: safeChartMax,
-                                color: const Color(0xFFD7E7FB),
+                                color: const Color(0xFFEFF6FF),
                               ),
                             ),
                           ],
@@ -562,15 +632,15 @@ class _ReservationStatsScreenState extends State<ReservationStatsScreen> {
                     ],
                   ),
                 )
-              : const Center(child: Text('No data available')),
-        ),
-        const SizedBox(height: 12),
-        const Align(
-          alignment: Alignment.center,
-          child: Text(
-            'Distribution of reservations',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
+              : Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Text('No data available', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+                ),
         ),
       ],
     );

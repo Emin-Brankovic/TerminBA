@@ -321,7 +321,7 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
                                         crossAxisCount: crossAxisCount,
                                         crossAxisSpacing: 12,
                                         mainAxisSpacing: 12,
-                                        childAspectRatio: 2.24,
+                                        childAspectRatio: 2.15,
                                       ),
                                       itemBuilder: (context, index) {
                                         return _buildReviewCard(
@@ -595,20 +595,50 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
   }
 
   Widget _buildReviewCard(_ReviewCardData review) {
+    final initial = review.userName.isNotEmpty ? review.userName[0].toUpperCase() : 'U';
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE3E7EC)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header: User info + Rating badge
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2F6),
+                    borderRadius: BorderRadius.circular(17),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF334155),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,65 +646,111 @@ class _ReviewsOverviewScreenState extends State<ReviewsOverviewScreen> {
                       Text(
                         review.userName,
                         style: const TextStyle(
-                          fontSize: 18,
-                          height: 1,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF2B2E34),
+                          color: Color(0xFF0F172A),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        review.date,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          height: 1,
-                          color: Color(0xFF8C94A2),
-                        ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: Text(
+                                review.facilityName,
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            review.date,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star_rounded, size: 15, color: Color(0xFFD97706)),
+                      const SizedBox(width: 2.5),
                       Text(
-                        review.facilityName,
+                        review.rating.toStringAsFixed(1),
                         style: const TextStyle(
-                          fontSize: 12,
-                          height: 1,
-                          color: Color(0xFF8C94A2),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFB45309),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Text(
-                  review.rating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 35,
-                    height: 0.9,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E2024),
-                  ),
-                ),
               ],
             ),
-            const SizedBox(height: 7),
+            const SizedBox(height: 6),
+            // Review text
             Expanded(
-              child: _ScrollableReviewText(text: review.reviewText),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                ),
+                child: _ScrollableReviewText(text: review.reviewText),
+              ),
             ),
             const SizedBox(height: 6),
-            SizedBox(
-              height: 30,
-              child: ElevatedButton(
-                onPressed: () => _removeReview(review.id),
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: const Color(0xFFFF5A2F),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 22),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
+            // Action button
+            Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                height: 28,
+                child: OutlinedButton.icon(
+                  onPressed: () => _removeReview(review.id),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 13),
+                  label: const Text(
+                    'Remove',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
                   ),
-                ),
-                child: const Text(
-                  'Remove',
-                  style: TextStyle(fontSize: 15.8, fontWeight: FontWeight.w700),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFDC2626),
+                    backgroundColor: const Color(0xFFFEF2F2),
+                    side: const BorderSide(color: Color(0xFFFECACA)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
                 ),
               ),
             ),

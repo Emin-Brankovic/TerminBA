@@ -42,9 +42,13 @@ class _SportCenterCardState extends State<SportCenterCard> {
     return SizedBox(
       width: 300,
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+        ),
+        elevation: 1,
         clipBehavior: Clip.antiAlias,
+        color: Colors.white,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
@@ -63,55 +67,88 @@ class _SportCenterCardState extends State<SportCenterCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header: Name & City
                     Text(
                       widget.sportCenter.displayName,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 3),
                     if (widget.sportCenter.city?.name != null)
-                      Text(
-                        widget.sportCenter.city!.name,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              widget.sportCenter.city!.name,
+                              style: const TextStyle(
+                                color: Color(0xFF2563EB),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     const SizedBox(height: 8),
 
+                    // Grouped Secondary Info
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildIconRow(Icons.location_on, widget.sportCenter.address),
-                            _buildIconRow(Icons.phone, widget.sportCenter.phoneNumber),
-                            if ((widget.sportCenter.contactEmail ?? '').trim().isNotEmpty)
-                              _buildIconRow(Icons.email, widget.sportCenter.contactEmail!.trim()),
-                            if (widget.sportCenter.workingHours.isNotEmpty)
+                            // Contact & Location Group
+                            _buildInfoSection(),
+                            const SizedBox(height: 6),
+
+                            // Working Hours Unit
+                            if (widget.sportCenter.workingHours.isNotEmpty) ...[
                               _buildWorkingHoursCompact(widget.sportCenter.workingHours),
+                              const SizedBox(height: 6),
+                            ],
+
+                            // Description Unit
                             if (widget.sportCenter.description.isNotEmpty) ...[
-                              const SizedBox(height: 4),
                               Text(
                                 widget.sportCenter.description,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF64748B),
+                                  height: 1.3,
+                                ),
                               ),
+                              const SizedBox(height: 6),
                             ],
-                            const SizedBox(height: 8),
+
+                            // Tags & Amenities Unit
                             _buildTags(),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 13),
 
                     // 3. Action Buttons Section
                     Row(
                       children: [
                         Expanded(
-                          child: ElevatedButton(
+                          child: ElevatedButton.icon(
                             onPressed: () async {
                               await Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -122,21 +159,23 @@ class _SportCenterCardState extends State<SportCenterCard> {
                               );
                               widget.onRefresh();
                             },
+                            icon: const Icon(Icons.edit_outlined, size: 15),
+                            label: const Text('Edit', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00C853), // Green
+                              backgroundColor: const Color(0xFF10B981),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               minimumSize: const Size(0, 36),
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text('Edit', style: TextStyle(fontSize: 13)),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: ElevatedButton(
+                          child: OutlinedButton.icon(
                             onPressed: () async {
                               final confirmed = await ConfirmationDialog.show(
                                 context,
@@ -144,23 +183,25 @@ class _SportCenterCardState extends State<SportCenterCard> {
                                 message: 'Are you sure you want to delete this sport center? This action cannot be undone.',
                                 confirmText: 'Delete',
                                 cancelText: 'Cancel',
-                                confirmButtonColor: const Color(0xFFFF3D00),
+                                confirmButtonColor: const Color(0xFFDC2626),
                               );
 
                               if (confirmed) {
                                 widget.onDelete(widget.sportCenter.id);
                               }
                             },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF3D00), // Red/Orange
-                              foregroundColor: Colors.white,
+                            icon: const Icon(Icons.delete_outline_rounded, size: 15),
+                            label: const Text('Delete', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFDC2626),
+                              backgroundColor: const Color(0xFFFEF2F2),
+                              side: const BorderSide(color: Color(0xFFFECACA)),
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               minimumSize: const Size(0, 36),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text('Delete', style: TextStyle(fontSize: 13)),
                           ),
                         ),
                       ],
@@ -179,18 +220,36 @@ class _SportCenterCardState extends State<SportCenterCard> {
 
   String _timeStr(String t) => t.length >= 5 ? t.substring(0, 5) : t;
 
+  Widget _buildInfoSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.sportCenter.address.isNotEmpty)
+          _buildIconRow(Icons.place_outlined, widget.sportCenter.address),
+        if (widget.sportCenter.phoneNumber.isNotEmpty)
+          _buildIconRow(Icons.phone_outlined, widget.sportCenter.phoneNumber),
+        if ((widget.sportCenter.contactEmail ?? '').trim().isNotEmpty)
+          _buildIconRow(Icons.mail_outline_rounded, widget.sportCenter.contactEmail!.trim()),
+      ],
+    );
+  }
+
   Widget _buildIconRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
+      padding: const EdgeInsets.only(bottom: 3.5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: Colors.grey.shade600),
-          const SizedBox(width: 6),
+          Icon(icon, size: 13.5, color: const Color(0xFF64748B)),
+          const SizedBox(width: 5),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 12, color: Colors.black87),
+              style: const TextStyle(
+                fontSize: 11.5,
+                color: Color(0xFF334155),
+                height: 1.25,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -201,20 +260,32 @@ class _SportCenterCardState extends State<SportCenterCard> {
   }
 
   Widget _buildWorkingHoursCompact(List<WorkingHours> hours) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
+          const Padding(
+            padding: EdgeInsets.only(top: 1.0),
+            child: Icon(Icons.schedule_rounded, size: 13, color: Color(0xFF64748B)),
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: hours.map((wh) {
                 return Text(
-                  '${_dayName(wh.startDay)} – ${_dayName(wh.endDay)}: ${_timeStr(wh.openingHours)} – ${_timeStr(wh.closeingHours)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.black87),
+                  '${_dayName(wh.startDay)}–${_dayName(wh.endDay)}: ${_timeStr(wh.openingHours)}–${_timeStr(wh.closeingHours)}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF334155),
+                    fontWeight: FontWeight.w500,
+                  ),
                 );
               }).toList(),
             ),
@@ -231,25 +302,25 @@ class _SportCenterCardState extends State<SportCenterCard> {
       sections.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 6.0),
-          child: _buildTag('Equipment Provided', Colors.green.shade50, Colors.green.shade700),
+          child: _buildTag('Equipment Provided', const Color(0xFFECFDF5), const Color(0xFF047857), const Color(0xFFA7F3D0)),
         ),
       );
     }
 
     final sportsTags = widget.sportCenter.availableSports
         .where((s) => s.name?.isNotEmpty ?? false)
-        .map((s) => _buildTag(s.name!, Colors.blue.shade50, Colors.blue.shade700))
+        .map((s) => _buildTag(s.name!, const Color(0xFFEFF6FF), const Color(0xFF1D4ED8), const Color(0xFFBFDBFE)))
         .toList();
     if (sportsTags.isNotEmpty) {
-      sections.add(_buildTagSection('Sports', Icons.sports, sportsTags));
+      sections.add(_buildTagSection('Sports', Icons.sports_soccer_outlined, sportsTags));
     }
 
     final amenitiesTags = widget.sportCenter.availableAmenities
         .where((a) => a.name.isNotEmpty)
-        .map((a) => _buildTag(a.name, Colors.orange.shade50, Colors.orange.shade800))
+        .map((a) => _buildTag(a.name, const Color(0xFFFFFBEB), const Color(0xFFB45309), const Color(0xFFFDE68A)))
         .toList();
     if (amenitiesTags.isNotEmpty) {
-      sections.add(_buildTagSection('Amenities', Icons.star_border, amenitiesTags));
+      sections.add(_buildTagSection('Amenities', Icons.star_outline_rounded, amenitiesTags));
     }
 
     if (sections.isEmpty) return const SizedBox();
@@ -262,20 +333,21 @@ class _SportCenterCardState extends State<SportCenterCard> {
 
   Widget _buildTagSection(String title, IconData icon, List<Widget> tags) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
+      padding: const EdgeInsets.only(bottom: 5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: Colors.grey.shade600),
+              Icon(icon, size: 12.5, color: const Color(0xFF64748B)),
               const SizedBox(width: 4),
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF64748B),
+                  letterSpacing: 0.3,
                 ),
               ),
             ],
@@ -291,13 +363,13 @@ class _SportCenterCardState extends State<SportCenterCard> {
     );
   }
 
-  Widget _buildTag(String text, Color bgColor, Color textColor) {
+  Widget _buildTag(String text, Color bgColor, Color textColor, Color borderColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: textColor.withOpacity(0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: Text(
         text,

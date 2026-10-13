@@ -227,7 +227,7 @@ namespace TerminBA.Services.ReservationStateMachine
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                await SendEmailAsync(entity.Id);
+                //await SendEmailAsync(entity.Id);
 
                 return _mapper.Map<ReservationResponse>(entity);
             }

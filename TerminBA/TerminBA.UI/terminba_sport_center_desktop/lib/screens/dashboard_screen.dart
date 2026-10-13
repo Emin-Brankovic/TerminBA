@@ -159,40 +159,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _demandSubsection(String title, List<_DemandItem> data) {
-    if (data.isEmpty) {
-      final placeholderItems = List.generate(3, (_) => const _DemandItem('—', 0));
-      return Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            ...placeholderItems.map(
+    final int maxValue = data.isEmpty
+        ? 1
+        : data
+            .map((e) => e.value)
+            .fold<int>(1, (prev, element) => element > prev ? element : prev);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bar_chart_rounded, size: 16, color: Color(0xFF64748B)),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (data.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No reservations recorded.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+            )
+          else
+            ...data.map(
               (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 100,
+                      width: 110,
                       child: Text(
                         item.label,
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF334155),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(7),
+                        borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
-                          minHeight: 12,
-                          value: 0,
-                          backgroundColor: const Color(0xFFE5E7EB),
-                          color: const Color(0xFF12B76A),
+                          minHeight: 10,
+                          value: maxValue == 0 ? 0 : (item.value / maxValue),
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          color: const Color(0xFF10B981),
                         ),
                       ),
                     ),
@@ -200,72 +233,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     SizedBox(
                       width: 32,
                       child: Text(
-                        '0',
+                        '${item.value}',
                         textAlign: TextAlign.right,
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ],
-        ),
-      );
-    }
-
-    final int maxValue = data
-        .map((e) => e.value)
-        .fold<int>(1, (prev, element) => element > prev ? element : prev);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          ...data.map(
-            (item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 100,
-                    child: Text(
-                      item.label,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
-                      child: LinearProgressIndicator(
-                        minHeight: 12,
-                        value: item.value / maxValue,
-                        backgroundColor: const Color(0xFFE5E7EB),
-                        color: const Color(0xFF12B76A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 32,
-                    child: Text(
-                      '${item.value}',
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -290,35 +270,131 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _statusChip('Canceled: $cancelled', const Color(0xFFB42318), const Color(0xFFFEF3F2)),
             ],
           ),
-          const SizedBox(height: 12),
-          const Text('Next reservations', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          ..._upcomingReservations.map(
-            (item) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 96,
-                    child: Text(item.slot, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '${item.facility} - ${item.bookedBy}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  Text(item.status, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
-                ],
-              ),
+          const SizedBox(height: 14),
+          const Text(
+            'Next reservations',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF475569),
             ),
           ),
+          const SizedBox(height: 8),
+          if (_upcomingReservations.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No upcoming reservations for today.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+            )
+          else
+            ..._upcomingReservations.map(
+              (item) {
+                final statusLower = item.status.toLowerCase();
+                final isCompleted = statusLower.contains('complete');
+                final isCancelled = statusLower.contains('cancel');
+
+                final badgeColor = isCompleted
+                    ? const Color(0xFF027A48)
+                    : isCancelled
+                        ? const Color(0xFFB42318)
+                        : const Color(0xFF1D4ED8);
+                final badgeBg = isCompleted
+                    ? const Color(0xFFECFDF3)
+                    : isCancelled
+                        ? const Color(0xFFFEF3F2)
+                        : const Color(0xFFEFF6FF);
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.schedule_rounded, size: 12, color: Color(0xFF64748B)),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.slot,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF334155),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.facility,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+                            Row(
+                              children: [
+                                const Icon(Icons.person_outline_rounded, size: 11, color: Color(0xFF64748B)),
+                                const SizedBox(width: 3),
+                                Expanded(
+                                  child: Text(
+                                    item.bookedBy,
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: badgeBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          item.status,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: badgeColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );
@@ -326,15 +402,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _statusChip(String text, Color textColor, Color backgroundColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
-
 
   Widget _buildQualityPanel() {
     final double averageRating = _dashboardData?.averageRating ?? 0;
@@ -371,10 +453,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
+          const SizedBox(height: 14),
+          const Text(
             'Lowest rated recent reviews',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade800),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF475569),
+            ),
           ),
           const SizedBox(height: 8),
           if (reviews.isEmpty)
@@ -395,12 +481,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${item.rating}/5', style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFCD34D)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, size: 13, color: Color(0xFFD97706)),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${item.rating}',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFB45309),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        '${item.facility}: ${item.comment}',
-                        style: const TextStyle(fontSize: 13),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.facility,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF92400E),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            item.comment,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF78350F),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -514,21 +639,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 2),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0F172A),
+            ),
+          ),
           if (subtitle != null) ...[
-            Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+            ),
           ],
+          const SizedBox(height: 16),
           child,
         ],
       ),
@@ -585,18 +727,34 @@ class _QualityMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF64748B),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.4,
+            ),
+          ),
         ],
       ),
     );

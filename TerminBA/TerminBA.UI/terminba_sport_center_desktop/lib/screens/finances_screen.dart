@@ -94,17 +94,13 @@ class _FinancesScreenState extends State<FinancesScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 26, 24, 30),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
+              constraints: const BoxConstraints(maxWidth: 720),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildRevenueCard(),
-                  const SizedBox(height: 42),
-                  _buildMonthlyStatsFilter(),
-                  const SizedBox(height: 14),
-                  _buildMonthTotalLabel(),
-                  const SizedBox(height: 12),
-                  _buildMonthlyChart(),
+                  const SizedBox(height: 28),
+                  _buildMonthlyCard(),
                 ],
               ),
             ),
@@ -118,78 +114,141 @@ class _FinancesScreenState extends State<FinancesScreen> {
     final todayRevenue = _financeSummary?.todayRevenue ?? 0;
 
     return ReportCard(
-      title: "Today's revenue:",
+      title: "Today's Revenue",
       value: CurrencyHelper.format(todayRevenue),
-      iconData: Icons.attach_money,
-      width: 250,
-      backgroundColor: const Color(0xFFF2F4F7),
-      borderColor: const Color(0xFFD6D9DE),
-      borderRadius: 8,
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
-      iconBackgroundColor: const Color(0xFF20B26B),
-      iconColor: Colors.white,
-      iconSize: 18,
-      iconToTitleSpacing: 10,
-      titleToValueSpacing: 4,
-      titleStyle: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: Color(0xFF2D2F33),
-      ),
-      valueStyle: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: Color(0xFF1E2125),
-      ),
+      iconData: Icons.attach_money_rounded,
+      width: 280,
     );
   }
 
-  Widget _buildMonthlyStatsFilter() {
+  Widget _buildMonthlyCard() {
     final currentYear = DateTime.now().year;
     final years = List<int>.generate(2, (index) => currentYear - index);
+    final monthLabel = _financeSummary?.monthLabel ?? _monthNames[_selectedMonth - 1];
+    final monthRevenue = _financeSummary?.monthRevenue ?? 0;
 
-    return Align(
-      alignment: Alignment.centerLeft,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Monthly statistics',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF40444B),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.insights_rounded,
+                      size: 20,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Monthly Statistics',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Daily revenue breakdown for $monthLabel $_selectedYear',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 15,
+                      color: Color(0xFF059669),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$monthLabel Total: ${CurrencyHelper.format(monthRevenue)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF065F46),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 18),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 18),
           Row(
             children: [
               SizedBox(
-                width: 220,
+                width: 200,
                 child: DropdownButtonFormField<int>(
                   value: _selectedMonth,
                   icon: const Icon(Icons.keyboard_arrow_down_rounded),
                   decoration: InputDecoration(
+                    labelText: 'Month',
                     isDense: true,
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 11,
+                      vertical: 10,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(7),
-                      borderSide: const BorderSide(color: Color(0xFFD8DCE2)),
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(
-                        color: Color(0xFF9AC7AE),
-                        width: 1.1,
+                        color: Color(0xFF2563EB),
+                        width: 1.2,
                       ),
                     ),
                   ),
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF7C818A)),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
                   dropdownColor: Colors.white,
                   items: List.generate(
                     _monthNames.length,
@@ -197,11 +256,9 @@ class _FinancesScreenState extends State<FinancesScreen> {
                       value: index + 1,
                       child: Text(_monthNames[index]),
                     ),
-                ),
+                  ),
                   onChanged: (value) async {
-                    if (value == null) {
-                      return;
-                    }
+                    if (value == null) return;
                     setState(() {
                       _selectedMonth = value;
                     });
@@ -209,33 +266,34 @@ class _FinancesScreenState extends State<FinancesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               SizedBox(
-                width: 110,
+                width: 120,
                 child: DropdownButtonFormField<int>(
                   value: _selectedYear,
                   icon: const Icon(Icons.keyboard_arrow_down_rounded),
                   decoration: InputDecoration(
+                    labelText: 'Year',
                     isDense: true,
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 11,
+                      vertical: 10,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(7),
-                      borderSide: const BorderSide(color: Color(0xFFD8DCE2)),
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(
-                        color: Color(0xFF9AC7AE),
-                        width: 1.1,
+                        color: Color(0xFF2563EB),
+                        width: 1.2,
                       ),
                     ),
                   ),
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF7C818A)),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
                   dropdownColor: Colors.white,
                   items: years
                       .map(
@@ -246,9 +304,7 @@ class _FinancesScreenState extends State<FinancesScreen> {
                       )
                       .toList(),
                   onChanged: (value) async {
-                    if (value == null) {
-                      return;
-                    }
+                    if (value == null) return;
                     setState(() {
                       _selectedYear = value;
                     });
@@ -258,24 +314,9 @@ class _FinancesScreenState extends State<FinancesScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          _buildMonthlyChart(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMonthTotalLabel() {
-    final monthLabel = _financeSummary?.monthLabel ?? _monthNames[_selectedMonth - 1];
-    final monthRevenue = _financeSummary?.monthRevenue ?? 0;
-
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        '$monthLabel total: ${CurrencyHelper.format(monthRevenue)}',
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF4E5561),
-        ),
       ),
     );
   }
@@ -319,7 +360,7 @@ class _FinancesScreenState extends State<FinancesScreen> {
                     drawVerticalLine: false,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
-                        color: const Color(0xFFE4E8EE),
+                        color: const Color(0xFFF1F5F9),
                         strokeWidth: 1,
                       );
                     },
@@ -327,8 +368,8 @@ class _FinancesScreenState extends State<FinancesScreen> {
                   borderData: FlBorderData(
                     show: true,
                     border: const Border(
-                      left: BorderSide(color: Color(0xFFD6DCE5)),
-                      bottom: BorderSide(color: Color(0xFFD6DCE5)),
+                      left: BorderSide(color: Color(0xFFE2E8F0)),
+                      bottom: BorderSide(color: Color(0xFFE2E8F0)),
                     ),
                   ),
                   titlesData: FlTitlesData(
