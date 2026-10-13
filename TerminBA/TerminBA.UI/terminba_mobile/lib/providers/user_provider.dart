@@ -34,8 +34,13 @@ class UserProvider extends BaseProvider<User>{
     var response = await http.get(uri, headers: headers);
 
     if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
+      if (response.body.isEmpty) return null;
+      try {
+        var data = jsonDecode(response.body);
+        return fromJson(data);
+      } catch (e) {
+        throw FormatException("Failed to parse profile JSON response: $e");
+      }
     }
     return null;
   }

@@ -69,7 +69,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
         final result = fromJson(data);
         return result;
       } catch (e) {
-        return null;
+        throw FormatException("Failed to parse JSON response: $e");
       }
     }
     
@@ -90,8 +90,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
         var data = jsonDecode(response.body);
         if (data == null) return null;
         return fromJson(data);
-      } catch (_) {
-        return null;
+      } catch (e) {
+        throw FormatException("Failed to parse JSON response: $e");
       }
     }
     
@@ -114,8 +114,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
         var data = jsonDecode(response.body);
         if (data == null) return null;
         return fromJson(data);
-      } catch (_) {
-        return null;
+      } catch (e) {
+        throw FormatException("Failed to parse JSON response: $e");
       }
     }
     

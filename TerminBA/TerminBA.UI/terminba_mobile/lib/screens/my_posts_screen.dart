@@ -52,7 +52,9 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
           _skillLevels = result.items ?? [];
         });
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load skill levels: $e\n$stackTrace');
+    }
   }
 
   @override
@@ -78,7 +80,9 @@ class _MyPostsScreenState extends State<MyPostsScreen> {
           _sports = result.items ?? [];
         });
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load sports: $e\n$stackTrace');
+    }
   }
 
   void _applyFilters() {

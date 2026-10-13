@@ -20,8 +20,12 @@ class PostProvider extends BaseProvider<PostResponse> {
     final response = await http.put(uri, headers: headers);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse close post response: $e');
+    }
   }
 
   Future<PostResponse?> reopenPost(int id) async {
@@ -32,7 +36,11 @@ class PostProvider extends BaseProvider<PostResponse> {
     final response = await http.put(uri, headers: headers);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse reopen post response: $e');
+    }
   }
 }

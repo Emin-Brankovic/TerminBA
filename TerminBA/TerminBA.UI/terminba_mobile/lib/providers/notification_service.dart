@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
@@ -104,8 +105,8 @@ class NotificationService {
 
     try {
       await _hubConnection?.start();
-    } catch (e) {
-      print('SignalR connection failed: $e');
+    } catch (e, stackTrace) {
+      debugPrint('SignalR connection failed: $e\n$stackTrace');
     }
   }
 
@@ -113,11 +114,10 @@ class NotificationService {
     if (_hubConnection != null) {
       final connection = _hubConnection;
       _hubConnection = null;
-      print(_hubConnection);
       try {
         await connection?.stop();
-      } catch (e) {
-        // ignore errors on stop
+      } catch (e, stackTrace) {
+        debugPrint('SignalR stop error: $e\n$stackTrace');
       }
     }
   }

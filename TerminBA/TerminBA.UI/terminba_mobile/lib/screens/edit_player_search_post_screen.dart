@@ -47,15 +47,24 @@ class _EditPlayerSearchPostScreenState extends State<EditPlayerSearchPostScreen>
           if (widget.post.skillLevelId != null) {
             try {
               _selectedSkillLevel = _skillLevels.firstWhere(
-                (sl) => sl.id == widget.post.skillLevelId
+                (sl) => sl.id == widget.post.skillLevelId,
               );
-            } catch (_) {}
+            } catch (e) {
+              _selectedSkillLevel = null;
+            }
           }
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Failed to fetch skill levels: $e\n$stackTrace');
       if (mounted) {
         setState(() => _isLoadingSkills = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load skill levels: ${e.toString().replaceAll("Exception:", "").trim()}'),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
       }
     }
   }

@@ -57,7 +57,9 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
           _skillLevels = result.items ?? [];
         });
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load skill levels: $e\n$stackTrace');
+    }
   }
 
   Future<void> _fetchSentRequests() async {
@@ -86,7 +88,9 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
           }
         });
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint('Failed to fetch sent requests: $e\n$stackTrace');
+    }
   }
 
   @override
@@ -104,7 +108,9 @@ class _PlayerSearchFeedScreenState extends State<PlayerSearchFeedScreen> {
           _sports = result.items ?? [];
         });
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load sports: $e\n$stackTrace');
+    }
   }
 
   Future<void> _fetchPage(int pageKey) async {

@@ -47,8 +47,10 @@ class RecommendationProvider extends ChangeNotifier {
         _recommendations = [];
         _errorMessage = 'Preporuke trenutno nisu dostupne.';
       }
-    } catch (_) {
+    } catch (e, stackTrace) {
+      debugPrint('Error fetching recommendations: $e\n$stackTrace');
       _recommendations = [];
+      _errorMessage = 'Greška pri učitavanju preporuka: ${e.toString().replaceAll("Exception:", "").trim()}';
     } finally {
       _isLoading = false;
       notifyListeners();

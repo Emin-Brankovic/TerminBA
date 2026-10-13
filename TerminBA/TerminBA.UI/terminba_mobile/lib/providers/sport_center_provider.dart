@@ -55,8 +55,8 @@ class SportCenterProvider extends BaseProvider<SportCenter> {
         var rating = jsonDecode(response.body);
         if (rating == null) return null;
         return rating is int ? rating.toDouble() : rating as double;
-      } catch (_) {
-        return null;
+      } catch (e) {
+        throw FormatException("Failed to parse rating: $e");
       }
     } else {
       throw Exception("Unknown error");

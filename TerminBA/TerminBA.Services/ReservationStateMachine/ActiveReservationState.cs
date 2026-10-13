@@ -119,7 +119,7 @@ namespace TerminBA.Services.ReservationStateMachine
                                 }
                                 throw new UserException($"Payment adjustment failed: {ex.StripeError?.Message ?? ex.Message}");
                             }
-                            catch (Exception ex)
+                            catch (Exception ex) when (!(ex is UserException))
                             {
                                 throw new UserException($"Payment adjustment failed: {ex.Message}");
                             }
@@ -156,7 +156,7 @@ namespace TerminBA.Services.ReservationStateMachine
                                     remainingRefund -= amountToRefundFromPayment;
                                 }
                             }
-                            catch (Exception ex)
+                            catch (Exception ex) when (!(ex is UserException))
                             {
                                 throw new UserException($"Payment adjustment failed: {ex.Message}");
                             }

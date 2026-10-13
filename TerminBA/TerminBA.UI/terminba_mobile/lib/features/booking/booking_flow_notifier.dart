@@ -173,8 +173,18 @@ class BookingFlowNotifier extends ChangeNotifier {
 
   Future<bool> confirmPaymentIntent(String paymentIntentId) async {
     try {
-      return await _paymentProvider.confirmPaymentIntent(paymentIntentId);
-    } catch (e) {
+      final success = await _paymentProvider.confirmPaymentIntent(paymentIntentId);
+      if (!success) {
+        _setState(_state.copyWith(
+          paymentError: 'Payment confirmation was not acknowledged by the server.',
+        ));
+      }
+      return success;
+    } catch (e, stackTrace) {
+      debugPrint('Error confirming payment intent: $e\n$stackTrace');
+      _setState(_state.copyWith(
+        paymentError: _messageFrom(e is Exception ? e : Exception(e.toString())),
+      ));
       return false;
     }
   }
@@ -245,9 +255,13 @@ class BookingFlowNotifier extends ChangeNotifier {
     if (reservationId == null) return;
 
     try {
-      await _reservationProvider.delete(reservationId);
+      final success = await _reservationProvider.delete(reservationId);
+      if (!success) {
+        throw Exception('Server failed to cancel reservation #$reservationId.');
+      }
       _setState(_state.copyWith(bookingConfirmation: null));
-    } on Exception catch (e) {
+    } on Exception catch (e, stackTrace) {
+      debugPrint('Failed to cancel pending reservation: $e\n$stackTrace');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

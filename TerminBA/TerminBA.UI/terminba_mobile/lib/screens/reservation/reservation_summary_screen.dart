@@ -286,15 +286,19 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         );
         try {
           await context.read<PostProvider>().insert(req.toJson());
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to create post. Please try again.'),
-              backgroundColor: Color(0xFFE53935),
-            ),
-          );
-          return;
+        } catch (e, stackTrace) {
+          debugPrint('Failed to create post after reservation: $e\n$stackTrace');
+          if (mounted) {
+            final errorMsg = e.toString().replaceAll('Exception:', '').trim();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Reservation confirmed, but could not create post: ${errorMsg.isEmpty ? "Unknown error" : errorMsg}',
+                ),
+                backgroundColor: const Color(0xFFF57C00),
+              ),
+            );
+          }
         }
       }
 
@@ -345,15 +349,19 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
         );
         try {
           await context.read<PostProvider>().insert(req.toJson());
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to create post. Please try again.'),
-              backgroundColor: Color(0xFFE53935),
-            ),
-          );
-          return;
+        } catch (e, stackTrace) {
+          debugPrint('Failed to create post after cash reservation: $e\n$stackTrace');
+          if (mounted) {
+            final errorMsg = e.toString().replaceAll('Exception:', '').trim();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Reservation confirmed, but could not create post: ${errorMsg.isEmpty ? "Unknown error" : errorMsg}',
+                ),
+                backgroundColor: const Color(0xFFF57C00),
+              ),
+            );
+          }
         }
       }
 

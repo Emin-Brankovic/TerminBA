@@ -24,8 +24,8 @@ class SportCenterProvider extends BaseProvider<SportCenter> {
         var data = jsonDecode(response.body);
         if (data == null) return null;
         return fromJson(data);
-      } catch (_) {
-        return null;
+      } catch (e) {
+        throw FormatException("Failed to parse JSON response: $e");
       }
     } else {
       throw Exception("Unknown error");
@@ -46,8 +46,8 @@ class SportCenterProvider extends BaseProvider<SportCenter> {
         var data = jsonDecode(response.body);
         if (data == null) return null;
         return fromJson(data);
-      } catch (_) {
-        return null;
+      } catch (e) {
+        throw FormatException("Failed to parse JSON response: $e");
       }
     } else {
       throw Exception("Unknown error");

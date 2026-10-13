@@ -24,8 +24,12 @@ class PaymentProvider extends BaseProvider<PaymentIntentResponse> {
     final response = await http.post(uri, headers: headers, body: body);
 
     if (isValidResponse(response)) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return PaymentIntentResponse.fromJson(data);
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return PaymentIntentResponse.fromJson(data);
+      } catch (e) {
+        throw FormatException('Failed to parse payment intent response: $e');
+      }
     } else {
       throw Exception('Failed to create payment intent.');
     }
@@ -39,10 +43,14 @@ class PaymentProvider extends BaseProvider<PaymentIntentResponse> {
     final response = await http.post(uri, headers: headers);
 
     if (isValidResponse(response)) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return data['status'] == 'succeeded';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['status'] == 'succeeded';
+      } catch (e) {
+        throw FormatException('Failed to parse confirmation response: $e');
+      }
     } else {
-      return false;
+      throw Exception('Failed to confirm payment intent.');
     }
   }
 }

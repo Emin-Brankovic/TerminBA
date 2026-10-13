@@ -26,8 +26,12 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
     final response = await http.put(uri, headers: headers, body: body);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse request response: $e');
+    }
   }
 
   /// Cancels a sent request (by requester).
@@ -43,8 +47,12 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
     final response = await http.put(uri, headers: headers, body: body);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse cancel request response: $e');
+    }
   }
 
   Future<int> getUnseenCount() async {
@@ -66,8 +74,12 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
     final response = await http.post(uri, headers: headers);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse mark seen response: $e');
+    }
   }
 
   Future<int> getUnseenResponsesCount() async {
@@ -89,8 +101,12 @@ class PlayRequestProvider extends BaseProvider<PlayRequestResponse> {
     final response = await http.post(uri, headers: headers);
     if (!isValidResponse(response)) return null;
     if (response.body.isEmpty) return null;
-    final data = jsonDecode(response.body);
-    return fromJson(data);
+    try {
+      final data = jsonDecode(response.body);
+      return fromJson(data);
+    } catch (e) {
+      throw FormatException('Failed to parse mark response seen response: $e');
+    }
   }
 }
 

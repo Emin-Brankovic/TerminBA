@@ -163,7 +163,7 @@ namespace TerminBA.Services.Service
             catch (StripeException ex)
             {
                 await transaction.RollbackAsync();
-                throw new Exception($"Payment processing failed: {ex.StripeError?.Message ?? "unknown error"}");
+                throw new UserException($"Payment processing failed: {ex.StripeError?.Message ?? "unknown error"}");
             }
             catch
             {
@@ -181,7 +181,7 @@ namespace TerminBA.Services.Service
             }
             catch (StripeException ex)
             {
-                throw new Exception($"Failed to get payment intent: {ex.StripeError?.Message ?? "unknown error"}");
+                throw new UserException($"Failed to get payment intent: {ex.StripeError?.Message ?? "unknown error"}");
             }
         }
 
@@ -243,7 +243,7 @@ namespace TerminBA.Services.Service
             }
             catch (StripeException ex)
             {
-                throw new Exception($"Refund failed: {ex.StripeError?.Message ?? "unknown error"}");
+                throw new UserException($"Refund failed: {ex.StripeError?.Message ?? "unknown error"}");
             }
         }
     }
