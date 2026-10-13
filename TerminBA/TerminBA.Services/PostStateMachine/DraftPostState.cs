@@ -54,8 +54,9 @@ namespace TerminBA.Services.PostStateMachine
                 throw new UserException($"Number of players wanted cannot exceed the facility's maximum capacity ({reservation.Facility.MaxCapacity}).");
             }
 
-            var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currentTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+            var facilityNow = TerminBA.Services.Helpers.TimeHelper.GetFacilityNow();
+            var currentDate = DateOnly.FromDateTime(facilityNow);
+            var currentTime = TimeOnly.FromDateTime(facilityNow);
 
             if (currentDate > reservation.ReservationDate ||
                 (currentDate == reservation.ReservationDate && currentTime > reservation.StartTime))

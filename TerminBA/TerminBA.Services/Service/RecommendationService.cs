@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using TerminBA.Services.Database;
+using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.Recommender;
 using TerminBA.Services.ReservationStateMachine;
@@ -138,7 +139,7 @@ namespace TerminBA.Services.Service
             if (completedReservations.Count < MinCompletedReservationsForPersonalization)
                 return new UserTimeWindow { HasEnoughHistory = false };
 
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
 
             var dayWeights = completedReservations
                 .GroupBy(r => r.ReservationDate.DayOfWeek)
@@ -193,7 +194,7 @@ namespace TerminBA.Services.Service
 
         private async Task<UserProfile> BuildUserProfileAsync(int userId, List<Reservation> reservations)
         {
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
 
             var homeCityId = await GetUserCityIdAsync(userId);
 
@@ -312,7 +313,7 @@ namespace TerminBA.Services.Service
 
             var facilities = await facilitiesQuery.ToListAsync();
 
-            var today = DateTime.Today;
+            var today = TimeHelper.GetFacilityNow().Date;
             var windowStart = DateOnly.FromDateTime(today.AddDays(1));
             var windowEnd = DateOnly.FromDateTime(today.AddDays(CandidateDaysAhead));
             var facilityIds = facilities.Select(f => f.Id).ToList();
@@ -434,7 +435,7 @@ namespace TerminBA.Services.Service
             var homeCityId = await GetUserCityIdAsync(userId);
             var (overallRatings, reviewCounts, globalAverage) = await GetFacilityRatingStatsAsync();
 
-            var popularitySince = DateOnly.FromDateTime(DateTime.Today.AddDays(-PopularityLookbackDays));
+            var popularitySince = DateOnly.FromDateTime(TimeHelper.GetFacilityNow().AddDays(-PopularityLookbackDays));
             var bookingCounts = await _db.Reservations
                 .AsNoTracking()
                 .Where(r => r.FacilityId != null &&

@@ -473,7 +473,7 @@ namespace TerminBA.Services.Service
             var currentSportCenterId = int.Parse(_authService.GetUserId());
             var monthStart = new DateOnly(year, month, 1);
             var monthEnd = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var today = DateOnly.FromDateTime(TerminBA.Services.Helpers.TimeHelper.GetFacilityNow());
 
             var revenueQuery = _context.Reservations
                 .AsNoTracking()
@@ -521,11 +521,12 @@ namespace TerminBA.Services.Service
         public async Task<SportCenterDashboardResponse> SportCenterDashboard()
         {
             var currentSportCenterId = int.Parse(_authService.GetUserId());
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            var nowTime = TimeOnly.FromDateTime(DateTime.UtcNow);
+            var facilityNow = TerminBA.Services.Helpers.TimeHelper.GetFacilityNow();
+            var today = DateOnly.FromDateTime(facilityNow);
+            var nowTime = TimeOnly.FromDateTime(facilityNow);
             var monthStart = new DateOnly(today.Year, today.Month, 1);
             var monthEnd = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
-            var todayDateTime = DateTime.Today;
+            var todayDateTime = facilityNow.Date;
             var daysSinceMonday = (7 + (int)todayDateTime.DayOfWeek - (int)DayOfWeek.Monday) % 7;
             var weekStart = DateOnly.FromDateTime(todayDateTime.AddDays(-daysSinceMonday));
             var weekEnd = weekStart.AddDays(6);

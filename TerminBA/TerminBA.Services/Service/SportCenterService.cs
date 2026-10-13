@@ -271,7 +271,7 @@ namespace TerminBA.Services.Service
 
         public override IQueryable<SportCenter> ApplyIncludes(IQueryable<SportCenter> query)
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(TimeHelper.GetFacilityNow());
 
             query = query
                  .Include(sc => sc.City)

@@ -37,8 +37,8 @@ namespace TerminBA.Services.Database
 
         [NotMapped]
         public bool IsActive =>
-            (ValidFrom <= DateOnly.FromDateTime(DateTime.Today)) &&
-            (ValidTo == null || ValidTo >= DateOnly.FromDateTime(DateTime.Today));
+            (ValidFrom <= DateOnly.FromDateTime(TerminBA.Services.Helpers.TimeHelper.GetFacilityNow())) &&
+            (ValidTo == null || ValidTo >= DateOnly.FromDateTime(TerminBA.Services.Helpers.TimeHelper.GetFacilityNow()));
 
 
 

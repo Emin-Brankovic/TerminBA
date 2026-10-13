@@ -127,9 +127,10 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(Post entity, PostInsertRequest request)
         {
-            var currentDate = DateOnly.FromDateTime(DateTime.UtcNow); 
+            var facilityNow = TerminBA.Services.Helpers.TimeHelper.GetFacilityNow();
+            var currentDate = DateOnly.FromDateTime(facilityNow); 
 
-            var currentTime=TimeOnly.FromDateTime(DateTime.UtcNow);
+            var currentTime=TimeOnly.FromDateTime(facilityNow);
 
             var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == entity.ReservationId);
 
