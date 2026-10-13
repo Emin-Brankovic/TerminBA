@@ -1,7 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.ML;
-using Microsoft.ML;
-using Microsoft.ML.Trainers.FastTree;
 using Newtonsoft.Json;
 using TerminBA.Services.Database;
 using TerminBA.Services.Interfaces;
@@ -13,138 +10,103 @@ namespace TerminBA.Services.Service
     public class RecommendationService : IRecommendationService
     {
         private readonly TerminBaContext _db;
-        private readonly MLContext _mlContext;
-        private readonly PredictionEnginePool<RecommendationInput, RecommendationPrediction> _pool;
 
-        private const string ModelPath = "MLModels/model.zip";
-        private const string ModelName = "RecommenderModel";
         private const int CandidateDaysAhead = 14;
+        private const int MinCompletedReservationsForPersonalization = 3;
+        private const int MinOccurrencesForRoutine = 2;
+        private const double RecencyHalfLifeDays = 120.0;
+        private const double MinRecencyWeight = 0.25;
+        private const int PopularityLookbackDays = 90;
 
-        public RecommendationService(
-            TerminBaContext db,
-            PredictionEnginePool<RecommendationInput, RecommendationPrediction> pool)
+        private const float WeightSport = 0.22f;
+        private const float WeightTimeOfDay = 0.17f;
+        private const float WeightSportCenter = 0.13f;
+        private const float WeightDayOfWeek = 0.10f;
+        private const float WeightQuality = 0.10f;
+        private const float WeightLocation = 0.08f;
+        private const float WeightPrice = 0.08f;
+        private const float WeightFacilityAttributes = 0.07f;
+        private const float WeightRoutine = 0.05f;
+
+        private const float DislikedFacilityPenalty = 0.5f;
+
+        private const float FallbackWeightRating = 0.60f;
+        private const float FallbackWeightPopularity = 0.25f;
+        private const float FallbackWeightCity = 0.15f;
+
+        public RecommendationService(TerminBaContext db)
         {
             _db = db;
-            _mlContext = new MLContext(seed: 0);
-            _pool = pool;
-        }
-
-        public async Task<TrainingResult> TrainModelAsync()
-        {
-            try
-            {
-                var trainingRows = await BuildTrainingDatasetAsync();
-
-                if (trainingRows.Count < 10)
-                {
-                    return new TrainingResult
-                    {
-                        Success = false,
-                        ErrorMessage = $"Not enough training data: {trainingRows.Count} rows (minimum 10 required). " +
-                                       "Make sure users have completed reservations and written facility reviews.",
-                        TrainedAt = DateTime.UtcNow
-                    };
-                }
-
-                IDataView data = _mlContext.Data.LoadFromEnumerable(trainingRows);
-                var split = _mlContext.Data.TrainTestSplit(data, testFraction: 0.2, seed: 42);
-
-                var pipeline = _mlContext.Transforms
-                    .Concatenate("Features",
-                        nameof(RecommendationInput.SportTypeMatch),
-                        nameof(RecommendationInput.FacilityAvgUserRating),
-                        nameof(RecommendationInput.FacilityAvgOverallRating),
-                        nameof(RecommendationInput.PreviouslyBookedFacility),
-                        nameof(RecommendationInput.PriceDiffFromUserAvg),
-                        nameof(RecommendationInput.FacilityBookingFrequency),
-                        nameof(RecommendationInput.TimeWindowFitScore))
-                    .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
-                    .Append(_mlContext.BinaryClassification.Trainers.FastTree(
-                        labelColumnName: "Label",
-                        featureColumnName: "Features",
-                        numberOfLeaves: 20,
-                        numberOfTrees: 100,
-                        minimumExampleCountPerLeaf: 1));
-
-                var model = pipeline.Fit(split.TrainSet);
-                var metrics = _mlContext.BinaryClassification.Evaluate(
-                    model.Transform(split.TestSet));
-
-                Directory.CreateDirectory(Path.GetDirectoryName(ModelPath)!);
-                _mlContext.Model.Save(model, data.Schema, ModelPath);
-
-                return new TrainingResult
-                {
-                    Success = true,
-                    Accuracy = metrics.Accuracy,
-                    AreaUnderRocCurve = metrics.AreaUnderRocCurve,
-                    F1Score = metrics.F1Score,
-                    TrainingRowCount = trainingRows.Count,
-                    TrainedAt = DateTime.UtcNow
-                };
-            }
-            catch (Exception ex)
-            {
-                return new TrainingResult
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    TrainedAt = DateTime.UtcNow
-                };
-            }
         }
 
         public async Task<List<RecommendationResult>> GetRecommendationsAsync(int userId, int topN = 5)
         {
-            var window = await DeriveUserTimeWindowAsync(userId);
+            var userReservations = await _db.Reservations
+                .AsNoTracking()
+                .Include(r => r.Facility)
+                    .ThenInclude(f => f!.AvailableSports)
+                .Include(r => r.Facility)
+                    .ThenInclude(f => f!.SportCenter)
+                .Where(r => r.UserId == userId &&
+                    r.Status != nameof(CanceledReservationState) &&
+                    r.Status != nameof(CanceledWithRefundReservationState) &&
+                    r.Status != nameof(CanceledWithoutRefundReservationState))
+                .ToListAsync();
+
+            var completedReservations = userReservations.Where(IsCompleted).ToList();
+            var window = DeriveUserTimeWindow(completedReservations);
 
             if (!window.HasEnoughHistory)
-            {
-                return await GetFallbackRecommendationsAsync(topN);
-            }
+                return await GetFallbackRecommendationsAsync(userId, topN);
 
-            var candidateSlots = await GetCandidateSlotsAsync(window);
+            var candidateSlots = await GetAvailableSlotsAsync(userId, window);
 
             if (candidateSlots.Count == 0)
-                return new List<RecommendationResult>();
+                return await GetFallbackRecommendationsAsync(userId, topN);
 
-            var userProfile = await BuildUserProfileAsync(userId);
+            var userProfile = await BuildUserProfileAsync(userId, userReservations);
 
-            var results = new List<RecommendationResult>();
+            var scored = candidateSlots
+                .Select(slot =>
+                {
+                    var features = FeatureBuilder.Build(userProfile, slot, window);
+                    return (Slot: slot, Features: features, Score: CalculateContentBasedScore(features));
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Slot.StartTime)
+                .ToList();
 
-            foreach (var slot in candidateSlots)
+            var selected = scored
+                .GroupBy(x => x.Slot.FacilityId)
+                .Select(g => g.First())
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Slot.StartTime)
+                .Take(topN)
+                .ToList();
+
+            if (selected.Count < topN)
             {
-                var input = FeatureBuilder.Build(userProfile, slot, window);
+                var fill = scored
+                    .Where(x => !selected.Contains(x))
+                    .Take(topN - selected.Count)
+                    .ToList();
 
-                RecommendationPrediction prediction;
-                try
-                {
-                    prediction = _pool.Predict(modelName: ModelName, example: input);
-                }
-                catch
-                {
-                    return new List<RecommendationResult>();
-                }
-
-                var reasons = ExplanationBuilder.Build(input, userProfile, slot, window);
-
-                results.Add(new RecommendationResult
-                {
-                    FacilityId = slot.FacilityId,
-                    FacilityName = slot.FacilityName,
-                    SportCenterName = slot.SportCenterName,
-                    StartTime = slot.StartTime,
-                    EndTime = slot.EndTime,
-                    Price = slot.Price,
-                    Score = prediction.Probability,
-                    Reasons = reasons,
-                    IsPersonalized = true
-                });
+                selected.AddRange(fill);
             }
 
-            var topResults = results
-                .OrderByDescending(r => r.Score)
-                .Take(topN)
+            var topResults = selected
+                .Select(x => new RecommendationResult
+                {
+                    FacilityId = x.Slot.FacilityId,
+                    FacilityName = x.Slot.FacilityName,
+                    SportCenterName = x.Slot.SportCenterName,
+                    StartTime = x.Slot.StartTime,
+                    EndTime = x.Slot.EndTime,
+                    Price = x.Slot.Price,
+                    Score = x.Score,
+                    Reasons = ExplanationBuilder.Build(x.Features, userProfile, x.Slot, window),
+                    IsPersonalized = true
+                })
                 .ToList();
 
             await LogRecommendationEventsAsync(userId, topResults);
@@ -152,29 +114,52 @@ namespace TerminBA.Services.Service
             return topResults;
         }
 
-        private async Task<UserTimeWindow> DeriveUserTimeWindowAsync(int userId)
+        private static float CalculateContentBasedScore(CandidateFeatures f)
         {
-            var reservations = await _db.Reservations
-                .Where(r => r.UserId == userId
-                    && (r.Status == "CompletedReservationState" || r.Status == "Completed"))
-                .ToListAsync();
+            float score =
+                WeightSport * f.SportMatchScore +
+                WeightTimeOfDay * f.TimeWindowFitScore +
+                WeightSportCenter * f.SportCenterAffinity +
+                WeightDayOfWeek * f.DayOfWeekFitScore +
+                WeightQuality * f.FacilityQualityScore +
+                WeightLocation * f.LocationMatchScore +
+                WeightPrice * f.PriceFitScore +
+                WeightFacilityAttributes * f.FacilityAttributeMatchScore +
+                WeightRoutine * f.RoutineMatch;
 
-            if (reservations.Count < 3)
+            if (f.FacilityAvgUserRating > 0f && f.FacilityAvgUserRating <= 2f)
+                score *= DislikedFacilityPenalty;
+
+            return Math.Clamp(score, 0f, 1f);
+        }
+
+        private static UserTimeWindow DeriveUserTimeWindow(List<Reservation> completedReservations)
+        {
+            if (completedReservations.Count < MinCompletedReservationsForPersonalization)
                 return new UserTimeWindow { HasEnoughHistory = false };
 
-            var preferredDays = reservations
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var dayWeights = completedReservations
                 .GroupBy(r => r.ReservationDate.DayOfWeek)
-                .OrderByDescending(g => g.Count())
+                .ToDictionary(g => g.Key, g => (float)g.Sum(r => RecencyWeight(r.ReservationDate, today)));
+
+            float maxDayWeight = dayWeights.Values.Max();
+
+            var dayFrequency = dayWeights.ToDictionary(kv => kv.Key, kv => kv.Value / maxDayWeight);
+
+            var preferredDays = dayWeights
+                .OrderByDescending(kv => kv.Value)
                 .Take(2)
-                .Select(g => g.Key)
+                .Select(kv => kv.Key)
                 .ToList();
 
-            var startTimes = reservations
+            var startTimes = completedReservations
                 .Select(r => r.StartTime.ToTimeSpan())
                 .OrderBy(t => t)
                 .ToList();
 
-            var endTimes = reservations
+            var endTimes = completedReservations
                 .Select(r => r.EndTime.ToTimeSpan())
                 .OrderBy(t => t)
                 .ToList();
@@ -182,24 +167,150 @@ namespace TerminBA.Services.Service
             var medianStart = startTimes[startTimes.Count / 2];
             var medianEnd = endTimes[endTimes.Count / 2];
 
+            var routineSlots = completedReservations
+                .GroupBy(r => (Day: r.ReservationDate.DayOfWeek, Start: RoundToHalfHour(r.StartTime.ToTimeSpan())))
+                .Where(g => g.Count() >= MinOccurrencesForRoutine)
+                .Select(g => new RoutineSlot
+                {
+                    Day = g.Key.Day,
+                    Start = g.Key.Start,
+                    Occurrences = g.Count()
+                })
+                .OrderByDescending(r => r.Occurrences)
+                .ToList();
+
             return new UserTimeWindow
             {
                 PreferredDays = preferredDays,
+                DayFrequency = dayFrequency,
                 MedianStart = medianStart,
                 PreferredStart = medianStart.Add(TimeSpan.FromMinutes(-30)),
                 PreferredEnd = medianEnd.Add(TimeSpan.FromMinutes(30)),
+                RoutineSlots = routineSlots,
                 HasEnoughHistory = true
             };
         }
 
-        private async Task<List<TimeSlotCandidate>> GetCandidateSlotsAsync(UserTimeWindow window)
+        private async Task<UserProfile> BuildUserProfileAsync(int userId, List<Reservation> reservations)
         {
-            var facilities = await _db.Facilities
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var homeCityId = await GetUserCityIdAsync(userId);
+
+            var userReviews = await _db.FacilityReviews
+                .AsNoTracking()
+                .Where(fr => fr.UserId == userId && fr.FacilityId != null)
+                .ToListAsync();
+
+            var userRatingPerFacility = userReviews
+                .GroupBy(fr => fr.FacilityId!.Value)
+                .ToDictionary(g => g.Key, g => (float)g.Average(fr => fr.RatingNumber));
+
+            var userRatingPerReservation = userReviews
+                .Where(fr => fr.ReservationId != null)
+                .GroupBy(fr => fr.ReservationId!.Value)
+                .ToDictionary(g => g.Key, g => (float)g.Average(fr => fr.RatingNumber));
+
+            var (overallRatings, reviewCounts, globalAverage) = await GetFacilityRatingStatsAsync();
+
+            var sportWeights = new Dictionary<int, float>();
+            var centerWeights = new Dictionary<int, float>();
+            var cityWeights = new Dictionary<int, float>();
+            var turfWeights = new Dictionary<int, float>();
+            float indoorWeight = 0f;
+            float totalWeight = 0f;
+
+            foreach (var reservation in reservations)
+            {
+                var facility = reservation.Facility;
+                if (facility == null)
+                    continue;
+
+                float rating = userRatingPerReservation.TryGetValue(reservation.Id, out var reservationRating)
+                    ? reservationRating
+                    : userRatingPerFacility.GetValueOrDefault(facility.Id);
+
+                float weight = (float)RecencyWeight(reservation.ReservationDate, today) * RatingWeight(rating);
+
+                if (reservation.ChosenSportId.HasValue)
+                {
+                    AddWeight(sportWeights, reservation.ChosenSportId.Value, weight);
+                }
+                else if (facility.AvailableSports.Count > 0)
+                {
+                    float share = weight / facility.AvailableSports.Count;
+                    foreach (var sport in facility.AvailableSports)
+                        AddWeight(sportWeights, sport.Id, share);
+                }
+
+                AddWeight(centerWeights, facility.SportCenterId, weight);
+                AddWeight(turfWeights, facility.TurfTypeId, weight);
+
+                if (facility.SportCenter != null)
+                    AddWeight(cityWeights, facility.SportCenter.CityId, weight);
+
+                if (facility.IsIndoor)
+                    indoorWeight += weight;
+
+                totalWeight += weight;
+            }
+
+            int? mostBookedSportId = sportWeights.Count > 0
+                ? sportWeights.OrderByDescending(kv => kv.Value).First().Key
+                : null;
+
+            var paidReservations = reservations.Where(r => r.Price > 0).ToList();
+            decimal avgPrice = paidReservations.Count > 0
+                ? paidReservations.Average(r => r.Price)
+                : 0m;
+
+            var bookingCount = reservations
+                .Where(r => r.FacilityId.HasValue)
+                .GroupBy(r => r.FacilityId!.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var bookedSportCenterIds = reservations
+                .Where(r => r.Facility != null)
+                .Select(r => r.Facility!.SportCenterId)
+                .ToHashSet();
+
+            return new UserProfile
+            {
+                UserId = userId,
+                HomeCityId = homeCityId,
+                MostBookedSportId = mostBookedSportId,
+                SportPreference = NormalizeToSum(sportWeights),
+                SportCenterAffinity = NormalizeToMax(centerWeights),
+                CityPreference = NormalizeToMax(cityWeights),
+                TurfTypePreference = NormalizeToMax(turfWeights),
+                IndoorPreference = totalWeight > 0 ? indoorWeight / totalWeight : 0.5f,
+                AveragePaidPrice = avgPrice,
+                BookingCountPerFacility = bookingCount,
+                BookedSportCenterIds = bookedSportCenterIds,
+                UserRatingPerFacility = userRatingPerFacility,
+                OverallRatingPerFacility = overallRatings,
+                ReviewCountPerFacility = reviewCounts,
+                GlobalAverageRating = globalAverage
+            };
+        }
+
+        private async Task<List<TimeSlotCandidate>> GetAvailableSlotsAsync(
+            int userId,
+            UserTimeWindow? window,
+            List<int>? facilityIdFilter = null)
+        {
+            var facilitiesQuery = _db.Facilities
+                .AsNoTracking()
                 .Include(f => f.SportCenter)
-                    .ThenInclude(sc => sc.WorkingHours)
+                    .ThenInclude(sc => sc!.WorkingHours)
                 .Include(f => f.AvailableSports)
                 .Include(f => f.DynamicPrices)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (facilityIdFilter != null)
+                facilitiesQuery = facilitiesQuery.Where(f => facilityIdFilter.Contains(f.Id));
+
+            var facilities = await facilitiesQuery.ToListAsync();
 
             var today = DateTime.Today;
             var windowStart = DateOnly.FromDateTime(today.AddDays(1));
@@ -207,42 +318,59 @@ namespace TerminBA.Services.Service
             var facilityIds = facilities.Select(f => f.Id).ToList();
 
             var activeReservations = await _db.Reservations
+                .AsNoTracking()
                 .Where(r =>
-                    r.FacilityId != null &&
-                    facilityIds.Contains(r.FacilityId!.Value) &&
                     r.ReservationDate >= windowStart &&
                     r.ReservationDate <= windowEnd &&
                     r.Status != nameof(CanceledReservationState) &&
                     r.Status != nameof(CanceledWithRefundReservationState) &&
-                    r.Status != nameof(CanceledWithoutRefundReservationState))
+                    r.Status != nameof(CanceledWithoutRefundReservationState) &&
+                    ((r.FacilityId != null && facilityIds.Contains(r.FacilityId!.Value)) || r.UserId == userId))
                 .Select(r => new
                 {
-                    FacilityId = r.FacilityId!.Value,
+                    r.FacilityId,
+                    r.UserId,
                     r.ReservationDate,
                     r.StartTime,
                     r.EndTime
                 })
                 .ToListAsync();
 
-            var reservationLookup = activeReservations
-                .GroupBy(r => (r.FacilityId, r.ReservationDate))
-                .ToDictionary(g => g.Key, g => g.ToList());
+            var facilityReservations = activeReservations
+                .Where(r => r.FacilityId != null)
+                .GroupBy(r => (FacilityId: r.FacilityId!.Value, r.ReservationDate))
+                .ToDictionary(g => g.Key, g => g.Select(r => (r.StartTime, r.EndTime)).ToList());
+
+            var userReservations = activeReservations
+                .Where(r => r.UserId == userId)
+                .GroupBy(r => r.ReservationDate)
+                .ToDictionary(g => g.Key, g => g.Select(r => (r.StartTime, r.EndTime)).ToList());
 
             var candidates = new List<TimeSlotCandidate>();
 
             foreach (var facility in facilities)
             {
+                if (facility.Duration <= TimeSpan.Zero || facility.SportCenter == null)
+                    continue;
+
+                var sportIds = facility.AvailableSports.Select(s => s.Id).ToList();
+
                 for (int dayOffset = 1; dayOffset <= CandidateDaysAhead; dayOffset++)
                 {
                     var date = today.AddDays(dayOffset);
                     var dow = date.DayOfWeek;
+                    var dateOnly = DateOnly.FromDateTime(date);
 
-                    if (!window.PreferredDays.Contains(dow))
+                    if (window != null && !window.DayFrequency.ContainsKey(dow))
                         continue;
 
-                    var wh = facility.SportCenter?.WorkingHours.FirstOrDefault(w =>
-                        IsInDayRange(w.StartDay, w.EndDay, dow) &&
-                        (w.ValidTo == null || w.ValidTo >= DateOnly.FromDateTime(date)));
+                    var wh = facility.SportCenter.WorkingHours
+                        .Where(w =>
+                            IsInDayRange(w.StartDay, w.EndDay, dow) &&
+                            w.ValidFrom <= dateOnly &&
+                            (w.ValidTo == null || w.ValidTo >= dateOnly))
+                        .OrderByDescending(w => w.ValidFrom)
+                        .FirstOrDefault();
 
                     if (wh == null)
                         continue;
@@ -252,34 +380,42 @@ namespace TerminBA.Services.Service
                     var slotEnd = slotStart.Add(slotDuration);
                     var closeTime = date.Date.Add(wh.CloseingHours.ToTimeSpan());
 
-                    var dateOnly = DateOnly.FromDateTime(date);
-                    reservationLookup.TryGetValue((facility.Id, dateOnly), out var dayReservations);
+                    facilityReservations.TryGetValue((facility.Id, dateOnly), out var facilityDay);
+                    userReservations.TryGetValue(dateOnly, out var userDay);
 
                     while (slotEnd <= closeTime)
                     {
                         var startTod = slotStart.TimeOfDay;
 
-                        if (startTod >= window.PreferredStart && startTod <= window.PreferredEnd)
+                        bool fitsRoutine = window == null ||
+                            FeatureBuilder.MinutesFromUsualStart(window, dow, startTod) <= FeatureBuilder.TimeFitToleranceMinutes;
+
+                        if (fitsRoutine)
                         {
                             var startOnly = TimeOnly.FromDateTime(slotStart);
                             var endOnly = TimeOnly.FromDateTime(slotEnd);
 
-                            bool isOccupied = dayReservations != null &&
-                                dayReservations.Any(r => r.StartTime < endOnly && r.EndTime > startOnly);
+                            bool courtOccupied = facilityDay != null &&
+                                 facilityDay.Any(r => r.StartTime < endOnly && r.EndTime > startOnly);
 
-                            if (!isOccupied)
+                            bool userBusy = userDay != null &&
+                                 userDay.Any(r => r.StartTime < endOnly && r.EndTime > startOnly);
+
+                            if (!courtOccupied && !userBusy)
                             {
-                                decimal price = ComputeSlotPrice(facility, dow, startOnly, slotDuration);
-
                                 candidates.Add(new TimeSlotCandidate
                                 {
                                     FacilityId = facility.Id,
                                     FacilityName = facility.Name ?? string.Empty,
-                                    SportCenterName = facility.SportCenter?.DisplayName ?? string.Empty,
-                                    SportIds = facility.AvailableSports.Select(s => s.Id).ToList(),
+                                    SportCenterId = facility.SportCenterId,
+                                    SportCenterName = facility.SportCenter.DisplayName ?? string.Empty,
+                                    CityId = facility.SportCenter.CityId,
+                                    IsIndoor = facility.IsIndoor,
+                                    TurfTypeId = facility.TurfTypeId,
+                                    SportIds = sportIds,
                                     StartTime = slotStart,
                                     EndTime = slotEnd,
-                                    Price = price
+                                    Price = ComputeSlotPrice(facility, dow, startOnly, slotDuration)
                                 });
                             }
                         }
@@ -293,200 +429,125 @@ namespace TerminBA.Services.Service
             return candidates;
         }
 
-        private async Task<UserProfile> BuildUserProfileAsync(int userId)
+        private async Task<List<RecommendationResult>> GetFallbackRecommendationsAsync(int userId, int topN)
         {
-            var reservations = await _db.Reservations
-                .Where(r => r.UserId == userId &&
-                    r.Status != "CanceledReservationState" &&
-                    r.Status != "CanceledWithRefundReservationState" &&
-                    r.Status != "CanceledWithoutRefundReservationState")
-                .ToListAsync();
+            var homeCityId = await GetUserCityIdAsync(userId);
+            var (overallRatings, reviewCounts, globalAverage) = await GetFacilityRatingStatsAsync();
 
-            int? mostBookedSportId = reservations
-                .Where(r => r.ChosenSportId.HasValue)
-                .GroupBy(r => r.ChosenSportId!.Value)
-                .OrderByDescending(g => g.Count())
-                .Select(g => (int?)g.Key)
-                .FirstOrDefault();
-
-            decimal avgPrice = reservations.Count > 0
-                ? reservations.Average(r => r.Price)
-                : 0m;
-
-            var bookingCount = reservations
-                .Where(r => r.FacilityId.HasValue)
+            var popularitySince = DateOnly.FromDateTime(DateTime.Today.AddDays(-PopularityLookbackDays));
+            var bookingCounts = await _db.Reservations
+                .AsNoTracking()
+                .Where(r => r.FacilityId != null &&
+                    r.ReservationDate >= popularitySince &&
+                    r.Status != nameof(CanceledReservationState) &&
+                    r.Status != nameof(CanceledWithRefundReservationState) &&
+                    r.Status != nameof(CanceledWithoutRefundReservationState))
                 .GroupBy(r => r.FacilityId!.Value)
-                .ToDictionary(g => g.Key, g => g.Count());
+                .Select(g => new { FacilityId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.FacilityId, x => x.Count);
 
-            var userRatings = await _db.FacilityReviews
-                .Where(fr => fr.UserId == userId)
-                .GroupBy(fr => fr.FacilityId!.Value)
-                .Select(g => new { FacilityId = g.Key, AvgRating = (float)g.Average(fr => fr.RatingNumber) })
-                .ToDictionaryAsync(x => x.FacilityId, x => x.AvgRating);
-
-            var overallRatings = await _db.FacilityReviews
-                .GroupBy(fr => fr.FacilityId!.Value)
-                .Select(g => new { FacilityId = g.Key, AvgRating = (float)g.Average(fr => fr.RatingNumber) })
-                .ToDictionaryAsync(x => x.FacilityId, x => x.AvgRating);
-
-            return new UserProfile
-            {
-                UserId = userId,
-                MostBookedSportId = mostBookedSportId,
-                AveragePaidPrice = avgPrice,
-                BookingCountPerFacility = bookingCount,
-                UserRatingPerFacility = userRatings,
-                OverallRatingPerFacility = overallRatings
-            };
-        }
-
-        private async Task<List<RecommendationInput>> BuildTrainingDatasetAsync()
-        {
-            var completedReservations = await _db.Reservations
-                .Include(r => r.Facility)
-                    .ThenInclude(f => f!.AvailableSports)
-                .Where(r => r.Status == "CompletedReservationState" || r.Status == "Completed")
+            var facilities = await _db.Facilities
+                .AsNoTracking()
+                .Select(f => new { f.Id, CityId = (int?)f.SportCenter!.CityId })
                 .ToListAsync();
 
-            var allReviews = await _db.FacilityReviews.ToListAsync();
+            if (facilities.Count == 0)
+                return new List<RecommendationResult>();
 
-            var rows = new List<RecommendationInput>();
+            int maxBookings = bookingCounts.Count > 0 ? bookingCounts.Values.Max() : 0;
 
-            var userIds = completedReservations
-                .Where(r => r.UserId.HasValue)
-                .Select(r => r.UserId!.Value)
-                .Distinct()
+            var ranked = facilities
+                .Select(f =>
+                {
+                    overallRatings.TryGetValue(f.Id, out float avgRating);
+                    reviewCounts.TryGetValue(f.Id, out int reviewCount);
+                    bookingCounts.TryGetValue(f.Id, out int bookings);
+
+                    float smoothedRating = (avgRating * reviewCount + globalAverage * 3f) / (reviewCount + 3f);
+                    float popularity = maxBookings > 0 ? (float)bookings / maxBookings : 0f;
+                    bool inUserCity = homeCityId.HasValue && f.CityId == homeCityId;
+
+                    float score =
+                        FallbackWeightRating * (smoothedRating / 5f) +
+                        FallbackWeightPopularity * popularity +
+                        FallbackWeightCity * (inUserCity ? 1f : 0f);
+
+                    return new
+                    {
+                        FacilityId = f.Id,
+                        AvgRating = avgRating,
+                        ReviewCount = reviewCount,
+                        IsPopular = popularity >= 0.5f,
+                        InUserCity = inUserCity,
+                        Score = Math.Clamp(score, 0f, 1f)
+                    };
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.ReviewCount)
                 .ToList();
 
-            foreach (var uid in userIds)
-            {
-                var userReservations = completedReservations
-                    .Where(r => r.UserId == uid)
-                    .ToList();
+            var shortlist = ranked.Take(Math.Max(topN * 3, topN)).ToList();
+            var shortlistIds = shortlist.Select(x => x.FacilityId).ToList();
 
-                if (userReservations.Count < 2) continue;
+            var nextFreeSlotPerFacility = (await GetAvailableSlotsAsync(userId, window: null, shortlistIds))
+                .GroupBy(s => s.FacilityId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(s => s.StartTime).First());
 
-                var profile = BuildProfileFromReservations(uid, userReservations, allReviews);
-                var window = DeriveWindowFromReservations(userReservations);
-
-                if (!window.HasEnoughHistory) continue;
-
-                foreach (var res in userReservations)
+            return shortlist
+                .Where(x => nextFreeSlotPerFacility.ContainsKey(x.FacilityId))
+                .Take(topN)
+                .Select(x =>
                 {
-                    if (!res.FacilityId.HasValue) continue;
-
-                    var facilityId = res.FacilityId.Value;
-                    var sportIds = res.Facility?.AvailableSports.Select(s => s.Id).ToList() ?? new();
-                    var slotStart = res.ReservationDate.ToDateTime(res.StartTime);
-
-                    var candidate = new TimeSlotCandidate
+                    var slot = nextFreeSlotPerFacility[x.FacilityId];
+                    return new RecommendationResult
                     {
-                        FacilityId = facilityId,
-                        FacilityName = res.Facility?.Name ?? string.Empty,
-                        SportIds = sportIds,
-                        StartTime = slotStart,
-                        EndTime = res.ReservationDate.ToDateTime(res.EndTime),
-                        Price = res.Price
+                        FacilityId = slot.FacilityId,
+                        FacilityName = slot.FacilityName,
+                        SportCenterName = slot.SportCenterName,
+                        StartTime = slot.StartTime,
+                        EndTime = slot.EndTime,
+                        Price = slot.Price,
+                        Score = x.Score,
+                        Reasons = ExplanationBuilder.BuildFallback(x.AvgRating, x.ReviewCount, x.IsPopular, x.InUserCity),
+                        IsPersonalized = false
                     };
-
-                    var input = FeatureBuilder.Build(profile, candidate, window);
-
-                    var userRating = allReviews
-                        .FirstOrDefault(fr => fr.UserId == uid && fr.FacilityId == facilityId);
-
-                    input.Booked = true;
-                    rows.Add(input);
-
-                    var unvisitedFacilityIds = completedReservations
-                        .Where(r => r.FacilityId.HasValue && r.FacilityId != facilityId)
-                        .Select(r => r.FacilityId!.Value)
-                        .Distinct()
-                        .Except(userReservations.Where(x => x.FacilityId.HasValue).Select(x => x.FacilityId!.Value))
-                        .Take(2)
-                        .ToList();
-
-                    foreach (var negFacId in unvisitedFacilityIds)
-                    {
-                        var negCandidate = new TimeSlotCandidate
-                        {
-                            FacilityId = negFacId,
-                            FacilityName = string.Empty,
-                            SportIds = completedReservations
-                                .FirstOrDefault(r => r.FacilityId == negFacId)
-                                ?.Facility?.AvailableSports.Select(s => s.Id).ToList() ?? new(),
-                            StartTime = slotStart,
-                            EndTime = slotStart.AddHours(1),
-                            Price = profile.AveragePaidPrice
-                        };
-
-                        var negInput = FeatureBuilder.Build(profile, negCandidate, window);
-                        negInput.Booked = false;
-                        rows.Add(negInput);
-                    }
-                }
-            }
-
-            return rows;
+                })
+                .ToList();
         }
-        private async Task<List<RecommendationResult>> GetFallbackRecommendationsAsync(int topN)
+
+        private async Task<int?> GetUserCityIdAsync(int userId)
         {
-            var facilityRatings = await _db.FacilityReviews
+            return await _db.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => (int?)u.CityId)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task<(Dictionary<int, float> AvgRatings, Dictionary<int, int> ReviewCounts, float GlobalAverage)>
+            GetFacilityRatingStatsAsync()
+        {
+            var stats = await _db.FacilityReviews
+                .AsNoTracking()
+                .Where(fr => fr.FacilityId != null)
                 .GroupBy(fr => fr.FacilityId!.Value)
                 .Select(g => new
                 {
                     FacilityId = g.Key,
-                    AvgRating = (float)g.Average(fr => fr.RatingNumber),
-                    ReviewCount = g.Count()
+                    AvgRating = g.Average(fr => (double)fr.RatingNumber),
+                    Count = g.Count()
                 })
-                .OrderByDescending(x => x.AvgRating)
-                .ThenByDescending(x => x.ReviewCount)
-                .Take(topN)
                 .ToListAsync();
 
-            if (!facilityRatings.Any())
-            {
-                var allFacilities = await _db.Facilities
-                    .Include(f => f.SportCenter)
-                    .Take(topN)
-                    .ToListAsync();
+            int totalReviews = stats.Sum(s => s.Count);
+            float globalAverage = totalReviews > 0
+                ? (float)(stats.Sum(s => s.AvgRating * s.Count) / totalReviews)
+                : 3.5f;
 
-                return allFacilities.Select(f => new RecommendationResult
-                {
-                    FacilityId = f.Id,
-                    FacilityName = f.Name ?? string.Empty,
-                    SportCenterName = f.SportCenter?.DisplayName ?? string.Empty,
-                    StartTime = DateTime.UtcNow,
-                    EndTime = DateTime.UtcNow.Add(f.Duration),
-                    Price = f.StaticPrice ?? 0m,
-                    Score = 0f,
-                    Reasons = ExplanationBuilder.BuildFallback(0f),
-                    IsPersonalized = false
-                }).ToList();
-            }
-
-            var facilityIds = facilityRatings.Select(x => x.FacilityId).ToList();
-
-            var facilities = await _db.Facilities
-                .Include(f => f.SportCenter)
-                .Where(f => facilityIds.Contains(f.Id))
-                .ToListAsync();
-
-            return facilityRatings.Select(rating =>
-            {
-                var facility = facilities.FirstOrDefault(f => f.Id == rating.FacilityId);
-                return new RecommendationResult
-                {
-                    FacilityId = rating.FacilityId,
-                    FacilityName = facility?.Name ?? string.Empty,
-                    SportCenterName = facility?.SportCenter?.DisplayName ?? string.Empty,
-                    StartTime = DateTime.UtcNow,
-                    EndTime = DateTime.UtcNow.Add(facility?.Duration ?? TimeSpan.FromHours(1)),
-                    Price = facility?.StaticPrice ?? 0m,
-                    Score = rating.AvgRating / 5f,
-                    Reasons = ExplanationBuilder.BuildFallback(rating.AvgRating),
-                    IsPersonalized = false
-                };
-            }).ToList();
+            return (
+                stats.ToDictionary(s => s.FacilityId, s => (float)s.AvgRating),
+                stats.ToDictionary(s => s.FacilityId, s => s.Count),
+                globalAverage);
         }
 
         private async Task LogRecommendationEventsAsync(int userId, List<RecommendationResult> results)
@@ -506,6 +567,48 @@ namespace TerminBA.Services.Service
 
             _db.RecommendationEvents.AddRange(events);
             await _db.SaveChangesAsync();
+        }
+
+        private static bool IsCompleted(Reservation reservation)
+        {
+            return reservation.Status == nameof(CompletedReservationState) || reservation.Status == "Completed";
+        }
+
+        private static double RecencyWeight(DateOnly reservationDate, DateOnly today)
+        {
+            int ageDays = Math.Max(0, today.DayNumber - reservationDate.DayNumber);
+            return Math.Max(MinRecencyWeight, Math.Pow(0.5, ageDays / RecencyHalfLifeDays));
+        }
+
+        private static float RatingWeight(float rating)
+        {
+            return rating > 0f ? rating / 3f : 1f;
+        }
+
+        private static TimeSpan RoundToHalfHour(TimeSpan time)
+        {
+            return TimeSpan.FromMinutes(Math.Round(time.TotalMinutes / 30.0) * 30.0);
+        }
+
+        private static void AddWeight(Dictionary<int, float> weights, int key, float value)
+        {
+            weights[key] = weights.GetValueOrDefault(key) + value;
+        }
+
+        private static Dictionary<int, float> NormalizeToSum(Dictionary<int, float> weights)
+        {
+            float total = weights.Values.Sum();
+            return total > 0
+                ? weights.ToDictionary(kv => kv.Key, kv => kv.Value / total)
+                : new Dictionary<int, float>();
+        }
+
+        private static Dictionary<int, float> NormalizeToMax(Dictionary<int, float> weights)
+        {
+            float max = weights.Count > 0 ? weights.Values.Max() : 0f;
+            return max > 0
+                ? weights.ToDictionary(kv => kv.Key, kv => kv.Value / max)
+                : new Dictionary<int, float>();
         }
 
         private static bool IsInDayRange(DayOfWeek startDay, DayOfWeek endDay, DayOfWeek day)
@@ -533,83 +636,6 @@ namespace TerminBA.Services.Service
 
             decimal hours = (decimal)duration.TotalHours;
             return dynamicPrice.Price * hours;
-        }
-
-        private static UserProfile BuildProfileFromReservations(
-            int userId,
-            List<Reservation> userReservations,
-            List<FacilityReview> allReviews)
-        {
-            int? mostBookedSportId = userReservations
-                .Where(r => r.ChosenSportId.HasValue)
-                .GroupBy(r => r.ChosenSportId!.Value)
-                .OrderByDescending(g => g.Count())
-                .Select(g => (int?)g.Key)
-                .FirstOrDefault();
-
-            decimal avgPrice = userReservations.Count > 0
-                ? userReservations.Average(r => r.Price)
-                : 0m;
-
-            var bookingCount = userReservations
-                .Where(r => r.FacilityId.HasValue)
-                .GroupBy(r => r.FacilityId!.Value)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            var userRatings = allReviews
-                .Where(fr => fr.UserId == userId && fr.FacilityId.HasValue)
-                .GroupBy(fr => fr.FacilityId!.Value)
-                .ToDictionary(g => g.Key, g => (float)g.Average(fr => fr.RatingNumber));
-
-            var overallRatings = allReviews
-                .Where(fr => fr.FacilityId.HasValue)
-                .GroupBy(fr => fr.FacilityId!.Value)
-                .ToDictionary(g => g.Key, g => (float)g.Average(fr => fr.RatingNumber));
-
-            return new UserProfile
-            {
-                UserId = userId,
-                MostBookedSportId = mostBookedSportId,
-                AveragePaidPrice = avgPrice,
-                BookingCountPerFacility = bookingCount,
-                UserRatingPerFacility = userRatings,
-                OverallRatingPerFacility = overallRatings
-            };
-        }
-
-        private static UserTimeWindow DeriveWindowFromReservations(List<Reservation> reservations)
-        {
-            if (reservations.Count < 3)
-                return new UserTimeWindow { HasEnoughHistory = false };
-
-            var preferredDays = reservations
-                .GroupBy(r => r.ReservationDate.DayOfWeek)
-                .OrderByDescending(g => g.Count())
-                .Take(2)
-                .Select(g => g.Key)
-                .ToList();
-
-            var startTimes = reservations
-                .Select(r => r.StartTime.ToTimeSpan())
-                .OrderBy(t => t)
-                .ToList();
-
-            var endTimes = reservations
-                .Select(r => r.EndTime.ToTimeSpan())
-                .OrderBy(t => t)
-                .ToList();
-
-            var medianStart = startTimes[startTimes.Count / 2];
-            var medianEnd = endTimes[endTimes.Count / 2];
-
-            return new UserTimeWindow
-            {
-                PreferredDays = preferredDays,
-                MedianStart = medianStart,
-                PreferredStart = medianStart.Add(TimeSpan.FromMinutes(-30)),
-                PreferredEnd = medianEnd.Add(TimeSpan.FromMinutes(30)),
-                HasEnoughHistory = true
-            };
         }
     }
 }

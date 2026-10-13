@@ -23,8 +23,7 @@ namespace TerminBA.WebAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(List<RecommendationResult>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<List<RecommendationResult>>> GetRecommendations(
             [FromQuery] int topN = 5)
         {
@@ -37,22 +36,11 @@ namespace TerminBA.WebAPI.Controllers
             if (topN < 1 || topN > 20)
                 topN = 5;
 
-            List<RecommendationResult> recommendations;
+            var recommendations = await _recommendationService.GetRecommendationsAsync(userId, topN);
 
-            try
-            {
-                recommendations = await _recommendationService.GetRecommendationsAsync(userId, topN);
-            }
-            catch (Exception ex) when (
-                ex.Message.Contains("model") || ex.Message.Contains("Model") ||
-                ex is InvalidOperationException or FileNotFoundException)
-            {
-                _logger.LogWarning("Model not trained yet: {Error}", ex.Message);
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                    error = "The recommendation model has not been trained yet. Please wait for the background training service to complete."
-                });
-            }
+            _logger.LogDebug(
+                "Returned {Count} recommendations for user {UserId} (personalized: {Personalized}).",
+                recommendations.Count, userId, recommendations.FirstOrDefault()?.IsPersonalized ?? false);
 
             return Ok(recommendations);
         }

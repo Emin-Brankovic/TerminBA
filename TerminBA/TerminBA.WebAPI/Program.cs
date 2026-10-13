@@ -2,7 +2,6 @@ using DotNetEnv;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -14,7 +13,6 @@ using TerminBA.Services.Helpers;
 using TerminBA.Services.Interfaces;
 using TerminBA.Services.PostStateMachine;
 using TerminBA.Services.PlayRequestStateMachine;
-using TerminBA.Services.Recommender;
 using TerminBA.Services.ReservationStateMachine;
 using TerminBA.Services.Service;
 using TerminBA.WebAPI.Filters;
@@ -66,7 +64,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
 builder.Services.AddHostedService<RevokedTokenCleanupService>();
-builder.Services.AddHostedService<RecommendationTrainingHostedService>();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 
@@ -85,9 +82,6 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(cli
     client.DefaultRequestHeaders.UserAgent.ParseAdd("TerminBA/1.0 (sport center geocoding)");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
-
-builder.Services.AddPredictionEnginePool<RecommendationInput, RecommendationPrediction>()
-    .FromFile(modelName: "RecommenderModel", filePath: "MLModels/model.zip", watchForChanges: true);
 
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
