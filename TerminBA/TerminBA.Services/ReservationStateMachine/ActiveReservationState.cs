@@ -56,13 +56,9 @@ namespace TerminBA.Services.ReservationStateMachine
 
                 await ValidateReservationUpdateAsync(entity, request);
 
-                var targetFacilityId = request.FacilityId ?? entity.FacilityId;
-                var facility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == targetFacilityId);
-                bool usesDynamicPricing = facility != null && facility.IsDynamicPricing;
-
                 bool isStripePayment = string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase);
 
-                if (isStripePayment && usesDynamicPricing)
+                if (isStripePayment)
                 {
                     var payments = await _context.Payments
                         .Where(p => p.ReservationId == id && p.Status == TerminBA.Services.Enums.PaymentStatus.Paid)
@@ -303,6 +299,23 @@ namespace TerminBA.Services.ReservationStateMachine
                 if (entity == null)
                     throw new UserException("Reservation was not found");
 
+                var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
+                var currentUser = authService?.GetCurrentUser();
+                bool isSportCenter = currentUser != null && currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
+
+                var userIdStr = authService?.GetUserId();
+                if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
+                {
+                    if (isSportCenter)
+                    {
+                        entity.CanceledBySportCenterId = userId;
+                    }
+                    else
+                    {
+                        entity.CanceledByUserId = userId;
+                    }
+                }
+
                 decimal? actualRefundAmount = null;
 
                 if (string.Equals(entity.PaymentMethod, "Stripe", StringComparison.OrdinalIgnoreCase))
@@ -319,8 +332,17 @@ namespace TerminBA.Services.ReservationStateMachine
                     if (refundablePayments.Any())
                     {
                         decimal totalPaid = refundablePayments.Sum(p => p.Amount - (p.RefundAmount ?? 0));
-                        bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.UtcNow;
-                        decimal totalRefundAmount = missedDeadline ? Math.Round(totalPaid * 0.3m, 2) : totalPaid;
+                        decimal totalRefundAmount;
+
+                        if (isSportCenter)
+                        {
+                            totalRefundAmount = totalPaid;
+                        }
+                        else
+                        {
+                            bool missedDeadline = entity.CancellationDeadline.HasValue && entity.CancellationDeadline < DateTime.UtcNow;
+                            totalRefundAmount = missedDeadline ? Math.Round(totalPaid * 0.3m, 2) : totalPaid;
+                        }
 
                         var stripeService = _serviceProvider.GetRequiredService<TerminBA.Services.Interfaces.IStripePaymentService>();
                         decimal remainingRefund = totalRefundAmount;
@@ -358,23 +380,6 @@ namespace TerminBA.Services.ReservationStateMachine
 
                 entity.CanceledAt = DateTime.UtcNow;
                 entity.CancellationReason = reason;
-
-                var authService = _serviceProvider.GetService<TerminBA.Services.Interfaces.IAuthService<AccountBase>>();
-                var currentUser = authService?.GetCurrentUser();
-                bool isSportCenter = currentUser != null && currentUser.TryGetValue("userRole", out var role) && role == "Sport center";
-
-                var userIdStr = authService?.GetUserId();
-                if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
-                {
-                    if (isSportCenter)
-                    {
-                        entity.CanceledBySportCenterId = userId;
-                    }
-                    else
-                    {
-                        entity.CanceledByUserId = userId;
-                    }
-                }
 
                 await _context.SaveChangesAsync();
 

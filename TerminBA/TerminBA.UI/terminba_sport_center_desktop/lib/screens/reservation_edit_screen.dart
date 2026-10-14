@@ -304,9 +304,6 @@ class _ReservationEditScreenState extends State<ReservationEditScreen> {
         priceMessage = ' An extra charge of ${diff.toStringAsFixed(2)} KM will be made to the user.';
       } else if (parsedPrice < originalPrice) {
         double refundAmount = originalPrice - parsedPrice;
-        if (widget.reservation.cancellationDeadline != null && widget.reservation.cancellationDeadline!.isBefore(DateTime.now().toUtc())) {
-          refundAmount = refundAmount * 0.3;
-        }
         priceMessage = ' A refund of ${refundAmount.toStringAsFixed(2)} KM will be issued to the user.';
       }
     }
