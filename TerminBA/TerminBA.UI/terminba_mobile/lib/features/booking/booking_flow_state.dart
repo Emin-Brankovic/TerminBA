@@ -29,6 +29,7 @@ class BookingFlowState {
   final bool isProcessingPayment;
 
   final String? paymentError;
+  final String? activePaymentIntentId;
 
   final List<Facility> courts;
   final List<FacilityTimeSlot> timeSlots;
@@ -64,6 +65,7 @@ class BookingFlowState {
     this.bookingConfirmation,
     this.isProcessingPayment = false,
     this.paymentError,
+    this.activePaymentIntentId,
     this.wantsToCreatePost = false,
     this.postSkillLevelId,
     this.postText,
@@ -114,6 +116,8 @@ class BookingFlowState {
     bool? isProcessingPayment,
     String? paymentError,
     bool clearPaymentError = false,
+    String? activePaymentIntentId,
+    bool clearActivePaymentIntentId = false,
     bool? wantsToCreatePost,
     int? postSkillLevelId,
     String? postText,
@@ -143,6 +147,9 @@ class BookingFlowState {
           clearBookingConfirmation ? null : bookingConfirmation ?? this.bookingConfirmation,
       isProcessingPayment: isProcessingPayment ?? this.isProcessingPayment,
       paymentError: clearPaymentError ? null : paymentError ?? this.paymentError,
+      activePaymentIntentId: clearActivePaymentIntentId
+          ? null
+          : activePaymentIntentId ?? this.activePaymentIntentId,
       wantsToCreatePost: wantsToCreatePost ?? this.wantsToCreatePost,
       postSkillLevelId: postSkillLevelId ?? this.postSkillLevelId,
       postText: postText ?? this.postText,

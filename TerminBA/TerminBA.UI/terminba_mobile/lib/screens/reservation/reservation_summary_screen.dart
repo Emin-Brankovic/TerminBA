@@ -316,6 +316,10 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
       final code = e.error.code;
       final isCancelled = code == FailureCode.Canceled;
 
+      await notifier.cancelPaymentIntent(intentResponse.paymentIntentId);
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -323,6 +327,16 @@ class _ReservationSummaryScreenState extends State<ReservationSummaryScreen> {
                 ? 'Payment was cancelled.'
                 : 'Payment failed: ${e.error.localizedMessage ?? 'Unknown error'}',
           ),
+          backgroundColor: const Color(0xFFE53935),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      await notifier.cancelPaymentIntent(intentResponse.paymentIntentId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Payment failed: ${e.toString().replaceAll('Exception:', '').trim()}'),
           backgroundColor: const Color(0xFFE53935),
         ),
       );

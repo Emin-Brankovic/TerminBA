@@ -6,6 +6,8 @@ namespace TerminBA.Services.Enums
         Paid,
         RefundPending,
         Refunded,
-        RefundFailed
+        RefundFailed,
+        Canceled,
+        Failed
     }
 }

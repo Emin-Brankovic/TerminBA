@@ -53,4 +53,23 @@ class PaymentProvider extends BaseProvider<PaymentIntentResponse> {
       throw Exception('Failed to confirm payment intent.');
     }
   }
+
+  Future<bool> cancelPaymentIntent(String paymentIntentId) async {
+    final url = '${baseUrl}payments/cancel/$paymentIntentId';
+    final uri = Uri.parse(url);
+    final headers = await createHeaders();
+
+    final response = await http.post(uri, headers: headers);
+
+    if (isValidResponse(response)) {
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['status'] == 'canceled';
+      } catch (e) {
+        throw FormatException('Failed to parse cancellation response: $e');
+      }
+    } else {
+      throw Exception('Failed to cancel payment intent.');
+    }
+  }
 }

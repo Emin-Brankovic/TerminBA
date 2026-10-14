@@ -190,7 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 title.toUpperCase(),
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF64748B),
                   letterSpacing: 0.6,
@@ -211,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 30,
+              fontSize: 34,
               fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
               letterSpacing: -0.5,

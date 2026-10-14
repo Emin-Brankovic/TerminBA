@@ -37,5 +37,12 @@ namespace TerminBA.WebAPI.Controllers
             var status = await _stripePaymentService.ConfirmPaymentAsync(paymentIntentId);
             return Ok(new { status = status });
         }
+
+        [HttpPost("cancel/{paymentIntentId}")]
+        public async Task<IActionResult> CancelPaymentIntent(string paymentIntentId)
+        {
+            var status = await _stripePaymentService.CancelPaymentIntentAsync(paymentIntentId);
+            return Ok(new { status = status });
+        }
     }
 }

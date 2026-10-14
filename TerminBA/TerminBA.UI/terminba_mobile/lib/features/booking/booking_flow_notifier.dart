@@ -148,6 +148,7 @@ class BookingFlowNotifier extends ChangeNotifier {
     _setState(_state.copyWith(
       isProcessingPayment: true,
       clearPaymentError: true,
+      clearActivePaymentIntentId: true,
     ));
 
     try {
@@ -160,33 +161,73 @@ class BookingFlowNotifier extends ChangeNotifier {
 
       final response = await _paymentProvider.createPaymentIntent(request);
 
-      _setState(_state.copyWith(isProcessingPayment: false));
+      _setState(_state.copyWith(
+        isProcessingPayment: false,
+        activePaymentIntentId: response.paymentIntentId,
+      ));
       return response;
     } on Exception catch (e) {
       _setState(_state.copyWith(
         isProcessingPayment: false,
         paymentError: _messageFrom(e),
+        clearActivePaymentIntentId: true,
       ));
       return null;
     }
   }
 
   Future<bool> confirmPaymentIntent(String paymentIntentId) async {
+    _setState(_state.copyWith(isProcessingPayment: true, clearPaymentError: true));
     try {
       final success = await _paymentProvider.confirmPaymentIntent(paymentIntentId);
       if (!success) {
         _setState(_state.copyWith(
+          isProcessingPayment: false,
           paymentError: 'Payment confirmation was not acknowledged by the server.',
+        ));
+      } else {
+        _setState(_state.copyWith(
+          isProcessingPayment: false,
+          clearActivePaymentIntentId: true,
         ));
       }
       return success;
     } catch (e, stackTrace) {
       debugPrint('Error confirming payment intent: $e\n$stackTrace');
       _setState(_state.copyWith(
+        isProcessingPayment: false,
         paymentError: _messageFrom(e is Exception ? e : Exception(e.toString())),
       ));
       return false;
     }
+  }
+
+  Future<bool> cancelPaymentIntent(String paymentIntentId) async {
+    _setState(_state.copyWith(isProcessingPayment: true));
+    try {
+      final success = await _paymentProvider.cancelPaymentIntent(paymentIntentId);
+      _setState(_state.copyWith(
+        isProcessingPayment: false,
+        clearPaymentError: true,
+        clearActivePaymentIntentId: true,
+      ));
+      return success;
+    } catch (e, stackTrace) {
+      debugPrint('Error cancelling payment intent: $e\n$stackTrace');
+      _setState(_state.copyWith(
+        isProcessingPayment: false,
+        clearActivePaymentIntentId: true,
+      ));
+      return false;
+    }
+  }
+
+  void resetPaymentState() {
+    _setState(_state.copyWith(
+      isProcessingPayment: false,
+      clearPaymentError: true,
+      clearActivePaymentIntentId: true,
+    ));
   }
 
 
