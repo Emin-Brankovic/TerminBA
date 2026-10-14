@@ -127,12 +127,17 @@ namespace TerminBA.Services.Service
 
         protected override async Task BeforeInsert(Post entity, PostInsertRequest request)
         {
+            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == entity.ReservationId);
+            if (reservation == null)
+                throw new UserException("Reservation was not found.");
+
+            if (reservation.UserId != int.Parse(_authService.GetUserId()))
+                throw new UserException("You can only create posts for your own reservations.");
+
             var facilityNow = TerminBA.Services.Helpers.TimeHelper.GetFacilityNow();
             var currentDate = DateOnly.FromDateTime(facilityNow); 
+            var currentTime = TimeOnly.FromDateTime(facilityNow);
 
-            var currentTime=TimeOnly.FromDateTime(facilityNow);
-
-            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == entity.ReservationId);
 
 
             if(currentDate > reservation!.ReservationDate)

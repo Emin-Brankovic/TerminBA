@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace TerminBA.Models.Request
 {
-    public class FacilityUpdateRequest
+    public class FacilityUpdateRequest : IValidatableObject
     {
         [Required]
         [MaxLength(100)]
         public required string Name { get; set; }
 
         [Required]
-        [Range(0, 80)]
+        [Range(1, 80, ErrorMessage = "Max capacity must be between 1 and 80.")]
         public int MaxCapacity { get; set; }
 
         [Required]
@@ -53,6 +53,14 @@ namespace TerminBA.Models.Request
         public List<string>? PhotosBase64 { get; set; }
 
         public List<int>? RemovedPhotoIds { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Duration <= TimeSpan.Zero)
+            {
+                yield return new ValidationResult("Duration must be greater than zero.", new[] { nameof(Duration) });
+            }
+        }
     }
 }
 

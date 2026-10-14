@@ -23,6 +23,9 @@ namespace TerminBA.Services.Helpers
             if (facility == null)
                 throw new UserException("Facility was not found");
 
+            if (facility.Duration <= TimeSpan.Zero)
+                throw new UserException("Facility duration must be greater than zero.");
+
             var reservationDayOfWeek = pickedDate.DayOfWeek;
             var workingHours = facility.SportCenter.WorkingHours.ToList();
 

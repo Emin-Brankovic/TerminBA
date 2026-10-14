@@ -1,5 +1,6 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,16 @@ namespace TerminBA.Services.PostStateMachine
 
             if (reservation == null)
                 throw new UserException("Reservation was not found.");
+
+            var authService = _serviceProvider.GetService<IAuthService<AccountBase>>();
+            if (authService != null)
+            {
+                var userIdStr = authService.GetUserId();
+                if (int.TryParse(userIdStr, out int currentUserId) && reservation.UserId != currentUserId)
+                {
+                    throw new UserException("You can only create posts for your own reservations.");
+                }
+            }
 
             if (reservation.Facility != null && request.NumberOfPlayersWanted > reservation.Facility.MaxCapacity)
             {

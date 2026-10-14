@@ -57,6 +57,25 @@ namespace TerminBA.Services.Service
                 throw new UserException("You can only modify reservations for your own facilities.");
             }
 
+            if (request.FacilityId.HasValue && request.FacilityId.Value != entity.FacilityId)
+            {
+                var targetFacility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == request.FacilityId.Value);
+                if (targetFacility == null)
+                {
+                    throw new UserException("Target facility was not found.");
+                }
+
+                if (_currentUser["userRole"] == "Sport center" && targetFacility.SportCenterId != int.Parse(_authService.GetUserId()))
+                {
+                    throw new UserException("You can only move reservations to facilities within your own sport center.");
+                }
+
+                if (targetFacility.SportCenterId != entity.Facility.SportCenterId)
+                {
+                    throw new UserException("Cannot change reservation to a facility belonging to another sport center.");
+                }
+            }
+
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 
             return await baseState.UpdateAsync(id, request);
@@ -64,10 +83,21 @@ namespace TerminBA.Services.Service
 
         public override async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _context.Reservations.FirstOrDefaultAsync(r => r.Id == id);
+            var entity = await _context.Reservations
+                .Include(r => r.Facility)
+                .FirstOrDefaultAsync(r => r.Id == id);
             
             if (entity == null)
                 return false;
+
+            if (_currentUser["userRole"] == "User" && entity.UserId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only delete your own reservations.");
+            }
+            if (_currentUser["userRole"] == "Sport center" && entity.Facility.SportCenterId != int.Parse(_authService.GetUserId()))
+            {
+                throw new UserException("You can only delete reservations for your own facilities.");
+            }
 
             var baseState = _baseReservationState.GetReservationState(entity.Status);
 

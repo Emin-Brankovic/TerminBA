@@ -493,6 +493,19 @@ namespace TerminBA.Services.ReservationStateMachine
         {
             var targetFacilityId = request.FacilityId ?? entity.FacilityId;
 
+            if (request.FacilityId.HasValue && request.FacilityId.Value != entity.FacilityId)
+            {
+                var targetFacility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == request.FacilityId.Value);
+                if (targetFacility == null)
+                    throw new UserException("Target facility was not found.");
+
+                var originalFacility = await _context.Facilities.FirstOrDefaultAsync(f => f.Id == entity.FacilityId);
+                if (originalFacility != null && targetFacility.SportCenterId != originalFacility.SportCenterId)
+                {
+                    throw new UserException("Cannot change reservation to a facility belonging to another sport center.");
+                }
+            }
+
             await ValidateReservationCoreAsync(
                 targetFacilityId ?? 0,
                 request.ReservationDate,
