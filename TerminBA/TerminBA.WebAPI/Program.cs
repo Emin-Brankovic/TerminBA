@@ -65,6 +65,7 @@ builder.Services.AddScoped<CompletedReservationState>();
 builder.Services.AddHostedService<ReservationCompletionHostedService>();
 builder.Services.AddHostedService<RevokedTokenCleanupService>();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, TerminBA.WebAPI.Hubs.CustomUserIdProvider>();
 builder.Services.AddScoped<INotificationsHubService, TerminBA.WebAPI.Hubs.NotificationsHubService>();
 
 builder.Services.AddScoped<BasePlayRequestState>();
@@ -153,6 +154,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.Events = new JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationsHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnTokenValidated = async context =>
             {
                 var jti = context.Principal?.FindFirst("jti")?.Value;

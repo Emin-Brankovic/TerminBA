@@ -32,6 +32,10 @@ class NotificationService {
   final _reservationUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get onReservationUpdated => _reservationUpdatedController.stream;
 
+  final _reconnectedController = StreamController<void>.broadcast();
+  Stream<void> get onReconnected => _reconnectedController.stream;
+
+  bool get isConnected => _hubConnection?.state == HubConnectionState.Connected;
 
   Future<void> init() async {
     await stop();
@@ -42,10 +46,21 @@ class NotificationService {
     final url = "$_baseUrl/notificationsHub";
     _hubConnection = HubConnectionBuilder()
         .withUrl(url, options: HttpConnectionOptions(
-          accessTokenFactory: () async => token,
+          accessTokenFactory: () async => (await _storage.read(key: _tokenKey)) ?? '',
         ))
         .withAutomaticReconnect()
         .build();
+
+    _hubConnection?.onreconnected(({connectionId}) {
+      debugPrint('SignalR reconnected: $connectionId');
+      _reconnectedController.add(null);
+    });
+    _hubConnection?.onreconnecting(({error}) {
+      debugPrint('SignalR reconnecting: $error');
+    });
+    _hubConnection?.onclose(({error}) {
+      debugPrint('SignalR closed: $error');
+    });
 
     _hubConnection?.on('join_request_received', (arguments) {
       if (arguments != null && arguments.isNotEmpty) {
@@ -102,9 +117,9 @@ class NotificationService {
       }
     });
 
-
     try {
       await _hubConnection?.start();
+      debugPrint('SignalR connected successfully');
     } catch (e, stackTrace) {
       debugPrint('SignalR connection failed: $e\n$stackTrace');
     }

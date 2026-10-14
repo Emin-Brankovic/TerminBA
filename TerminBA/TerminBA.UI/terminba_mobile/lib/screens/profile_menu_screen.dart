@@ -121,13 +121,16 @@ class ProfileMenuScreen extends StatelessWidget {
                     ),
                   )
                 : null,
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const PlayerSearchRequestsScreen(),
                 ),
               );
+              if (context.mounted) {
+                context.read<NotificationProvider>().fetchUnseenCount();
+              }
             },
           ),
           _listItem(
@@ -148,13 +151,16 @@ class ProfileMenuScreen extends StatelessWidget {
                     ),
                   )
                 : null,
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const NotificationsScreen(),
                 ),
               );
+              if (context.mounted) {
+                context.read<NotificationProvider>().fetchUnseenCount();
+              }
             },
           ),
           const SizedBox(height: 36),

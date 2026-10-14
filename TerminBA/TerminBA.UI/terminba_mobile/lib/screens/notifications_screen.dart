@@ -38,13 +38,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
 
     _reservationCanceledSubscription = NotificationService().onReservationCanceled.listen((_) {
-      if (mounted) _pagingController.refresh();
+      if (mounted) {
+        _pagingController.refresh();
+        context.read<NotificationProvider>().fetchUnseenCount();
+      }
     });
     _reservationUpdatedSubscription = NotificationService().onReservationUpdated.listen((_) {
-      if (mounted) _pagingController.refresh();
+      if (mounted) {
+        _pagingController.refresh();
+        context.read<NotificationProvider>().fetchUnseenCount();
+      }
     });
     _joinRequestCancelledSubscription = NotificationService().onJoinRequestCancelled.listen((_) {
-      if (mounted) _pagingController.refresh();
+      if (mounted) {
+        _pagingController.refresh();
+        context.read<NotificationProvider>().fetchUnseenCount();
+      }
     });
   }
 

@@ -26,7 +26,7 @@ class MasterScreenBottomNav extends StatefulWidget {
 	State<MasterScreenBottomNav> createState() => _MasterScreenBottomNavState();
 }
 
-class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
+class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> with WidgetsBindingObserver {
 	late int _selectedIndex;
 	final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
 		BottomTab.values.length,
@@ -42,10 +42,12 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 	late StreamSubscription _cancelledSubscription;
 	late StreamSubscription _reservationCanceledSubscription;
 	late StreamSubscription _reservationUpdatedSubscription;
+	late StreamSubscription _reconnectedSubscription;
 
 	@override
 	void initState() {
 		super.initState();
+		WidgetsBinding.instance.addObserver(this);
 		_selectedIndex = widget.initialIndex
 				.clamp(0, BottomTab.values.length - 1)
 				.toInt();
@@ -56,31 +58,44 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 
 			NotificationService().init();
 			_notificationSubscription = NotificationService().onJoinRequestReceived.listen((payload) {
-				notificationProvider.incrementUnseenReceivedCount();
+				notificationProvider.fetchUnseenCount();
 			});
 
 			_respondedSubscription = NotificationService().onJoinRequestResponded.listen((payload) {
-				notificationProvider.incrementUnseenSentCount();
+				notificationProvider.fetchUnseenCount();
 			});
 
-
 			_cancelledSubscription = NotificationService().onJoinRequestCancelled.listen((payload) {
-				notificationProvider.incrementUnseenCancelationCount(); 
+				notificationProvider.fetchUnseenCount(); 
 			});
 
 			_reservationCanceledSubscription = NotificationService().onReservationCanceled.listen((payload) {
-				notificationProvider.incrementUnseenCancelationCount(); 
+				notificationProvider.fetchUnseenCount(); 
 			});
 
 			_reservationUpdatedSubscription = NotificationService().onReservationUpdated.listen((payload) {
-				notificationProvider.incrementUnseenCancelationCount(); 
+				notificationProvider.fetchUnseenCount(); 
 			});
 
+			_reconnectedSubscription = NotificationService().onReconnected.listen((_) {
+				notificationProvider.fetchUnseenCount();
+			});
 		});
 	}
 
 	@override
+	void didChangeAppLifecycleState(AppLifecycleState state) {
+		if (state == AppLifecycleState.resumed && mounted) {
+			context.read<NotificationProvider>().fetchUnseenCount();
+			if (!NotificationService().isConnected) {
+				NotificationService().init();
+			}
+		}
+	}
+
+	@override
 	void dispose() {
+		WidgetsBinding.instance.removeObserver(this);
 		for (final controller in _scrollControllers) {
 			controller.dispose();
 		}
@@ -89,6 +104,7 @@ class _MasterScreenBottomNavState extends State<MasterScreenBottomNav> {
 		_cancelledSubscription.cancel();
 		_reservationCanceledSubscription.cancel();
 		_reservationUpdatedSubscription.cancel();
+		_reconnectedSubscription.cancel();
 		NotificationService().stop();
 		super.dispose();
 	}

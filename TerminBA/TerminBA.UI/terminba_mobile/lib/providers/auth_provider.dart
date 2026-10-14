@@ -5,6 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:terminba_mobile/main.dart';
 import 'package:terminba_mobile/screens/login_screen.dart';
+import 'package:terminba_mobile/layouts/master_screen_bottom_nav.dart';
+import 'package:terminba_mobile/providers/notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   static String? _baseUrl;
@@ -70,6 +72,10 @@ class AuthProvider extends ChangeNotifier {
         }
         _isLoggedIn = true;
         notifyListeners();
+        navigatorKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MasterScreenBottomNav()),
+          (route) => false,
+        );
       } else {
         // Login failed
         final responseBody = json.decode(respone.body);
@@ -128,16 +134,23 @@ class AuthProvider extends ChangeNotifier {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
           },
-        );
+        ).timeout(const Duration(seconds: 2));
       }
     } catch (_) {
+      // Best-effort remote revocation
+    } finally {
+      await _storage.delete(key: _tokenKey);
+      try {
+        await NotificationService().stop();
+      } catch (_) {}
+      _isLoggedIn = false;
+      _currentUsername = null;
+      notifyListeners();
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
     }
-
-    await _storage.delete(key: _tokenKey);
-    _isLoggedIn = false;
-    _currentUsername = null;
-    notifyListeners();
-    navigatorKey.currentState?.popUntil((route) => route.isFirst);
   }
 
   Future<void> changePassword(
