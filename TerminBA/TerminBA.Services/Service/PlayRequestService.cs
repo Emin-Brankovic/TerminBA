@@ -89,20 +89,22 @@ namespace TerminBA.Services.Service
                 query = query.Where(pr => pr.DateOfRequest >= targetDate && pr.DateOfRequest < targetDate.AddDays(1));
             }
 
-            if (!string.IsNullOrEmpty(search.PlayRequestState))
+            var stateFilter = search.PlayRequestState;
+            if (!string.IsNullOrEmpty(stateFilter))
             {
-                if (search.PlayRequestState.ToLower() == "pending")
+                var lowerState = stateFilter.ToLower();
+                if (lowerState == "pending" || lowerState == "pendingplayrequeststate")
                     query = query.Where(pr => pr.PlayRequestState == "PendingPlayRequestState");
-                else if (search.PlayRequestState.ToLower() == "accepted")
+                else if (lowerState == "accepted" || lowerState == "acceptedplayrequeststate")
                     query = query.Where(pr => pr.PlayRequestState == "AcceptedPlayRequestState");
-                else if (search.PlayRequestState.ToLower() == "rejected")
+                else if (lowerState == "rejected" || lowerState == "rejectedplayrequeststate")
                     query = query.Where(pr => pr.PlayRequestState == "RejectedPlayRequestState");
-                else if (search.PlayRequestState.ToLower() == "canceled")
+                else if (lowerState == "canceled" || lowerState == "canceledplayrequeststate")
                     query = query.Where(pr => pr.PlayRequestState == "CanceledPlayRequestState");
-                else if (search.PlayRequestState.ToLower() == "expired")
+                else if (lowerState == "expired" || lowerState == "expiredplayrequeststate")
                     query = query.Where(pr => pr.PlayRequestState == "ExpiredPlayRequestState");
                 else
-                    query = query.Where(pr => pr.PlayRequestState == search.PlayRequestState);
+                    query = query.Where(pr => pr.PlayRequestState == stateFilter);
             }
 
             query = query.OrderByDescending(pr => pr.DateOfRequest);

@@ -99,11 +99,13 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
           final playRequestProvider = Provider.of<PlayRequestProvider>(context, listen: false);
           final prResult = await playRequestProvider.get(filter: {
             'ReservationId': widget.reservationId,
-            'Status': 'accepted',
+            'PlayRequestState': 'AcceptedPlayRequestState',
           });
           if (mounted) {
             setState(() {
-              _acceptedPlayers = prResult.items;
+              _acceptedPlayers = prResult.items
+                  ?.where((req) => req.playRequestState == 'AcceptedPlayRequestState')
+                  .toList();
               _isLoadingPlayers = false;
             });
           }
@@ -443,7 +445,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                       else if (!_details!.isCancelled) ...[
                         if (_isLoadingPlayers)
                           const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
-                        else if (_acceptedPlayers != null && _acceptedPlayers!.isNotEmpty) ...[
+                        else if (_acceptedPlayers != null && _acceptedPlayers!.any((req) => req.playRequestState == 'AcceptedPlayRequestState')) ...[
                           Theme(
                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                             child: ExpansionTile(
@@ -473,7 +475,9 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
                                   ),
                                 ),
                                 const Divider(height: 1, thickness: 1),
-                                ..._acceptedPlayers!.map((req) {
+                                ..._acceptedPlayers!
+                                    .where((req) => req.playRequestState == 'AcceptedPlayRequestState')
+                                    .map((req) {
                                   final requester = req.requester;
                                   final name = requester != null ? '${requester.firstName} ${requester.lastName}' : 'Unknown';
                                   final initials = requester != null ? '${requester.firstName.isNotEmpty ? requester.firstName[0] : ''}${requester.lastName.isNotEmpty ? requester.lastName[0] : ''}'.toUpperCase() : '?';
