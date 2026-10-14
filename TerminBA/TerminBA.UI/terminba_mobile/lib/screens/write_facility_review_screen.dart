@@ -14,12 +14,14 @@ class WriteFacilityReviewScreen extends StatefulWidget {
     required this.facility,
     this.reservationId,
     this.existingReview,
+    this.sportCenterName,
   });
 
   final int sportCenterId;
   final Facility facility;
   final int? reservationId;
   final FacilityReview? existingReview;
+  final String? sportCenterName;
 
   @override
   State<WriteFacilityReviewScreen> createState() =>
@@ -80,13 +82,20 @@ class _WriteFacilityReviewScreenState
             backgroundColor: Color(0xFF4CAF50),
           ),
         );
+
+        final sportCenter = widget.facility.sportCenter;
+        final resolvedSportCenterName = (widget.sportCenterName != null && widget.sportCenterName!.trim().isNotEmpty)
+            ? widget.sportCenterName!
+            : ((sportCenter?.displayName != null && sportCenter!.displayName.trim().isNotEmpty)
+                ? sportCenter.displayName
+                : (sportCenter?.username?.isNotEmpty == true ? sportCenter!.username : 'Sport Center'));
+
         // Navigate to the reviews list for this sport center
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => FacilityReviewsScreen(
               sportCenterId: widget.sportCenterId,
-              sportCenterName:
-                  widget.facility.sportCenter?.username ?? 'Sport Center',
+              sportCenterName: resolvedSportCenterName,
               averageRating: 0.0, // will be recalculated from the list
             ),
           ),

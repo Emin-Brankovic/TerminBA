@@ -1,10 +1,10 @@
-// lib/screens/reviews_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:terminba_mobile/features/reviews/reviews_notifier.dart';
 import 'package:terminba_mobile/features/reviews/reviews_state.dart';
 import 'package:terminba_mobile/model/facility_review.dart';
 import 'package:terminba_mobile/providers/facility_review_provider.dart';
+import 'package:terminba_mobile/providers/sport_center_provider.dart';
 
 class FacilityReviewsScreen extends StatefulWidget  {
   const FacilityReviewsScreen({
@@ -22,17 +22,36 @@ class FacilityReviewsScreen extends StatefulWidget  {
   State<FacilityReviewsScreen> createState() => _FacilityReviewsScreenState();
 }
 
-  class _FacilityReviewsScreenState extends State<FacilityReviewsScreen> {
+class _FacilityReviewsScreenState extends State<FacilityReviewsScreen> {
   late final ReviewsNotifier _notifier;
+  late String _sportCenterName;
 
   @override
   void initState() {
     super.initState();
+    _sportCenterName = widget.sportCenterName;
     _notifier = ReviewsNotifier(
       sportCenterId: widget.sportCenterId,
       reviewProvider: context.read<FacilityReviewProvider>(),
+      sportCenterProvider: context.read<SportCenterProvider>(),
     );
     _notifier.initialize();
+    _fetchSportCenterDetails();
+  }
+
+  Future<void> _fetchSportCenterDetails() async {
+    try {
+      final sportCenter = await context.read<SportCenterProvider>().getById(widget.sportCenterId);
+      if (sportCenter != null &&
+          sportCenter.displayName.trim().isNotEmpty &&
+          mounted) {
+        setState(() {
+          _sportCenterName = sportCenter.displayName;
+        });
+      }
+    } catch (_) {
+      // Keep existing name if fetch fails
+    }
   }
 
   @override
@@ -43,8 +62,6 @@ class FacilityReviewsScreen extends StatefulWidget  {
 
   @override
   Widget build(BuildContext context) {
-    final sportCenterName = widget.sportCenterName;
-
     return ChangeNotifierProvider.value(
       value: _notifier,
       child: Consumer<ReviewsNotifier>(
@@ -53,7 +70,7 @@ class FacilityReviewsScreen extends StatefulWidget  {
           return Scaffold(
             appBar: AppBar(
               leading: const BackButton(),
-              title: Text('$sportCenterName Reviews'),
+              title: Text('$_sportCenterName Reviews'),
               centerTitle: true,
             ),
             body: _buildBody(state),
@@ -100,13 +117,17 @@ class FacilityReviewsScreen extends StatefulWidget  {
             child: Center(child: Text('No reviews yet.')),
           )
         else
-          ...state.reviews.map((review) => _ReviewCard(review: review, sportCenterName: widget.sportCenterName)),
+          ...state.reviews.map((review) => _ReviewCard(review: review, sportCenterName: _sportCenterName)),
       ],
     );
   }
 
   Widget _buildSummaryHeader(ThemeData theme, ReviewsState state) {
-    double displayRating = widget.averageRating;
+    final double displayRating = state.averageRating > 0
+        ? state.averageRating
+        : (state.reviews.isNotEmpty
+            ? state.reviews.map((e) => e.ratingNumber).reduce((a, b) => a + b) / state.reviews.length
+            : widget.averageRating);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

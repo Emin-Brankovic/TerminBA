@@ -353,7 +353,10 @@ class _FacilityReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final facilityName = review.facility?.name ?? 'Unknown Facility';
-    final sportCenterName = review.facility?.sportCenter?.username ?? '';
+    final sportCenter = review.facility?.sportCenter;
+    final sportCenterName = (sportCenter?.displayName != null && sportCenter!.displayName.trim().isNotEmpty)
+        ? sportCenter.displayName
+        : (sportCenter?.username ?? '');
     final dateLabel = DateFormat('d.M.yyyy.').format(review.ratingDate);
 
     return Container(

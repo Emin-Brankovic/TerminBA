@@ -175,7 +175,9 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
     if (fullFacility == null) return;
 
     final sportCenter = fullFacility.sportCenter ?? baseFacility.sportCenter;
-    final sportCenterName = sportCenter?.username ?? '';
+    final sportCenterName = (sportCenter?.displayName != null && sportCenter!.displayName.trim().isNotEmpty)
+        ? sportCenter.displayName
+        : (sportCenter?.username ?? '');
     final sportCenterAddress = sportCenter?.address ?? '';
 
     if (!mounted) return;
@@ -209,7 +211,9 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
   void _navigateToWriteReview(Facility facility, {FacilityReview? existingReview}) {
     final sportCenter = facility.sportCenter;
     final sportCenterId = facility.sportCenterId;
-    final sportCenterName = sportCenter?.username ?? 'Sport Center';
+    final sportCenterName = (sportCenter?.displayName != null && sportCenter!.displayName.trim().isNotEmpty)
+        ? sportCenter.displayName
+        : (sportCenter?.username ?? 'Sport Center');
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -218,6 +222,7 @@ class _ReservationOverviewScreenState extends State<ReservationOverviewScreen> {
           facility: facility,
           reservationId: widget.reservationId,
           existingReview: existingReview,
+          sportCenterName: sportCenterName,
         ),
       ),
     ).then((_) {
